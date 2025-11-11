@@ -43,7 +43,7 @@ export interface OpenRouterModelsResponse {
 
 // Chat Completion Request
 export interface OpenRouterMessage {
-  role: "user" | "assistant" | "system";
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
@@ -73,14 +73,14 @@ export interface OpenRouterUsage {
 export interface OpenRouterChoice {
   index: number;
   message: OpenRouterMessage;
-  finish_reason: "stop" | "length" | "content_filter" | null;
+  finish_reason: 'stop' | 'length' | 'content_filter' | null;
 }
 
 export interface OpenRouterChatResponse {
   id: string;
   model: string;
   created: number;
-  object: "chat.completion";
+  object: 'chat.completion';
   choices: OpenRouterChoice[];
   usage?: OpenRouterUsage;
 }

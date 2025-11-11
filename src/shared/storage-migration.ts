@@ -29,9 +29,7 @@ export async function migrateStorage(): Promise<void> {
 
     // Future migration logic goes here
     if (raw.version < CURRENT_VERSION) {
-      console.log(
-        `[Storage Migration] Migrating from v${raw.version} to v${CURRENT_VERSION}`
-      );
+      console.log(`[Storage Migration] Migrating from v${raw.version} to v${CURRENT_VERSION}`);
 
       // V1 → V2 migration example (for future use)
       // if (raw.version === 1) {

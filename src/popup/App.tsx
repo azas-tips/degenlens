@@ -1,6 +1,65 @@
-import React from 'react';
+import { useAppStore } from './stores/app.store';
+import { ModelSelector } from './components/ModelSelector';
+import { ResultsTable } from './components/ResultsTable';
+import { useAnalyze } from './hooks/useAnalyze';
+
+// Step labels for progress display
+const STEP_LABELS: Record<string, string> = {
+  fetching_pairs: 'Fetching data from DEXscreener...',
+  analyzing_llm: 'Analyzing with LLM...',
+  formatting_results: 'Formatting results...',
+};
 
 function App() {
+  const {
+    chain,
+    model,
+    maxPairs,
+    analyzing,
+    progress,
+    results,
+    error,
+    errorCode,
+    setChain,
+    setModel,
+    setMaxPairs,
+    clearResults,
+  } = useAppStore();
+
+  // Analysis hook
+  const { analyze } = useAnalyze();
+
+  // Check if analysis can be started
+  const canAnalyze = chain && model && !analyzing;
+
+  /**
+   * Handle cache clear
+   */
+  const handleClearCache = async () => {
+    try {
+      await chrome.storage.session.clear();
+      clearResults();
+      alert('Cache cleared successfully');
+    } catch (err) {
+      console.error('[App] Failed to clear cache:', err);
+      alert('Failed to clear cache');
+    }
+  };
+
+  /**
+   * Handle analyze button click
+   */
+  const handleAnalyze = async () => {
+    if (!canAnalyze) {
+      if (!model) {
+        alert('Please select an LLM model');
+      }
+      return;
+    }
+
+    analyze();
+  };
+
   return (
     <div className="w-96 min-h-[500px] bg-dark text-white p-4">
       <header className="mb-6">
@@ -9,19 +68,121 @@ function App() {
       </header>
 
       <main className="space-y-4">
-        <div className="p-8 text-center text-gray-500">
-          <div className="text-6xl mb-4">📊</div>
-          <p className="text-sm">
-            In development...
-            <br />
-            Environment setup complete!
-          </p>
+        {/* Chain Selector */}
+        <section>
+          <label className="block text-sm font-medium mb-2">Chain</label>
+          <select
+            value={chain}
+            onChange={e => setChain(e.target.value)}
+            disabled={analyzing}
+            className="w-full px-3 py-2 bg-dark-lighter border border-gray-700 rounded focus:border-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="solana">Solana</option>
+            <option value="ethereum">Ethereum</option>
+            <option value="bsc">BSC</option>
+            <option value="polygon">Polygon</option>
+            <option value="arbitrum">Arbitrum</option>
+            <option value="optimism">Optimism</option>
+            <option value="base">Base</option>
+          </select>
+        </section>
+
+        {/* Model Selector */}
+        <ModelSelector value={model} onChange={setModel} disabled={analyzing} />
+
+        {/* Max Pairs Input */}
+        <section>
+          <label className="block text-sm font-medium mb-2">Max Pairs to Analyze: {maxPairs}</label>
+          <input
+            type="range"
+            min="1"
+            max="100"
+            value={maxPairs}
+            onChange={e => setMaxPairs(Number(e.target.value))}
+            disabled={analyzing}
+            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>1</span>
+            <span>100</span>
+          </div>
+        </section>
+
+        {/* Error Display */}
+        {error && (
+          <div className="p-3 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm space-y-2">
+            <div>
+              <p className="font-medium">Error</p>
+              <p className="mt-1">{error}</p>
+            </div>
+
+            {/* Show "Go to Settings" button for API key errors */}
+            {(errorCode === 'E_DEX_UNAUTHORIZED' || errorCode === 'E_LLM_UNAUTHORIZED') && (
+              <button
+                onClick={() => chrome.runtime.openOptionsPage()}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded text-white text-xs font-medium transition-colors"
+              >
+                Go to Settings
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex space-x-2">
+          <button
+            onClick={handleAnalyze}
+            disabled={!canAnalyze}
+            className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
+              canAnalyze ? 'bg-primary hover:bg-primary-light' : 'bg-gray-600 cursor-not-allowed'
+            }`}
+          >
+            {analyzing ? 'Analyzing...' : 'Analyze'}
+          </button>
+
+          <button
+            onClick={handleClearCache}
+            disabled={analyzing}
+            className="px-3 py-2 bg-dark-lighter border border-gray-700 rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Clear cache and fetch fresh data"
+          >
+            🔄
+          </button>
         </div>
 
-        {/* TODO: Chain selection */}
-        {/* TODO: Model selection */}
-        {/* TODO: Analyze button */}
-        {/* TODO: Results display */}
+        {/* Progress Display */}
+        {analyzing && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>{STEP_LABELS[progress.step] || 'Processing...'}</span>
+              <span>{progress.progress}%</span>
+            </div>
+            <div className="w-full bg-gray-800 rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress.progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Results Display */}
+        <section className="mt-6">
+          {results ? (
+            <ResultsTable data={results} />
+          ) : (
+            !analyzing && (
+              <div className="p-8 text-center text-gray-500">
+                <div className="text-6xl mb-4">📊</div>
+                <p className="text-sm">
+                  Select a chain and model
+                  <br />
+                  then click &ldquo;Analyze&rdquo;
+                </p>
+              </div>
+            )
+          )}
+        </section>
       </main>
 
       <footer className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500">

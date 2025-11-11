@@ -2,6 +2,10 @@
 // Handles all external API communication
 
 import { migrateStorage } from '@/shared/storage-migration';
+import { MessageSchema } from '@/shared/schema';
+import { handleApiError } from '@/shared/errors';
+import { handleAnalyzeRequest } from './handlers/analyze';
+import { fetchModels } from '@/api/openrouter';
 
 console.log('DegenLens background service worker loaded');
 
@@ -46,18 +50,70 @@ chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener(async (message: unknown) => {
     if (aborted) return;
 
-    console.log('Received message:', message);
+    console.log('[Background] Received message:', message);
 
-    // TODO: Message validation (zod)
-    // TODO: Implement handlers (analyze, fetch-models, etc.)
+    // Validate message with Zod
+    const parsed = MessageSchema.safeParse(message);
 
-    // Temporary echo response
-    safePost({
-      type: 'result',
-      data: { echo: message },
-    });
+    if (!parsed.success) {
+      console.error('[Background] Invalid message format:', parsed.error);
+      safePost({
+        type: 'result',
+        id: (message as any)?.id,
+        error: 'Invalid request format',
+        code: 'E_INVALID_REQUEST',
+      });
+      return;
+    }
+
+    const msg = parsed.data;
+
+    // Route to appropriate handler based on message type
+    if (msg.type === 'analyze') {
+      await handleAnalyzeRequest(msg, safePost, aborted);
+    } else if (msg.type === 'fetch-models') {
+      await handleFetchModelsRequest(msg, safePost);
+    } else {
+      console.warn('[Background] Unknown message type:', msg.type);
+      safePost({
+        type: 'result',
+        id: msg.id,
+        error: 'Unknown request type',
+        code: 'E_INVALID_REQUEST',
+      });
+    }
   });
 });
+
+/**
+ * Handle fetch-models request
+ */
+async function handleFetchModelsRequest(msg: any, safePost: (msg: unknown) => void) {
+  const { id } = msg;
+
+  try {
+    console.log('[Background] Fetching models list');
+
+    const models = await fetchModels();
+
+    safePost({
+      type: 'models-result',
+      id,
+      data: models,
+    });
+
+    console.log(`[Background] Fetched ${models.length} models`);
+  } catch (error) {
+    console.error('[Background] Failed to fetch models:', error);
+    const errorInfo = handleApiError(error);
+    safePost({
+      type: 'models-result',
+      id,
+      error: errorInfo.userMessage,
+      code: errorInfo.code,
+    });
+  }
+}
 
 // Service Worker health check (every 5 minutes)
 chrome.alarms.create('health-check', { periodInMinutes: 5 });
