@@ -88,20 +88,24 @@ function App() {
   }, [analyzing, canAnalyze, cancel, handleAnalyze]);
 
   return (
-    <div className="w-96 min-h-[500px] bg-dark text-white p-4">
+    <div className="w-96 min-h-[500px] bg-dark text-white p-4" role="main">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-primary">😈 {t('app.title')}</h1>
         <p className="text-sm text-gray-400 mt-1">{t('app.subtitle')}</p>
       </header>
 
-      <main className="space-y-4">
+      <main className="space-y-4" aria-label="Analysis controls">
         {/* Chain Selector */}
         <section>
-          <label className="block text-sm font-medium mb-2">{t('form.chain')}</label>
+          <label htmlFor="chain-select" className="block text-sm font-medium mb-2">
+            {t('form.chain')}
+          </label>
           <select
+            id="chain-select"
             value={chain}
             onChange={e => setChain(e.target.value)}
             disabled={analyzing}
+            aria-label={t('form.chain')}
             className="w-full px-3 py-2 bg-dark-lighter border border-gray-700 rounded focus:border-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="solana">Solana</option>
@@ -119,16 +123,21 @@ function App() {
 
         {/* Max Pairs Input */}
         <section>
-          <label className="block text-sm font-medium mb-2">
+          <label htmlFor="max-pairs-range" className="block text-sm font-medium mb-2">
             {t('form.maxPairs', { count: maxPairs })}
           </label>
           <input
+            id="max-pairs-range"
             type="range"
             min="1"
             max="100"
             value={maxPairs}
             onChange={e => setMaxPairs(Number(e.target.value))}
             disabled={analyzing}
+            aria-label={t('form.maxPairs', { count: maxPairs })}
+            aria-valuemin={1}
+            aria-valuemax={100}
+            aria-valuenow={maxPairs}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -139,7 +148,11 @@ function App() {
 
         {/* Error Display */}
         {error && (
-          <div className="p-3 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm space-y-2">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="p-3 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm space-y-2"
+          >
             <div>
               <p className="font-medium">{t('error.title')}</p>
               <p className="mt-1">{error}</p>
@@ -177,10 +190,11 @@ function App() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" role="group" aria-label="Analysis actions">
           {analyzing ? (
             <button
               onClick={cancel}
+              aria-label={t('form.cancel')}
               className="flex-1 px-4 py-2 rounded font-medium bg-red-600 hover:bg-red-700 transition-colors"
             >
               {t('form.cancel')}
@@ -190,6 +204,8 @@ function App() {
               <button
                 onClick={handleAnalyze}
                 disabled={!canAnalyze}
+                aria-label={t('form.analyze')}
+                aria-disabled={!canAnalyze}
                 className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
                   canAnalyze
                     ? 'bg-primary hover:bg-primary-light'
@@ -201,8 +217,9 @@ function App() {
 
               <button
                 onClick={handleClearCache}
-                className="px-3 py-2 bg-dark-lighter border border-gray-700 rounded hover:bg-gray-800 transition-colors"
+                aria-label={t('form.clearCache')}
                 title={t('form.clearCache')}
+                className="px-3 py-2 bg-dark-lighter border border-gray-700 rounded hover:bg-gray-800 transition-colors"
               >
                 🔄
               </button>
@@ -212,12 +229,23 @@ function App() {
 
         {/* Progress Display */}
         {analyzing && (
-          <div className="space-y-2">
+          <div
+            className="space-y-2"
+            role="status"
+            aria-live="polite"
+            aria-label="Analysis progress"
+          >
             <div className="flex justify-between text-xs text-gray-400">
               <span>{progress.step ? t(`progress.${progress.step}`) : t('form.analyzing')}</span>
-              <span>{progress.progress}%</span>
+              <span aria-label={`${progress.progress} percent complete`}>{progress.progress}%</span>
             </div>
-            <div className="w-full bg-gray-800 rounded-full h-2">
+            <div
+              className="w-full bg-gray-800 rounded-full h-2"
+              role="progressbar"
+              aria-valuenow={progress.progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
               <div
                 className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress.progress}%` }}
@@ -227,14 +255,16 @@ function App() {
         )}
 
         {/* Results Display */}
-        <section className="mt-6">
+        <section className="mt-6" aria-label="Analysis results">
           {results ? (
             <ResultsTable data={results} />
           ) : analyzing ? (
             <LoadingSkeleton />
           ) : (
-            <div className="p-8 text-center text-gray-500">
-              <div className="text-6xl mb-4">📊</div>
+            <div className="p-8 text-center text-gray-500" role="status">
+              <div className="text-6xl mb-4" aria-hidden="true">
+                📊
+              </div>
               <p className="text-sm">
                 {t('empty.instructions')}
                 <br />
@@ -245,9 +275,12 @@ function App() {
         </section>
       </main>
 
-      <footer className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500 space-y-1">
+      <footer
+        className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500 space-y-1"
+        role="contentinfo"
+      >
         <p>{t('footer.warning')}</p>
-        <p className="text-gray-600">
+        <p className="text-gray-600" aria-label="Keyboard shortcuts">
           Shortcuts: <kbd className="px-1 py-0.5 bg-gray-800 rounded">⌘/Ctrl+Enter</kbd> to analyze,{' '}
           <kbd className="px-1 py-0.5 bg-gray-800 rounded">Esc</kbd> to cancel
         </p>
