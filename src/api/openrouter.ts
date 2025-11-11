@@ -10,6 +10,7 @@ import type {
 } from '@/types/openrouter';
 import { llmLimiter } from '@/background/utils/rate-limiter';
 import { cacheManager, getModelsCacheKey } from '@/background/utils/cache';
+import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
 
 const OPENROUTER_API_BASE = 'https://openrouter.ai/api/v1';
@@ -53,7 +54,10 @@ export async function fetchModels(): Promise<OpenRouterModel[]> {
 
       const client = await createOpenRouterClient();
 
-      const response = await client.get('models').json<OpenRouterModelsResponse>();
+      const response = await retryWithBackoff(
+        () => client.get('models').json<OpenRouterModelsResponse>(),
+        { maxAttempts: 3 }
+      );
 
       return response.data;
     });
@@ -83,11 +87,15 @@ export async function chatCompletion(
       },
     };
 
-    const response = await client
-      .post('chat/completions', {
-        json: requestWithUsage,
-      })
-      .json<OpenRouterChatResponse>();
+    const response = await retryWithBackoff(
+      () =>
+        client
+          .post('chat/completions', {
+            json: requestWithUsage,
+          })
+          .json<OpenRouterChatResponse>(),
+      { maxAttempts: 3 }
+    );
 
     // Log usage info
     if (response.usage) {

@@ -59,7 +59,12 @@ export function useAnalyze() {
 
           // Check for error
           if (resultMsg.error) {
-            setError(resultMsg.error, resultMsg.code);
+            setError(
+              resultMsg.error,
+              resultMsg.code,
+              resultMsg.suggestions || [],
+              resultMsg.retryAfterMs || 0
+            );
           }
           // Success
           else if (resultMsg.data) {

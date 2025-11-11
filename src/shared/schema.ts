@@ -41,6 +41,8 @@ export const AnalyzeResultSchema = z.object({
   data: z.unknown().optional(),
   error: z.string().optional(),
   code: z.string().optional(), // Error code
+  suggestions: z.array(z.string()).optional(), // Error suggestions
+  retryAfterMs: z.number().optional(), // Retry wait time (for rate limits)
 });
 
 export type AnalyzeResult = z.infer<typeof AnalyzeResultSchema>;
@@ -68,6 +70,7 @@ export const FetchModelsResultSchema = z.object({
   data: z.array(z.unknown()).optional(),
   error: z.string().optional(),
   code: z.string().optional(),
+  suggestions: z.array(z.string()).optional(), // Error suggestions
 });
 
 export type FetchModelsResult = z.infer<typeof FetchModelsResultSchema>;

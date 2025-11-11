@@ -1,10 +1,11 @@
 // DEXscreener API Client
-// Handles all DEXscreener API requests with caching and rate limiting
+// Handles all DEXscreener API requests with caching, rate limiting, and retry logic
 
 import ky from 'ky';
 import type { DexPair, DexPairsResponse } from '@/types/dexscreener';
 import { dexLimiter } from '@/background/utils/rate-limiter';
 import { cacheManager, getDexCacheKey } from '@/background/utils/cache';
+import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
 
 const DEX_API_BASE = 'https://api.dexscreener.com/latest/dex';
@@ -48,10 +49,13 @@ export async function fetchPairsByChain(chain: string, maxPairs: number = 20): P
 
       const client = await createDexClient();
 
-      // Fetch pairs for chain
+      // Fetch pairs for chain with retry logic
       // Note: DEXscreener API does not support pagination
       // We fetch all and slice on client side
-      const response = await client.get(`pairs/${chain}`).json<DexPairsResponse>();
+      const response = await retryWithBackoff(
+        () => client.get(`pairs/${chain}`).json<DexPairsResponse>(),
+        { maxAttempts: 3 }
+      );
 
       // Filter and sort pairs
       const pairs = response.pairs || [];
@@ -80,7 +84,10 @@ export async function fetchPairByAddress(pairAddress: string): Promise<DexPair |
     const client = await createDexClient();
 
     try {
-      const response = await client.get(`pairs/${pairAddress}`).json<DexPairsResponse>();
+      const response = await retryWithBackoff(
+        () => client.get(`pairs/${pairAddress}`).json<DexPairsResponse>(),
+        { maxAttempts: 3 }
+      );
 
       return response.pairs?.[0] || null;
     } catch (error) {
@@ -103,9 +110,10 @@ export async function searchPairs(query: string): Promise<DexPair[]> {
     const client = await createDexClient();
 
     try {
-      const response = await client
-        .get(`search?q=${encodeURIComponent(query)}`)
-        .json<DexPairsResponse>();
+      const response = await retryWithBackoff(
+        () => client.get(`search?q=${encodeURIComponent(query)}`).json<DexPairsResponse>(),
+        { maxAttempts: 3 }
+      );
 
       return response.pairs || [];
     } catch (error) {

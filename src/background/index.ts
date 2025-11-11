@@ -111,6 +111,7 @@ async function handleFetchModelsRequest(msg: any, safePost: (msg: unknown) => vo
       id,
       error: errorInfo.userMessage,
       code: errorInfo.code,
+      suggestions: errorInfo.suggestions,
     });
   }
 }

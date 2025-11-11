@@ -20,6 +20,8 @@ function App() {
     results,
     error,
     errorCode,
+    errorSuggestions,
+    retryAfterMs,
     setChain,
     setModel,
     setMaxPairs,
@@ -115,6 +117,25 @@ function App() {
               <p className="font-medium">Error</p>
               <p className="mt-1">{error}</p>
             </div>
+
+            {/* Show retry wait time for rate limits */}
+            {retryAfterMs > 0 && (
+              <div className="text-xs text-red-300">
+                Please wait {Math.ceil(retryAfterMs / 1000)} seconds before retrying
+              </div>
+            )}
+
+            {/* Show actionable suggestions */}
+            {errorSuggestions.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs font-medium text-red-300 mb-1">Suggestions:</p>
+                <ul className="list-disc list-inside space-y-0.5 text-xs text-red-200">
+                  {errorSuggestions.map((suggestion, i) => (
+                    <li key={i}>{suggestion}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Show "Go to Settings" button for API key errors */}
             {(errorCode === 'E_DEX_UNAUTHORIZED' || errorCode === 'E_LLM_UNAUTHORIZED') && (
