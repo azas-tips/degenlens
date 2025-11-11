@@ -4,6 +4,7 @@
   "short_name": "DegenLens",
   "version": "1.0.0",
   "description": "AI-powered DEX scanner for smart degens",
+  "default_locale": "en",
   "permissions": [
     "storage"
   ],
