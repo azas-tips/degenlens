@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "DegenLens",
+  "short_name": "DegenLens",
+  "version": "0.1.0",
+  "description": "AI-powered DEX scanner for smart degens",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.dexscreener.com/*",
+    "https://openrouter.ai/api/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "DegenLens",
+    "default_icon": {
+      "16": "icons/16.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/options/index.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "minimum_chrome_version": "102",
+  "offline_enabled": false,
+  "content_security_policy": {
+    "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://api.dexscreener.com https://openrouter.ai; object-src 'none'"
+  }
+}
