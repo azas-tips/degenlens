@@ -140,6 +140,7 @@ describe('OpenRouter API Integration', () => {
         id: 'chat-123',
         model: 'anthropic/claude-3.5-sonnet',
         created: Date.now(),
+        object: 'chat.completion',
         choices: [
           {
             index: 0,
@@ -183,6 +184,7 @@ describe('OpenRouter API Integration', () => {
         id: 'chat-123',
         model: 'anthropic/claude-3.5-sonnet',
         created: Date.now(),
+        object: 'chat.completion',
         choices: [
           {
             index: 0,
@@ -274,6 +276,7 @@ describe('OpenRouter API Integration', () => {
         id: 'chat-123',
         model: 'anthropic/claude-3.5-sonnet',
         created: Date.now(),
+        object: 'chat.completion',
         choices: [
           {
             index: 0,

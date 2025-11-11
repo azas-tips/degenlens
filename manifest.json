@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DegenLens",
   "short_name": "DegenLens",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "AI-powered DEX scanner for smart degens",
   "permissions": [
     "storage"
