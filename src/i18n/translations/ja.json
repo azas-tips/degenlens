@@ -44,7 +44,8 @@
     "analyzing": "トークンペアを分析中..."
   },
   "footer": {
-    "warning": "⚠️ 投資助言ではありません。DYOR（自己責任で調査）。"
+    "warning": "⚠️ 投資助言ではありません。DYOR（自己責任で調査）。",
+    "settings": "設定"
   },
   "options": {
     "title": "設定",

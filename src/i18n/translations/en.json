@@ -44,7 +44,8 @@
     "analyzing": "Analyzing token pairs..."
   },
   "footer": {
-    "warning": "⚠️ Not financial advice. DYOR."
+    "warning": "⚠️ Not financial advice. DYOR.",
+    "settings": "Settings"
   },
   "options": {
     "title": "Settings",

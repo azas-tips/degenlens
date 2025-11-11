@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/types/storage';
+import { useTranslation, type Language } from '@/i18n';
 
 function Options() {
+  const { language, setLanguage, t } = useTranslation();
+
   // API key saved status
   const [savedKeys, setSavedKeys] = useState({
     dex: false,
@@ -130,14 +133,32 @@ function Options() {
         )}
 
         <main className="space-y-8">
+          {/* Language section */}
+          <section className="bg-dark-lighter p-6 rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">{t('options.language')}</h2>
+            <div>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as Language)}
+                className="w-full px-4 py-2 bg-dark border border-gray-700 rounded focus:border-primary focus:outline-none"
+              >
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-2">
+                Language preference is automatically saved
+              </p>
+            </div>
+          </section>
+
           {/* API Keys section */}
           <section className="bg-dark-lighter p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">API Keys</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('options.title')}</h2>
             <div className="space-y-4">
               {/* DEXscreener API Key */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium">DEXscreener API Key</label>
+                  <label className="block text-sm font-medium">{t('options.dexKey')}</label>
                   {savedKeys.dex && (
                     <span className="text-xs text-profit font-medium">✓ Saved</span>
                   )}
@@ -150,7 +171,7 @@ function Options() {
                   className="w-full px-4 py-2 bg-dark border border-gray-700 rounded focus:border-primary focus:outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Get your key at{' '}
+                  {t('options.dexKeyDesc')} - Get your key at{' '}
                   <a
                     href="https://docs.dexscreener.com"
                     target="_blank"
@@ -165,7 +186,7 @@ function Options() {
               {/* OpenRouter API Key */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium">OpenRouter API Key</label>
+                  <label className="block text-sm font-medium">{t('options.openrouterKey')}</label>
                   {savedKeys.openrouter && (
                     <span className="text-xs text-profit font-medium">✓ Saved</span>
                   )}
@@ -178,7 +199,7 @@ function Options() {
                   className="w-full px-4 py-2 bg-dark border border-gray-700 rounded focus:border-primary focus:outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Get your key at{' '}
+                  {t('options.openrouterKeyDesc')} - Get your key at{' '}
                   <a
                     href="https://openrouter.ai"
                     target="_blank"
@@ -197,7 +218,7 @@ function Options() {
                   saving ? 'bg-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-primary-light'
                 }`}
               >
-                {saving ? 'Saving...' : 'Save API Keys'}
+                {saving ? t('options.saving') : t('options.save')}
               </button>
             </div>
           </section>

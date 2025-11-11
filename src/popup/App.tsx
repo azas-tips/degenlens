@@ -276,10 +276,19 @@ function App() {
       </main>
 
       <footer
-        className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500 space-y-1"
+        className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500 space-y-2"
         role="contentinfo"
       >
-        <p>{t('footer.warning')}</p>
+        <div className="flex items-center justify-between">
+          <p className="flex-1">{t('footer.warning')}</p>
+          <button
+            onClick={() => chrome.runtime.openOptionsPage()}
+            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded transition-colors flex items-center gap-1"
+            aria-label="Open settings"
+          >
+            ⚙️ {t('footer.settings')}
+          </button>
+        </div>
         <p className="text-gray-600" aria-label="Keyboard shortcuts">
           Shortcuts: <kbd className="px-1 py-0.5 bg-gray-800 rounded">⌘/Ctrl+Enter</kbd> to analyze,{' '}
           <kbd className="px-1 py-0.5 bg-gray-800 rounded">Esc</kbd> to cancel
