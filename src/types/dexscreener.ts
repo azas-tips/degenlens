@@ -78,6 +78,10 @@ export interface DexScreenerPairsResponse {
   pairs: DexScreenerPair[] | null;
 }
 
+// Type aliases for convenience
+export type DexPair = DexScreenerPair;
+export type DexPairsResponse = DexScreenerPairsResponse;
+
 // Search Response
 export interface DexScreenerSearchResponse {
   pairs: DexScreenerPair[];
