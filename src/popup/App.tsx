@@ -1,6 +1,7 @@
 import { useAppStore } from './stores/app.store';
 import { ModelSelector } from './components/ModelSelector';
 import { ResultsTable } from './components/ResultsTable';
+import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { useAnalyze } from './hooks/useAnalyze';
 
 // Step labels for progress display
@@ -203,17 +204,17 @@ function App() {
         <section className="mt-6">
           {results ? (
             <ResultsTable data={results} />
+          ) : analyzing ? (
+            <LoadingSkeleton />
           ) : (
-            !analyzing && (
-              <div className="p-8 text-center text-gray-500">
-                <div className="text-6xl mb-4">📊</div>
-                <p className="text-sm">
-                  Select a chain and model
-                  <br />
-                  then click &ldquo;Analyze&rdquo;
-                </p>
-              </div>
-            )
+            <div className="p-8 text-center text-gray-500">
+              <div className="text-6xl mb-4">📊</div>
+              <p className="text-sm">
+                Select a chain and model
+                <br />
+                then click &ldquo;Analyze&rdquo;
+              </p>
+            </div>
           )}
         </section>
       </main>
