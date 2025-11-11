@@ -1,0 +1,61 @@
+{
+  "app": {
+    "title": "DegenLens",
+    "subtitle": "AI-powered DEX scanner"
+  },
+  "form": {
+    "chain": "Chain",
+    "model": "LLM Model",
+    "maxPairs": "Max Pairs to Analyze: {{count}}",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "cancel": "Cancel",
+    "clearCache": "Clear cache and fetch fresh data"
+  },
+  "progress": {
+    "fetching_pairs": "Fetching data from DEXscreener...",
+    "analyzing_llm": "Analyzing with LLM...",
+    "formatting_results": "Formatting results..."
+  },
+  "error": {
+    "title": "Error",
+    "retryWait": "Please wait {{seconds}} seconds before retrying",
+    "suggestions": "Suggestions:",
+    "goToSettings": "Go to Settings"
+  },
+  "results": {
+    "token": "Token",
+    "price": "Price",
+    "change24h": "24h %",
+    "volume": "Volume",
+    "liquidity": "Liquidity",
+    "score": "Score",
+    "tokensUsed": "Tokens Used: {{count}}",
+    "cost": "Cost: ${{amount}}",
+    "aiSummary": "AI Analysis Summary",
+    "detailedAnalysis": "Detailed Analysis",
+    "disclaimer": "Data is provided for informational purposes only.",
+    "dyor": "Always DYOR before making any investment decisions."
+  },
+  "empty": {
+    "instructions": "Select a chain and model",
+    "thenAnalyze": "then click \"Analyze\"",
+    "noResults": "No results found",
+    "analyzing": "Analyzing token pairs..."
+  },
+  "footer": {
+    "warning": "⚠️ Not financial advice. DYOR."
+  },
+  "options": {
+    "title": "Settings",
+    "openrouterKey": "OpenRouter API Key",
+    "openrouterKeyDesc": "Required for LLM analysis",
+    "dexKey": "DEXscreener API Key",
+    "dexKeyDesc": "Optional - increases rate limits",
+    "language": "Language",
+    "save": "Save Settings",
+    "saving": "Saving...",
+    "saved": "Settings saved successfully!",
+    "failed": "Failed to save settings"
+  }
+}
