@@ -4,6 +4,7 @@ import { ResultsTable } from './components/ResultsTable';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { useAnalyze } from './hooks/useAnalyze';
 import { useTranslation } from '@/i18n';
+import { useEffect, useCallback } from 'react';
 
 function App() {
   const { t } = useTranslation();
@@ -47,7 +48,7 @@ function App() {
   /**
    * Handle analyze button click
    */
-  const handleAnalyze = async () => {
+  const handleAnalyze = useCallback(async () => {
     if (!canAnalyze) {
       if (!model) {
         alert('Please select an LLM model');
@@ -56,7 +57,35 @@ function App() {
     }
 
     analyze();
-  };
+  }, [canAnalyze, model, analyze]);
+
+  /**
+   * Keyboard shortcuts
+   * Ctrl/Cmd+Enter: Start/Cancel analysis
+   * Escape: Cancel analysis (if running)
+   */
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      // Ctrl/Cmd+Enter: Toggle analysis
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (analyzing) {
+          cancel();
+        } else if (canAnalyze) {
+          handleAnalyze();
+        }
+      }
+
+      // Escape: Cancel analysis
+      if (e.key === 'Escape' && analyzing) {
+        e.preventDefault();
+        cancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [analyzing, canAnalyze, cancel, handleAnalyze]);
 
   return (
     <div className="w-96 min-h-[500px] bg-dark text-white p-4">
@@ -216,8 +245,12 @@ function App() {
         </section>
       </main>
 
-      <footer className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500">
-        {t('footer.warning')}
+      <footer className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500 space-y-1">
+        <p>{t('footer.warning')}</p>
+        <p className="text-gray-600">
+          Shortcuts: <kbd className="px-1 py-0.5 bg-gray-800 rounded">⌘/Ctrl+Enter</kbd> to analyze,{' '}
+          <kbd className="px-1 py-0.5 bg-gray-800 rounded">Esc</kbd> to cancel
+        </p>
       </footer>
     </div>
   );
