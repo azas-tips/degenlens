@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/types/storage';
 
 function Options() {
-  // APIキー保存状態
+  // API key saved status
   const [savedKeys, setSavedKeys] = useState({
     dex: false,
     openrouter: false,
   });
 
-  // 入力フィールド（常に空表示）
+  // Input fields (always displayed empty)
   const [dexInput, setDexInput] = useState('');
   const [openrouterInput, setOpenrouterInput] = useState('');
 
-  // 保存処理中フラグ
+  // Saving in progress flag
   const [saving, setSaving] = useState(false);
 
-  // 保存成功メッセージ
+  // Save success message
   const [saveMessage, setSaveMessage] = useState('');
 
-  // 起動時: 保存状態のみ確認
+  // On startup: Check saved status only
   useEffect(() => {
     loadSavedStatus();
   }, []);
@@ -35,10 +35,10 @@ function Options() {
     });
   };
 
-  // APIキー保存
+  // Save API keys
   const handleSaveKeys = async () => {
     if (!dexInput.trim() && !openrouterInput.trim()) {
-      setSaveMessage('⚠️ APIキーを入力してください');
+      setSaveMessage('⚠️ Please enter an API key');
       setTimeout(() => setSaveMessage(''), 3000);
       return;
     }
@@ -49,7 +49,7 @@ function Options() {
     try {
       const updates: Record<string, string> = {};
 
-      // 新規入力がある場合のみ更新
+      // Only update if there is new input
       if (dexInput.trim()) {
         updates[STORAGE_KEYS.DEX_API_KEY] = dexInput.trim();
       }
@@ -60,40 +60,40 @@ function Options() {
 
       await chrome.storage.local.set(updates);
 
-      // 保存状態を更新
+      // Update saved status
       await loadSavedStatus();
 
-      // 入力フィールドをクリア
+      // Clear input fields
       setDexInput('');
       setOpenrouterInput('');
 
-      setSaveMessage('✅ APIキーを保存しました');
+      setSaveMessage('✅ API keys saved successfully');
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Failed to save API keys:', error);
-      setSaveMessage('❌ 保存に失敗しました');
+      setSaveMessage('❌ Failed to save');
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setSaving(false);
     }
   };
 
-  // キャッシュクリア
+  // Clear cache
   const handleClearCache = async () => {
     try {
       await chrome.storage.session.clear();
-      setSaveMessage('✅ キャッシュをクリアしました');
+      setSaveMessage('✅ Cache cleared successfully');
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Failed to clear cache:', error);
-      setSaveMessage('❌ クリアに失敗しました');
+      setSaveMessage('❌ Failed to clear cache');
       setTimeout(() => setSaveMessage(''), 3000);
     }
   };
 
-  // 全データ消去
+  // Full data reset
   const handleFullReset = async () => {
-    if (!confirm('すべての設定とデータを消去します。よろしいですか？')) {
+    if (!confirm('This will delete all settings and data. Are you sure?')) {
       return;
     }
 
@@ -101,15 +101,15 @@ function Options() {
       await chrome.storage.local.clear();
       await chrome.storage.session.clear();
 
-      // 初期化（マイグレーションで自動的に実行される）
+      // Initialize (automatically executed by migration)
       setSavedKeys({ dex: false, openrouter: false });
-      setSaveMessage('✅ すべてのデータを消去しました');
+      setSaveMessage('✅ All data has been deleted');
 
-      // リロードして初期化を確実にする
+      // Reload to ensure initialization
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       console.error('Failed to reset data:', error);
-      setSaveMessage('❌ 消去に失敗しました');
+      setSaveMessage('❌ Failed to delete data');
       setTimeout(() => setSaveMessage(''), 3000);
     }
   };
@@ -122,7 +122,7 @@ function Options() {
           <p className="text-gray-400 mt-2">Configure your API keys and preferences</p>
         </header>
 
-        {/* 保存メッセージ */}
+        {/* Save message */}
         {saveMessage && (
           <div className="mb-6 p-4 bg-dark-lighter rounded-lg text-center">
             <p className="text-sm">{saveMessage}</p>
@@ -130,7 +130,7 @@ function Options() {
         )}
 
         <main className="space-y-8">
-          {/* APIキー設定セクション */}
+          {/* API Keys section */}
           <section className="bg-dark-lighter p-6 rounded-lg">
             <h2 className="text-xl font-semibold mb-4">API Keys</h2>
             <div className="space-y-4">
@@ -139,7 +139,7 @@ function Options() {
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium">DEXscreener API Key</label>
                   {savedKeys.dex && (
-                    <span className="text-xs text-profit font-medium">✓ 保存済み</span>
+                    <span className="text-xs text-profit font-medium">✓ Saved</span>
                   )}
                 </div>
                 <input
@@ -167,7 +167,7 @@ function Options() {
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium">OpenRouter API Key</label>
                   {savedKeys.openrouter && (
-                    <span className="text-xs text-profit font-medium">✓ 保存済み</span>
+                    <span className="text-xs text-profit font-medium">✓ Saved</span>
                   )}
                 </div>
                 <input
@@ -199,24 +199,24 @@ function Options() {
                     : 'bg-primary hover:bg-primary-light'
                 }`}
               >
-                {saving ? '保存中...' : 'Save API Keys'}
+                {saving ? 'Saving...' : 'Save API Keys'}
               </button>
             </div>
           </section>
 
-          {/* データ管理セクション */}
+          {/* Data Management section */}
           <section className="bg-dark-lighter p-6 rounded-lg border border-gray-800">
-            <h2 className="text-xl font-semibold mb-4">データ管理</h2>
+            <h2 className="text-xl font-semibold mb-4">Data Management</h2>
             <div className="space-y-3">
               <div>
                 <button
                   onClick={handleClearCache}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
                 >
-                  ⚡ キャッシュクリア
+                  ⚡ Clear Cache
                 </button>
                 <p className="text-xs text-gray-500 mt-1">
-                  APIレスポンスのキャッシュをクリアして最新データを取得します
+                  Clear API response cache to fetch fresh data
                 </p>
               </div>
 
@@ -225,10 +225,10 @@ function Options() {
                   onClick={handleFullReset}
                   className="px-4 py-2 bg-loss hover:bg-red-600 text-white rounded transition-colors"
                 >
-                  🗑️ すべてのデータを消去
+                  🗑️ Delete All Data
                 </button>
                 <p className="text-xs text-gray-500 mt-1">
-                  APIキーを含むすべての設定を削除します（復元不可）
+                  Delete all settings including API keys (cannot be restored)
                 </p>
               </div>
             </div>

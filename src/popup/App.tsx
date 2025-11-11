@@ -12,16 +12,16 @@ function App() {
         <div className="p-8 text-center text-gray-500">
           <div className="text-6xl mb-4">📊</div>
           <p className="text-sm">
-            開発中...
+            In development...
             <br />
             Environment setup complete!
           </p>
         </div>
 
-        {/* TODO: チェーン選択 */}
-        {/* TODO: モデル選択 */}
-        {/* TODO: 分析実行ボタン */}
-        {/* TODO: 結果表示 */}
+        {/* TODO: Chain selection */}
+        {/* TODO: Model selection */}
+        {/* TODO: Analyze button */}
+        {/* TODO: Results display */}
       </main>
 
       <footer className="mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500">
