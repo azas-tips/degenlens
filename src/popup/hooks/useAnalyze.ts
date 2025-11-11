@@ -1,7 +1,7 @@
 // useAnalyze Hook
 // Manages Port communication with Background Worker for analysis
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useAppStore } from '../stores/app.store';
 import type { AnalyzeReq, AnalyzeProgress, AnalyzeResult } from '@/shared/schema';
 
@@ -11,6 +11,9 @@ import type { AnalyzeReq, AnalyzeProgress, AnalyzeResult } from '@/shared/schema
  */
 export function useAnalyze() {
   const { chain, model, maxPairs, setAnalyzing, setProgress, setResults, setError } = useAppStore();
+
+  // Store port reference for cancellation
+  const portRef = useRef<chrome.runtime.Port | null>(null);
 
   /**
    * Start analysis
@@ -34,6 +37,7 @@ export function useAnalyze() {
     try {
       // Open Port connection
       const port = chrome.runtime.connect({ name: 'analyze' });
+      portRef.current = port;
 
       // Message listener
       port.onMessage.addListener((message: unknown) => {
@@ -59,7 +63,12 @@ export function useAnalyze() {
 
           // Check for error
           if (resultMsg.error) {
-            setError(resultMsg.error, resultMsg.code);
+            setError(
+              resultMsg.error,
+              resultMsg.code,
+              resultMsg.suggestions || [],
+              resultMsg.retryAfterMs || 0
+            );
           }
           // Success
           else if (resultMsg.data) {
@@ -68,6 +77,7 @@ export function useAnalyze() {
 
           // Disconnect port
           port.disconnect();
+          portRef.current = null;
         }
       });
 
@@ -75,6 +85,7 @@ export function useAnalyze() {
       port.onDisconnect.addListener(() => {
         console.log('[useAnalyze] Port disconnected');
         setAnalyzing(false);
+        portRef.current = null;
       });
 
       // Send analyze request
@@ -95,5 +106,19 @@ export function useAnalyze() {
     }
   }, [chain, model, maxPairs, setAnalyzing, setProgress, setResults, setError]);
 
-  return { analyze };
+  /**
+   * Cancel ongoing analysis
+   * Disconnects the Port and resets state
+   */
+  const cancel = useCallback(() => {
+    if (portRef.current) {
+      console.log('[useAnalyze] Cancelling analysis');
+      portRef.current.disconnect();
+      portRef.current = null;
+      setAnalyzing(false);
+      setError('Analysis cancelled by user', 'E_USER_CANCELLED');
+    }
+  }, [setAnalyzing, setError]);
+
+  return { analyze, cancel };
 }

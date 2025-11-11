@@ -2,9 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import Options from './Options';
 import '../popup/index.css';
+import { I18nProvider } from '@/i18n';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Options />
+    <I18nProvider>
+      <Options />
+    </I18nProvider>
   </React.StrictMode>
 );

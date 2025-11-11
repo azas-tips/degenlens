@@ -46,6 +46,8 @@ export interface TemporaryState {
   results: AnalysisResult | null;
   error: string;
   errorCode: string;
+  errorSuggestions: string[];
+  retryAfterMs: number;
 }
 
 /**
@@ -61,7 +63,12 @@ export interface AppState extends PersistedPrefs, TemporaryState {
   setAnalyzing: (analyzing: boolean) => void;
   setProgress: (progress: AnalysisProgress) => void;
   setResults: (results: AnalysisResult | null) => void;
-  setError: (error: string, errorCode?: string) => void;
+  setError: (
+    error: string,
+    errorCode?: string,
+    suggestions?: string[],
+    retryAfterMs?: number
+  ) => void;
 
   // Utility actions
   clearResults: () => void;
@@ -88,6 +95,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   results: null,
   error: '',
   errorCode: '',
+  errorSuggestions: [],
+  retryAfterMs: 0,
 
   // Preference actions (auto-save to chrome.storage)
   setChain: chain => {
@@ -110,9 +119,25 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setProgress: progress => set({ progress }),
 
-  setResults: results => set({ results, error: '', errorCode: '', analyzing: false }),
+  setResults: results =>
+    set({
+      results,
+      error: '',
+      errorCode: '',
+      errorSuggestions: [],
+      retryAfterMs: 0,
+      analyzing: false,
+    }),
 
-  setError: (error, errorCode = '') => set({ error, errorCode, results: null, analyzing: false }),
+  setError: (error, errorCode = '', suggestions = [], retryAfterMs = 0) =>
+    set({
+      error,
+      errorCode,
+      errorSuggestions: suggestions,
+      retryAfterMs,
+      results: null,
+      analyzing: false,
+    }),
 
   // Utility actions
   clearResults: () =>
@@ -120,6 +145,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       results: null,
       error: '',
       errorCode: '',
+      errorSuggestions: [],
+      retryAfterMs: 0,
       analyzing: false,
       progress: { step: '', progress: 0 },
     }),

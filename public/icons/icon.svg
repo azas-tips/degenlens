@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Dark background -->
+  <rect width="128" height="128" rx="24" fill="#1a1a1a"/>
+
+  <!-- Main lens circle -->
+  <circle cx="56" cy="64" r="32" fill="none" stroke="#A855F7" stroke-width="6"/>
+
+  <!-- Inner lens reflection -->
+  <circle cx="52" cy="60" r="8" fill="#A855F7" opacity="0.4"/>
+
+  <!-- Lens handle -->
+  <path d="M 80 88 L 100 108" stroke="#A855F7" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 84 92 L 104 112" stroke="#A855F7" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Devil horns (degen theme) -->
+  <path d="M 36 36 Q 32 24 28 20 Q 32 22 36 32" fill="#A855F7"/>
+  <path d="M 76 36 Q 80 24 84 20 Q 80 22 76 32" fill="#A855F7"/>
+
+  <!-- Subtle glow effect -->
+  <circle cx="56" cy="64" r="32" fill="none" stroke="#A855F7" stroke-width="2" opacity="0.3"/>
+  <circle cx="56" cy="64" r="36" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.2"/>
+
+  <!-- Data points inside lens (scanning theme) -->
+  <circle cx="48" cy="64" r="2" fill="#10b981"/>
+  <circle cx="56" cy="70" r="2" fill="#10b981"/>
+  <circle cx="64" cy="64" r="2" fill="#10b981"/>
+  <circle cx="56" cy="58" r="2" fill="#f59e0b"/>
+  <circle cx="52" cy="68" r="2" fill="#ef4444"/>
+</svg>

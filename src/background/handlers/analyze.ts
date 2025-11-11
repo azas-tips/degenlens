@@ -181,6 +181,8 @@ export async function handleAnalyzeRequest(
       id,
       error: errorInfo.userMessage,
       code: errorInfo.code,
+      suggestions: errorInfo.suggestions,
+      retryAfterMs: errorInfo.retryAfterMs,
     });
   }
 }

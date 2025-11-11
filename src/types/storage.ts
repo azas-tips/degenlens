@@ -52,4 +52,5 @@ export const STORAGE_KEYS = {
   OPENROUTER_API_KEY: 'openrouter_api_key',
   PREFS: 'prefs',
   TELEMETRY_ENABLED: 'telemetry_enabled',
+  LANGUAGE: 'language',
 } as const;
