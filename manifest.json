@@ -5,7 +5,8 @@
   "version": "1.0.0",
   "description": "AI-powered DEX scanner for smart degens",
   "permissions": [
-    "storage"
+    "storage",
+    "alarms"
   ],
   "host_permissions": [
     "https://api.dexscreener.com/*",

@@ -23,6 +23,9 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: ['ky'],
+  },
   server: {
     port: 5173,
     strictPort: true,
