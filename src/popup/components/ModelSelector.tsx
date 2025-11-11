@@ -17,7 +17,6 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
 
   /**
    * Fetch models from background on mount
-   * TODO: Implement fetch-models message to background
    */
   useEffect(() => {
     fetchModels();
@@ -28,56 +27,36 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
     setError('');
 
     try {
-      // TODO: Implement Port communication to fetch models from background
-      // For now, use mock data
-      const mockModels: OpenRouterModel[] = [
-        {
-          id: 'anthropic/claude-3.5-sonnet',
-          name: 'Claude 3.5 Sonnet',
-          context_length: 200000,
-          created: Date.now() / 1000,
-          pricing: {
-            prompt: '0.000003',
-            completion: '0.000015',
-          },
-        },
-        {
-          id: 'anthropic/claude-3-haiku',
-          name: 'Claude 3 Haiku',
-          context_length: 200000,
-          created: Date.now() / 1000,
-          pricing: {
-            prompt: '0.00000025',
-            completion: '0.00000125',
-          },
-        },
-        {
-          id: 'openai/gpt-4-turbo',
-          name: 'GPT-4 Turbo',
-          context_length: 128000,
-          created: Date.now() / 1000,
-          pricing: {
-            prompt: '0.00001',
-            completion: '0.00003',
-          },
-        },
-        {
-          id: 'openai/gpt-3.5-turbo',
-          name: 'GPT-3.5 Turbo',
-          context_length: 16385,
-          created: Date.now() / 1000,
-          pricing: {
-            prompt: '0.0000005',
-            completion: '0.0000015',
-          },
-        },
-      ];
+      // Connect to background for model fetching
+      const port = chrome.runtime.connect({ name: 'fetch-models' });
+      const requestId = crypto.randomUUID();
 
-      setModels(mockModels);
-      setLoading(false);
+      // Listen for response
+      port.onMessage.addListener((message: any) => {
+        if (message.id !== requestId) return;
+
+        if (message.type === 'models-result') {
+          if (message.error) {
+            console.error('[ModelSelector] Failed to fetch models:', message.error);
+            setError(message.error);
+            setModels([]);
+          } else {
+            setModels(message.data || []);
+          }
+          setLoading(false);
+          port.disconnect();
+        }
+      });
+
+      // Send request
+      port.postMessage({
+        type: 'fetch-models',
+        id: requestId,
+      });
     } catch (err) {
       console.error('[ModelSelector] Failed to fetch models:', err);
-      setError('Failed to load models');
+      setError('Failed to connect to background service');
+      setModels([]);
       setLoading(false);
     }
   };
@@ -119,13 +98,49 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
   }
 
   if (error) {
+    // Check if it's an API key error
+    const isApiKeyError = error.includes('API key not found') || error.includes('not found');
+
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium">LLM Model</label>
-        <div className="w-full px-3 py-2 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm">
-          {error}
-          <button onClick={fetchModels} className="ml-2 underline hover:no-underline">
-            Retry
+        <div className="w-full px-3 py-2 bg-red-900/20 border border-red-500 rounded text-sm space-y-2">
+          <p className="text-red-200">{error}</p>
+          {isApiKeyError ? (
+            <button
+              onClick={() => chrome.runtime.openOptionsPage()}
+              className="px-3 py-1.5 bg-primary hover:bg-primary-light rounded text-white text-xs font-medium transition-colors"
+            >
+              ⚙️ Go to Settings
+            </button>
+          ) : (
+            <button
+              onClick={fetchModels}
+              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-white text-xs font-medium transition-colors"
+            >
+              🔄 Retry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // No models available
+  if (models.length === 0) {
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">LLM Model</label>
+        <div className="w-full px-3 py-2 bg-yellow-900/20 border border-yellow-600 rounded text-sm space-y-2">
+          <p className="text-yellow-200">⚠️ No models available</p>
+          <p className="text-yellow-300 text-xs">
+            Please configure your OpenRouter API key in settings to access AI models.
+          </p>
+          <button
+            onClick={() => chrome.runtime.openOptionsPage()}
+            className="px-3 py-1.5 bg-primary hover:bg-primary-light rounded text-white text-xs font-medium transition-colors"
+          >
+            ⚙️ Go to Settings
           </button>
         </div>
       </div>
