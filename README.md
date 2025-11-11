@@ -5,7 +5,7 @@ AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized 
 ## Features
 
 - 🔍 **Multi-Chain Support**: Solana, Ethereum, BSC, Polygon, Arbitrum, Optimism, Base
-- 🤖 **AI-Powered Analysis**: Leverage Claude, GPT-4, and other LLMs via OpenRouter
+- 🤖 **AI-Powered Analysis**: Leverage Claude, OpenAI, and other LLMs via OpenRouter
 - 📊 **Comprehensive Metrics**: Volume, liquidity, price changes, transaction patterns
 - ⚡ **Smart Caching**: Reduces API calls and improves response time
 - 🔄 **Automatic Retries**: Exponential backoff for network resilience

@@ -5,7 +5,7 @@
 **Name**: DegenLens
 
 **Short Description** (132 characters max):
-AI-powered DEX scanner for crypto traders. Analyze token pairs with Claude & GPT-4. Multi-chain support.
+AI-powered DEX scanner for crypto traders. Analyze token pairs with Claude & OpenAI. Multi-chain support.
 
 **Description** (Full):
 
@@ -16,7 +16,7 @@ Analyze token pairs from decentralized exchanges using advanced AI models. Make 
 🔍 KEY FEATURES
 
 • Multi-Chain Support: Solana, Ethereum, BSC, Polygon, Arbitrum, Optimism, Base
-• AI-Powered Analysis: Leverage Claude 3.5 Sonnet, GPT-4, and more via OpenRouter
+• AI-Powered Analysis: Leverage Claude 3.5 Sonnet, OpenAI models, and more via OpenRouter
 • Comprehensive Metrics: 24h volume, liquidity, price changes, buy/sell ratios
 • Risk Assessment: AI-generated risk scores (Low/Medium/High)
 • Smart Caching: Reduces API calls and improves response time
@@ -129,7 +129,7 @@ Visuals: DegenLens logo + token pairs visualization
 
 ### Marquee Promo Tile (1400x560, optional but recommended)
 Text: "Analyze Crypto Tokens with AI"
-Subtext: "Claude • GPT-4 • Multi-Chain • Real-time Data"
+Subtext: "Claude • OpenAI • Multi-Chain • Real-time Data"
 Visuals: Dashboard mockup + AI brain icon
 
 ## Video (Optional, YouTube)
