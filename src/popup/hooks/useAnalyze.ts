@@ -3,26 +3,14 @@
 
 import { useCallback } from 'react';
 import { useAppStore } from '../stores/app.store';
-import type {
-  AnalyzeReq,
-  AnalyzeProgress,
-  AnalyzeResult,
-} from '@/shared/schema';
+import type { AnalyzeReq, AnalyzeProgress, AnalyzeResult } from '@/shared/schema';
 
 /**
  * Hook for managing analysis requests via Port communication
  * Uses correlation IDs to track request/response pairs
  */
 export function useAnalyze() {
-  const {
-    chain,
-    model,
-    maxPairs,
-    setAnalyzing,
-    setProgress,
-    setResults,
-    setError,
-  } = useAppStore();
+  const { chain, model, maxPairs, setAnalyzing, setProgress, setResults, setError } = useAppStore();
 
   /**
    * Start analysis

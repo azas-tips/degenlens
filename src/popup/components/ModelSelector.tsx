@@ -1,7 +1,7 @@
 // Model Selector Component
 // Fetches and displays available OpenRouter models with pricing
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { OpenRouterModel } from '@/types/openrouter';
 
 interface ModelSelectorProps {
@@ -124,10 +124,7 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
         <label className="block text-sm font-medium">LLM Model</label>
         <div className="w-full px-3 py-2 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm">
           {error}
-          <button
-            onClick={fetchModels}
-            className="ml-2 underline hover:no-underline"
-          >
+          <button onClick={fetchModels} className="ml-2 underline hover:no-underline">
             Retry
           </button>
         </div>
@@ -164,18 +161,12 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
           </div>
           <div className="flex justify-between">
             <span>Estimated Cost (20 pairs):</span>
-            <span className="text-primary font-medium">
-              {getEstimatedCost(selectedModel)}
-            </span>
+            <span className="text-primary font-medium">{getEstimatedCost(selectedModel)}</span>
           </div>
         </div>
       )}
 
-      {!value && (
-        <p className="text-xs text-gray-500">
-          Please select a model to continue
-        </p>
-      )}
+      {!value && <p className="text-xs text-gray-500">Please select a model to continue</p>}
     </div>
   );
 }

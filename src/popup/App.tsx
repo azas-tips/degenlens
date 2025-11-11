@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAppStore } from './stores/app.store';
 import { ModelSelector } from './components/ModelSelector';
 import { ResultsTable } from './components/ResultsTable';
@@ -93,9 +92,7 @@ function App() {
 
         {/* Max Pairs Input */}
         <section>
-          <label className="block text-sm font-medium mb-2">
-            Max Pairs to Analyze: {maxPairs}
-          </label>
+          <label className="block text-sm font-medium mb-2">Max Pairs to Analyze: {maxPairs}</label>
           <input
             type="range"
             min="1"
@@ -120,8 +117,7 @@ function App() {
             </div>
 
             {/* Show "Go to Settings" button for API key errors */}
-            {(errorCode === 'E_DEX_UNAUTHORIZED' ||
-              errorCode === 'E_LLM_UNAUTHORIZED') && (
+            {(errorCode === 'E_DEX_UNAUTHORIZED' || errorCode === 'E_LLM_UNAUTHORIZED') && (
               <button
                 onClick={() => chrome.runtime.openOptionsPage()}
                 className="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded text-white text-xs font-medium transition-colors"
@@ -138,9 +134,7 @@ function App() {
             onClick={handleAnalyze}
             disabled={!canAnalyze}
             className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
-              canAnalyze
-                ? 'bg-primary hover:bg-primary-light'
-                : 'bg-gray-600 cursor-not-allowed'
+              canAnalyze ? 'bg-primary hover:bg-primary-light' : 'bg-gray-600 cursor-not-allowed'
             }`}
           >
             {analyzing ? 'Analyzing...' : 'Analyze'}
@@ -183,7 +177,7 @@ function App() {
                 <p className="text-sm">
                   Select a chain and model
                   <br />
-                  then click "Analyze"
+                  then click &ldquo;Analyze&rdquo;
                 </p>
               </div>
             )

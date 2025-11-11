@@ -19,9 +19,24 @@ export default [
         },
       },
       globals: {
+        // Chrome Extension APIs
         chrome: 'readonly',
-        browser: 'readonly',
-        node: 'readonly',
+        // Browser globals
+        console: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearTimeout: 'readonly',
+        clearInterval: 'readonly',
+        crypto: 'readonly',
+        fetch: 'readonly',
+        // Node globals (for build scripts)
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {

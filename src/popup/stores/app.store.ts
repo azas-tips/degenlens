@@ -90,31 +90,29 @@ export const useAppStore = create<AppState>((set, get) => ({
   errorCode: '',
 
   // Preference actions (auto-save to chrome.storage)
-  setChain: (chain) => {
+  setChain: chain => {
     set({ chain });
     get().savePreferences();
   },
 
-  setModel: (model) => {
+  setModel: model => {
     set({ model });
     get().savePreferences();
   },
 
-  setMaxPairs: (maxPairs) => {
+  setMaxPairs: maxPairs => {
     set({ maxPairs });
     get().savePreferences();
   },
 
   // Analysis state actions (memory only)
-  setAnalyzing: (analyzing) => set({ analyzing }),
+  setAnalyzing: analyzing => set({ analyzing }),
 
-  setProgress: (progress) => set({ progress }),
+  setProgress: progress => set({ progress }),
 
-  setResults: (results) =>
-    set({ results, error: '', errorCode: '', analyzing: false }),
+  setResults: results => set({ results, error: '', errorCode: '', analyzing: false }),
 
-  setError: (error, errorCode = '') =>
-    set({ error, errorCode, results: null, analyzing: false }),
+  setError: (error, errorCode = '') => set({ error, errorCode, results: null, analyzing: false }),
 
   // Utility actions
   clearResults: () =>

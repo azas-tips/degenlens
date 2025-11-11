@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/types/storage';
 
 function Options() {
@@ -194,9 +194,7 @@ function Options() {
                 onClick={handleSaveKeys}
                 disabled={saving}
                 className={`px-6 py-2 rounded font-medium transition-colors ${
-                  saving
-                    ? 'bg-gray-600 cursor-not-allowed'
-                    : 'bg-primary hover:bg-primary-light'
+                  saving ? 'bg-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-primary-light'
                 }`}
               >
                 {saving ? 'Saving...' : 'Save API Keys'}

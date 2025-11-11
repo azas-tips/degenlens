@@ -1,7 +1,6 @@
 // Results Table Component
 // Displays analysis results in a formatted table
 
-import React from 'react';
 import type { AnalysisResult } from '../stores/app.store';
 
 interface ResultsTableProps {
@@ -72,9 +71,7 @@ export function ResultsTable({ data }: ResultsTableProps) {
             <span>Tokens Used: {data.metadata.tokensUsed.toLocaleString()}</span>
           )}
           {data.metadata.estimatedCost && (
-            <span className="text-primary">
-              Cost: ${data.metadata.estimatedCost.toFixed(4)}
-            </span>
+            <span className="text-primary">Cost: ${data.metadata.estimatedCost.toFixed(4)}</span>
           )}
         </div>
       )}
@@ -154,13 +151,8 @@ export function ResultsTable({ data }: ResultsTableProps) {
           <h3 className="text-sm font-medium">Detailed Analysis</h3>
           {pairs.map((pair, index) =>
             pair.analysis ? (
-              <div
-                key={index}
-                className="p-3 bg-dark-lighter border border-gray-700 rounded"
-              >
-                <p className="text-xs font-medium text-gray-300 mb-1">
-                  {pair.symbol}
-                </p>
+              <div key={index} className="p-3 bg-dark-lighter border border-gray-700 rounded">
+                <p className="text-xs font-medium text-gray-300 mb-1">{pair.symbol}</p>
                 <p className="text-xs text-gray-400">{pair.analysis}</p>
               </div>
             ) : null

@@ -87,12 +87,8 @@ chrome.runtime.onConnect.addListener(port => {
  * Handle analyze request
  * TODO: Implement full analysis logic with DEXscreener and OpenRouter APIs
  */
-async function handleAnalyzeRequest(
-  msg: any,
-  safePost: (msg: unknown) => void,
-  aborted: boolean
-) {
-  const { id, chain, model, maxPairs } = msg;
+async function handleAnalyzeRequest(msg: any, safePost: (msg: unknown) => void, aborted: boolean) {
+  const { id, chain, model } = msg;
 
   try {
     console.log(`[Background] Starting analysis for ${chain} with ${model}`);
@@ -178,8 +174,7 @@ async function handleAnalyzeRequest(
             analysis: 'Moderate activity. Watch for consolidation.',
           },
         ],
-        analysis:
-          'Market shows healthy activity on Solana. Top pairs have strong fundamentals.',
+        analysis: 'Market shows healthy activity on Solana. Top pairs have strong fundamentals.',
         metadata: {
           tokensUsed: 1500,
           estimatedCost: 0.045,
