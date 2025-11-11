@@ -29,7 +29,7 @@ function App() {
   } = useAppStore();
 
   // Analysis hook
-  const { analyze } = useAnalyze();
+  const { analyze, cancel } = useAnalyze();
 
   // Check if analysis can be started
   const canAnalyze = chain && model && !analyzing;
@@ -151,24 +151,36 @@ function App() {
 
         {/* Action Buttons */}
         <div className="flex space-x-2">
-          <button
-            onClick={handleAnalyze}
-            disabled={!canAnalyze}
-            className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
-              canAnalyze ? 'bg-primary hover:bg-primary-light' : 'bg-gray-600 cursor-not-allowed'
-            }`}
-          >
-            {analyzing ? 'Analyzing...' : 'Analyze'}
-          </button>
+          {analyzing ? (
+            <button
+              onClick={cancel}
+              className="flex-1 px-4 py-2 rounded font-medium bg-red-600 hover:bg-red-700 transition-colors"
+            >
+              Cancel
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleAnalyze}
+                disabled={!canAnalyze}
+                className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
+                  canAnalyze
+                    ? 'bg-primary hover:bg-primary-light'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Analyze
+              </button>
 
-          <button
-            onClick={handleClearCache}
-            disabled={analyzing}
-            className="px-3 py-2 bg-dark-lighter border border-gray-700 rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Clear cache and fetch fresh data"
-          >
-            🔄
-          </button>
+              <button
+                onClick={handleClearCache}
+                className="px-3 py-2 bg-dark-lighter border border-gray-700 rounded hover:bg-gray-800 transition-colors"
+                title="Clear cache and fetch fresh data"
+              >
+                🔄
+              </button>
+            </>
+          )}
         </div>
 
         {/* Progress Display */}
