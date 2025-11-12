@@ -15,7 +15,7 @@ export const AnalyzeReqSchema = z.object({
   id: z.string().uuid(), // Correlation ID required
   chain: z.string().min(1),
   model: z.string().min(1),
-  maxPairs: z.number().min(1).max(100).optional().default(20), // Cost control
+  maxPairs: z.number().min(1).max(100).optional().default(10), // Cost control: fixed to 10 pairs
 });
 
 export type AnalyzeReq = z.infer<typeof AnalyzeReqSchema>;

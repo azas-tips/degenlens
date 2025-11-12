@@ -16,10 +16,16 @@ chrome.runtime.onInstalled.addListener(async details => {
   // Run storage migration
   await migrateStorage();
 
-  // Open options page on first install
+  // Open dashboard on first install
   if (details.reason === 'install') {
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({ url: 'src/app/index.html' });
   }
+});
+
+// Handle extension icon click
+chrome.action.onClicked.addListener(() => {
+  console.log('Extension icon clicked - opening dashboard');
+  chrome.tabs.create({ url: 'src/app/index.html' });
 });
 
 // Run migration on startup (when Service Worker restarts)
@@ -57,9 +63,10 @@ chrome.runtime.onConnect.addListener(port => {
 
     if (!parsed.success) {
       console.error('[Background] Invalid message format:', parsed.error);
+      const unknownMsg = message as { id?: string };
       safePost({
         type: 'result',
-        id: (message as any)?.id,
+        id: unknownMsg?.id,
         error: 'Invalid request format',
         code: 'E_INVALID_REQUEST',
       });
@@ -88,12 +95,13 @@ chrome.runtime.onConnect.addListener(port => {
 /**
  * Handle fetch-models request
  */
-async function handleFetchModelsRequest(msg: any, safePost: (msg: unknown) => void) {
+async function handleFetchModelsRequest(
+  msg: { id: string; type: string },
+  safePost: (msg: unknown) => void
+) {
   const { id } = msg;
 
   try {
-    console.log('[Background] Fetching models list');
-
     const models = await fetchModels();
 
     safePost({
@@ -104,8 +112,8 @@ async function handleFetchModelsRequest(msg: any, safePost: (msg: unknown) => vo
 
     console.log(`[Background] Fetched ${models.length} models`);
   } catch (error) {
-    console.error('[Background] Failed to fetch models:', error);
-    const errorInfo = handleApiError(error);
+    // Silent error - only send to UI, don't log to console
+    const errorInfo = await handleApiError(error);
     safePost({
       type: 'models-result',
       id,

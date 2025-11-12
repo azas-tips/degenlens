@@ -44,12 +44,17 @@ function detectBrowserLanguage(): Language {
 }
 
 /**
+ * Nested translation object type
+ */
+type TranslationObject = string | { [key: string]: TranslationObject };
+
+/**
  * Get nested translation value
  * Supports dot notation like "app.title"
  */
-function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
+function getNestedValue(obj: TranslationObject, path: string): string | undefined {
   const keys = path.split('.');
-  let current = obj;
+  let current: TranslationObject = obj;
 
   for (const key of keys) {
     if (current && typeof current === 'object' && key in current) {
@@ -92,9 +97,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         if (savedLang && (savedLang === 'en' || savedLang === 'ja')) {
           setLanguageState(savedLang);
         } else {
-          // No saved language, detect browser language
+          // No saved language, detect browser language and save it
           const detected = detectBrowserLanguage();
           setLanguageState(detected);
+          // Save detected language to storage
+          await chrome.storage.local.set({ [STORAGE_KEYS.LANGUAGE]: detected });
+          console.log('[i18n] Detected and saved browser language:', detected);
         }
       } catch (error) {
         console.error('[i18n] Failed to load language:', error);

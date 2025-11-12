@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - DegenLens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        strong {
+            color: #667eea;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .last-updated {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            background: #667eea;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            background: #764ba2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="https://github.com/azas-tips/degenlens" class="back-link">← Back to DegenLens</a>
+
+        <h1>Privacy Policy for DegenLens</h1>
+        <p class="last-updated"><strong>Last Updated:</strong> January 2025</p>
+
+        <h2>Introduction</h2>
+        <p>DegenLens ("we", "our", or "the extension") is committed to protecting your privacy. This Privacy Policy explains how we handle information when you use our Chrome extension.</p>
+
+        <h2>Information We Do NOT Collect</h2>
+        <p>DegenLens is designed with privacy as a priority. We do NOT:</p>
+        <ul>
+            <li>Collect personal information</li>
+            <li>Track your browsing history</li>
+            <li>Store your analysis data on external servers</li>
+            <li>Transmit user data to third parties</li>
+            <li>Use cookies or tracking pixels</li>
+            <li>Sell or share your information</li>
+            <li>Monitor your trading activity</li>
+            <li>Access your cryptocurrency wallets</li>
+        </ul>
+
+        <h2>Information Stored Locally</h2>
+        <p>DegenLens stores the following data <strong>locally on your device only</strong>:</p>
+
+        <h3>Chrome Storage (chrome.storage.local)</h3>
+        <ul>
+            <li><strong>API Keys:</strong> Your OpenRouter and DEXscreener API keys (encrypted by Chrome)</li>
+            <li><strong>User Preferences:</strong> Selected chain, model, and max pairs settings</li>
+            <li><strong>Language Preference:</strong> Your chosen language (English/Japanese)</li>
+        </ul>
+
+        <h3>Session Storage (chrome.storage.session)</h3>
+        <ul>
+            <li><strong>Cached Results:</strong> Temporary cache of API responses (cleared when browser closes)</li>
+            <li><strong>Rate Limiting Data:</strong> Temporary counters to prevent API abuse</li>
+        </ul>
+
+        <p><strong>Important:</strong> All data stored locally is encrypted by Chrome and never leaves your device unless you explicitly make API requests.</p>
+
+        <h2>Third-Party Services</h2>
+        <p>DegenLens connects to external APIs using <strong>your own API keys</strong>:</p>
+
+        <h3>1. DEXscreener API</h3>
+        <ul>
+            <li><strong>Purpose:</strong> Fetch token pair data from decentralized exchanges</li>
+            <li><strong>Data Sent:</strong> Chain name, token addresses (no personal data)</li>
+            <li><strong>Privacy Policy:</strong> <a href="https://dexscreener.com/privacy" target="_blank">https://dexscreener.com/privacy</a></li>
+            <li><strong>Your Control:</strong> Optional API key (not required for basic usage)</li>
+        </ul>
+
+        <h3>2. OpenRouter API</h3>
+        <ul>
+            <li><strong>Purpose:</strong> AI-powered token analysis using LLM models</li>
+            <li><strong>Data Sent:</strong> Token metrics, analysis prompts (no personal data)</li>
+            <li><strong>Privacy Policy:</strong> <a href="https://openrouter.ai/privacy" target="_blank">https://openrouter.ai/privacy</a></li>
+            <li><strong>Your Control:</strong> Required API key (you create and manage)</li>
+        </ul>
+
+        <h3>3. LLM Providers (via OpenRouter)</h3>
+        <ul>
+            <li><strong>Providers:</strong> Anthropic (Claude), OpenAI (GPT), and others</li>
+            <li><strong>Data Sent:</strong> Token analysis prompts (public blockchain data only)</li>
+            <li><strong>Privacy:</strong> Governed by OpenRouter's and respective providers' policies</li>
+            <li><strong>Your Control:</strong> You choose which model to use</li>
+        </ul>
+
+        <p><strong>Note:</strong> DegenLens does not control these third-party services. Please review their privacy policies independently.</p>
+
+        <h2>Data Security</h2>
+        <h3>Local Storage Security</h3>
+        <ul>
+            <li>API keys are stored in Chrome's encrypted storage (chrome.storage.local)</li>
+            <li>Session data is automatically cleared when the browser closes</li>
+            <li>No data is transmitted to DegenLens servers (we don't have any servers)</li>
+        </ul>
+
+        <h3>API Communication</h3>
+        <ul>
+            <li>All API requests use HTTPS encryption</li>
+            <li>Requests are made directly from your browser to API providers</li>
+            <li>No intermediary servers are involved</li>
+        </ul>
+
+        <h3>Best Practices</h3>
+        <ul>
+            <li>Keep your API keys confidential</li>
+            <li>Do not share screenshots containing API keys</li>
+            <li>Regularly rotate your API keys</li>
+            <li>Monitor your API usage on provider dashboards</li>
+        </ul>
+
+        <h2>Your Rights and Choices</h2>
+        <h3>Data Access</h3>
+        <ul>
+            <li>All your data is stored locally on your device</li>
+            <li>You can view stored data in Chrome DevTools → Application → Storage</li>
+        </ul>
+
+        <h3>Data Deletion</h3>
+        <ul>
+            <li><strong>API Keys:</strong> Delete in extension Settings page</li>
+            <li><strong>Preferences:</strong> Reset in Settings or uninstall extension</li>
+            <li><strong>Cache:</strong> Clear browser data or use the cache clear button in extension</li>
+        </ul>
+
+        <h3>Opt-Out</h3>
+        <ul>
+            <li>You can stop using DegenLens at any time by disabling or uninstalling the extension</li>
+            <li>Uninstalling removes all locally stored data</li>
+        </ul>
+
+        <h2>Children's Privacy</h2>
+        <p>DegenLens is not directed at children under 13. We do not knowingly collect information from children. If you are under 13, please do not use this extension.</p>
+
+        <h2>Cryptocurrency Trading Disclaimer</h2>
+        <p>DegenLens provides data analysis tools for informational purposes only. We are not:</p>
+        <ul>
+            <li>Financial advisors</li>
+            <li>Investment professionals</li>
+            <li>Brokers or dealers</li>
+            <li>Registered with any financial regulatory authority</li>
+        </ul>
+        <p><strong>Always conduct your own research (DYOR) and consult qualified financial advisors before making investment decisions.</strong></p>
+
+        <h2>Open Source Transparency</h2>
+        <p>DegenLens is open source. You can:</p>
+        <ul>
+            <li>Review the complete source code on GitHub</li>
+            <li>Verify that we don't collect user data</li>
+            <li>Audit API calls and data handling</li>
+            <li>Contribute to the project</li>
+        </ul>
+        <p><strong>Repository:</strong> <a href="https://github.com/azas-tips/degenlens" target="_blank">https://github.com/azas-tips/degenlens</a></p>
+
+        <h2>Contact Us</h2>
+        <p>Questions about this Privacy Policy or DegenLens privacy practices?</p>
+        <ul>
+            <li><strong>GitHub Issues:</strong> <a href="https://github.com/azas-tips/degenlens/issues" target="_blank">https://github.com/azas-tips/degenlens/issues</a></li>
+            <li><strong>GitHub Discussions:</strong> <a href="https://github.com/azas-tips/degenlens/discussions" target="_blank">https://github.com/azas-tips/degenlens/discussions</a></li>
+        </ul>
+
+        <div class="summary">
+            <h3>Summary</h3>
+            <p>DegenLens respects your privacy. We don't collect, transmit, or store your personal data on external servers. All data remains on your device. You control your API keys and usage.</p>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px;">
+            <a href="https://azas-tips.github.io/degenlens/terms" style="margin: 0 10px;">Terms of Service</a> |
+            <a href="https://github.com/azas-tips/degenlens" style="margin: 0 10px;">GitHub</a> |
+            <a href="https://github.com/azas-tips/degenlens/issues" style="margin: 0 10px;">Support</a>
+        </p>
+    </div>
+</body>
+</html>

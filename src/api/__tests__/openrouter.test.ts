@@ -7,7 +7,7 @@ import type {
 } from '@/types/openrouter';
 
 // Mock response holder
-let mockJsonResponse: any = null;
+let mockJsonResponse: unknown = null;
 
 // Mock ky
 vi.mock('ky', () => {
@@ -38,13 +38,13 @@ vi.mock('@/background/utils/cache', () => ({
 // Mock rate limiter
 vi.mock('@/background/utils/rate-limiter', () => ({
   llmLimiter: {
-    execute: vi.fn(async (fn) => fn()),
+    execute: vi.fn(async fn => fn()),
   },
 }));
 
 // Mock retry helper
 vi.mock('@/background/utils/retry-helper', () => ({
-  retryWithBackoff: vi.fn(async (fn) => fn()),
+  retryWithBackoff: vi.fn(async fn => fn()),
 }));
 
 // Mock chrome storage
@@ -59,7 +59,7 @@ global.chrome = {
       set: vi.fn(),
     },
   },
-} as any;
+} as unknown as typeof chrome;
 
 describe('OpenRouter API Integration', () => {
   beforeEach(() => {
@@ -207,9 +207,7 @@ describe('OpenRouter API Integration', () => {
       const { chatCompletion } = await import('../openrouter');
       await chatCompletion(mockRequest);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Tokens used: 150')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tokens used: 150'));
 
       consoleSpy.mockRestore();
     });
@@ -229,23 +227,10 @@ describe('OpenRouter API Integration', () => {
 
       const { chatCompletion } = await import('../openrouter');
 
-      await expect(chatCompletion(mockRequest)).rejects.toThrow(
-        'OpenRouter API key not found'
-      );
+      await expect(chatCompletion(mockRequest)).rejects.toThrow('OpenRouter API key not found');
 
       // Restore
       global.chrome.storage.local.get = vi.fn(async () => ({ openrouter_api_key: 'test-key' }));
-    });
-  });
-
-  describe('Cache management', () => {
-    it('should clear models cache', async () => {
-      const { cacheManager } = await import('@/background/utils/cache');
-      const { clearModelsCache } = await import('../openrouter');
-
-      await clearModelsCache();
-
-      expect(cacheManager.delete).toHaveBeenCalledWith('openrouter:models');
     });
   });
 

@@ -8,6 +8,9 @@ import prettier from 'eslint-config-prettier';
 export default [
   js.configs.recommended,
   {
+    ignores: ['dist/**', 'node_modules/**', '*.config.js', '*.config.ts'],
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser: typescriptParser,
@@ -57,6 +60,21 @@ export default [
     settings: {
       react: {
         version: 'detect',
+      },
+    },
+  },
+  // Test file specific config
+  {
+    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        vi: 'readonly',
+        global: 'readonly',
       },
     },
   },

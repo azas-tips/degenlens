@@ -4,11 +4,23 @@
 import ky from 'ky';
 import type { DexPair, DexPairsResponse } from '@/types/dexscreener';
 import { dexLimiter } from '@/background/utils/rate-limiter';
-import { cacheManager, getDexCacheKey } from '@/background/utils/cache';
 import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
 
 const DEX_API_BASE = 'https://api.dexscreener.com/latest/dex';
+
+/**
+ * Map user-facing chain names to DEXscreener API chain IDs
+ * Some chains have different names in the API vs. what users expect
+ */
+function mapChainName(chain: string): string {
+  const chainMap: Record<string, string> = {
+    // No mapping needed for polygon - it exists as 'polygon' in DEXscreener (Polygon PoS)
+    // polygonzkevm is a separate chain
+  };
+
+  return chainMap[chain.toLowerCase()] || chain.toLowerCase();
+}
 
 /**
  * Create DEXscreener API client
@@ -33,41 +45,184 @@ async function createDexClient() {
 }
 
 /**
+ * Get popular search queries for each chain
+ */
+const CHAIN_POPULAR_QUERIES: Record<string, string[]> = {
+  solana: ['SOL', 'USDC', 'RAY', 'BONK', 'JTO', 'JUP', 'PYTH', 'WIF'],
+  ethereum: ['ETH', 'USDT', 'USDC', 'WBTC', 'LINK', 'UNI', 'PEPE', 'SHIB'],
+  bsc: ['BNB', 'BUSD', 'CAKE', 'USDT', 'ETH', 'BTCB'],
+  polygonzkevm: ['ETH', 'USDC', 'USDT', 'WBTC', 'MATIC'], // Polygon zkEVM
+  arbitrum: ['ARB', 'ETH', 'USDC', 'USDT', 'GMX'],
+  optimism: ['OP', 'ETH', 'USDC', 'USDT', 'SNX'],
+  base: ['ETH', 'USDC', 'DEGEN', 'BRETT'],
+};
+
+/**
+ * Fetch boosted tokens (tokens with active boosts)
+ * These are typically trending/promoted tokens
+ *
+ * @param chain - Chain name to filter by
+ * @returns Array of token addresses
+ */
+async function fetchBoostedTokens(chain: string): Promise<string[]> {
+  try {
+    const client = await createDexClient();
+    const response = await retryWithBackoff(
+      () =>
+        client
+          .get('https://api.dexscreener.com/token-boosts/top/v1', {
+            prefixUrl: '', // Override prefixUrl to use full URL
+          })
+          .json<
+            Array<{
+              chainId: string;
+              tokenAddress: string;
+              amount: number;
+            }>
+          >(),
+      { maxAttempts: 2 }
+    );
+
+    // Filter by chain and return token addresses
+    return response
+      .filter(boost => boost.chainId?.toLowerCase() === chain.toLowerCase())
+      .map(boost => boost.tokenAddress)
+      .slice(0, 10); // Top 10 boosted tokens
+  } catch (error) {
+    console.warn('[DEX API] Failed to fetch boosted tokens:', error);
+    return [];
+  }
+}
+
+/**
  * Fetch token pairs by chain
- * Uses cache and rate limiting
+ * Uses search API + boosted tokens to find hot pairs on the chain
  *
  * @param chain - Chain name (e.g., 'solana', 'ethereum', 'bsc')
  * @param maxPairs - Maximum number of pairs to return (default: 20)
  * @returns Array of token pairs
  */
 export async function fetchPairsByChain(chain: string, maxPairs: number = 20): Promise<DexPair[]> {
-  const cacheKey = getDexCacheKey(chain);
-
   return dexLimiter.execute(async () => {
-    return cacheManager.getOrFetch(cacheKey, async () => {
-      console.log(`[DEX API] Fetching pairs for ${chain}`);
+    // Map chain name to DEXscreener API chain ID
+    const apiChainId = mapChainName(chain);
+    console.log(
+      `[DEX API] Fetching pairs for ${chain}${chain !== apiChainId ? ` (mapped to ${apiChainId})` : ''}`
+    );
 
-      const client = await createDexClient();
+    const client = await createDexClient();
 
-      // Fetch pairs for chain with retry logic
-      // Note: DEXscreener API does not support pagination
-      // We fetch all and slice on client side
-      const response = await retryWithBackoff(
-        () => client.get(`pairs/${chain}`).json<DexPairsResponse>(),
-        { maxAttempts: 3 }
+    // Try fetching pairs directly by chain ID first
+    try {
+      console.log(`[DEX API] Trying direct fetch: pairs/${apiChainId}`);
+      const directResponse = await retryWithBackoff(
+        () => client.get(`pairs/${apiChainId}`).json<DexPairsResponse>(),
+        { maxAttempts: 2 }
       );
 
-      // Filter and sort pairs
-      const pairs = response.pairs || [];
+      if (directResponse.pairs && directResponse.pairs.length > 0) {
+        console.log(`[DEX API] Direct fetch returned ${directResponse.pairs.length} pairs`);
 
-      // Sort by volume (descending)
-      const sorted = pairs.sort(
-        (a: DexPair, b: DexPair) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0)
+        // Calculate momentum scores and return top pairs
+        const pairsWithScore = directResponse.pairs.map(pair => {
+          const priceChange6h = pair.priceChange?.h6 || 0;
+          const volume6h = pair.volume?.h6 || 0;
+          const liquidity = pair.liquidity?.usd || 0;
+
+          const momentumScore =
+            Math.abs(priceChange6h) * 10 +
+            Math.log10(volume6h + 1) * 2 +
+            (liquidity > 10000 ? 5 : 0);
+
+          return { pair, score: momentumScore };
+        });
+
+        const sorted = pairsWithScore.sort((a, b) => b.score - a.score).map(item => item.pair);
+
+        return sorted.slice(0, maxPairs);
+      }
+    } catch (error) {
+      console.warn(
+        `[DEX API] Direct fetch failed for ${apiChainId}, falling back to search:`,
+        error
       );
+    }
 
-      // Return top N pairs
-      return sorted.slice(0, maxPairs);
+    // Fallback: Use search-based approach
+    // Strategy 1: Fetch boosted tokens (trending/promoted)
+    const boostedTokens = await fetchBoostedTokens(apiChainId);
+    console.log(`[DEX API] Found ${boostedTokens.length} boosted tokens for ${apiChainId}`);
+
+    // Strategy 2: Get popular token queries for this chain
+    // Use original chain name for lookups, then use mapped apiChainId for API calls
+    const queries = CHAIN_POPULAR_QUERIES[apiChainId.toLowerCase()] ||
+      CHAIN_POPULAR_QUERIES[chain.toLowerCase()] || [''];
+
+    // Combine both strategies: boosted tokens + popular queries
+    const searchTargets = [
+      ...boostedTokens,
+      ...queries.slice(0, 3), // Limit popular queries
+    ];
+
+    console.log(`[DEX API] Search targets for ${apiChainId}:`, searchTargets);
+
+    // Fetch pairs for each search target
+    const allPairs: DexPair[] = [];
+    const seenPairs = new Set<string>();
+
+    for (const target of searchTargets) {
+      try {
+        const response = await retryWithBackoff(
+          () => client.get(`search?q=${encodeURIComponent(target)}`).json<DexPairsResponse>(),
+          { maxAttempts: 2 }
+        );
+
+        // Add unique pairs from this chain (use mapped API chain ID)
+        const chainPairs = (response.pairs || []).filter(
+          (pair: DexPair) =>
+            pair.chainId?.toLowerCase() === apiChainId.toLowerCase() &&
+            !seenPairs.has(pair.pairAddress)
+        );
+
+        console.log(
+          `[DEX API] Search "${target}": found ${chainPairs.length} pairs for ${apiChainId}`
+        );
+
+        chainPairs.forEach((pair: DexPair) => {
+          seenPairs.add(pair.pairAddress);
+          allPairs.push(pair);
+        });
+      } catch (error) {
+        console.warn(`[DEX API] Failed to fetch pairs for target "${target}":`, error);
+      }
+    }
+
+    console.log(`[DEX API] Total unique pairs collected for ${apiChainId}: ${allPairs.length}`);
+
+    // Calculate momentum score for each pair
+    // Prioritizes: price change, volume acceleration, and liquidity (6h timeframe)
+    const pairsWithScore = allPairs.map(pair => {
+      const priceChange6h = pair.priceChange?.h6 || 0;
+      const volume6h = pair.volume?.h6 || 0;
+      const liquidity = pair.liquidity?.usd || 0;
+
+      // Momentum score formula:
+      // - High weight on price change (volatility = opportunity)
+      // - Volume matters but less than price movement
+      // - Minimum liquidity requirement to filter out scams
+      const momentumScore =
+        Math.abs(priceChange6h) * 10 + // Price change is most important
+        Math.log10(volume6h + 1) * 2 + // Log scale for volume
+        (liquidity > 10000 ? 5 : 0); // Bonus for sufficient liquidity
+
+      return { pair, score: momentumScore };
     });
+
+    // Sort by momentum score (descending)
+    const sorted = pairsWithScore.sort((a, b) => b.score - a.score).map(item => item.pair);
+
+    // Return top N pairs
+    return sorted.slice(0, maxPairs);
   });
 }
 
@@ -121,25 +276,4 @@ export async function searchPairs(query: string): Promise<DexPair[]> {
       return [];
     }
   });
-}
-
-/**
- * Clear DEXscreener cache for specific chain
- */
-export async function clearDexCache(chain: string): Promise<void> {
-  const cacheKey = getDexCacheKey(chain);
-  await cacheManager.delete(cacheKey);
-  console.log(`[DEX API] Cleared cache for ${chain}`);
-}
-
-/**
- * Clear all DEXscreener caches
- */
-export async function clearAllDexCaches(): Promise<void> {
-  // Clear common chains
-  const chains = ['solana', 'ethereum', 'bsc', 'polygon', 'arbitrum', 'optimism', 'base'];
-
-  for (const chain of chains) {
-    await clearDexCache(chain);
-  }
 }
