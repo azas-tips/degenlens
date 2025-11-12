@@ -23,7 +23,7 @@ AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized 
 ## Installation
 
 ### From Chrome Web Store
-1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (coming soon)
+1. Visit the <a href="https://chrome.google.com/webstore" target="_blank">Chrome Web Store</a> (coming soon)
 2. Click "Add to Chrome"
 3. Click "Add Extension" to confirm
 
@@ -57,8 +57,8 @@ AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized 
 #### OpenRouter (Required)
 OpenRouter provides access to multiple LLM providers with a single API key.
 
-1. Visit [OpenRouter](https://openrouter.ai)
-2. Sign up and navigate to [Keys](https://openrouter.ai/keys)
+1. Visit <a href="https://openrouter.ai" target="_blank">OpenRouter</a>
+2. Sign up and navigate to <a href="https://openrouter.ai/keys" target="_blank">Keys</a>
 3. Create a new API key
 4. Add credits to your account
 
@@ -182,7 +182,7 @@ Before committing changes, ensure:
 
 DegenLens analyzes the **top 10 pairs** per request. Costs vary by model.
 
-📋 **[View all models and pricing on OpenRouter →](https://openrouter.ai/models)** _(opens in new tab)_
+📋 **<a href="https://openrouter.ai/models" target="_blank">View all models and pricing on OpenRouter →</a>**
 
 ### Latest Models (January 2025)
 
@@ -274,7 +274,7 @@ For details, see our [Privacy Policy](https://azas-tips.github.io/degenlens/priv
 
 If you find DegenLens useful, consider supporting the project:
 
-☕ **[Buy me a coffee](https://linqup.stream/s/70ed3496aed25440)** (via Linqup)
+☕ **<a href="https://linqup.stream/s/70ed3496aed25440" target="_blank">Buy me a coffee</a>** (via Linqup)
 
 For issues and questions:
 - **Issues**: [GitHub Issues](https://github.com/azas-tips/degenlens/issues)
@@ -313,11 +313,11 @@ test(utils): Add tests for rate limiter
 
 ## Acknowledgments
 
-- [DEXscreener](https://dexscreener.com) for DEX data API
-- [OpenRouter](https://openrouter.ai) for unified LLM access
-- [Anthropic](https://anthropic.com) for Claude models
-- [OpenAI](https://openai.com) for GPT models
-- [Linqup](https://linqup.stream) for donation platform
+- <a href="https://dexscreener.com" target="_blank">DEXscreener</a> for DEX data API
+- <a href="https://openrouter.ai" target="_blank">OpenRouter</a> for unified LLM access
+- <a href="https://anthropic.com" target="_blank">Anthropic</a> for Claude models
+- <a href="https://openai.com" target="_blank">OpenAI</a> for GPT models
+- <a href="https://linqup.stream" target="_blank">Linqup</a> for donation platform
 
 ## Disclaimer
 
