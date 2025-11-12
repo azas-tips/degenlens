@@ -301,16 +301,6 @@ docs(readme): Update installation instructions
 test(utils): Add tests for rate limiter
 ```
 
-## Roadmap
-
-- [ ] Chrome Web Store publication
-- [ ] Firefox extension support
-- [ ] Chart integration for token pairs
-- [ ] Watchlist feature
-- [ ] Historical analysis comparison
-- [ ] More chain support (Avalanche, Fantom, etc.)
-- [ ] Multi-language legal documents (Japanese)
-
 ## Acknowledgments
 
 - <a href="https://dexscreener.com" target="_blank">DEXscreener</a> for DEX data API
