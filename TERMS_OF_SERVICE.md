@@ -1,6 +1,6 @@
 # Terms of Service for DegenLens
 
-**Last Updated**: January 2025
+**Last Updated**: November 2025
 
 ## 1. Acceptance of Terms
 
