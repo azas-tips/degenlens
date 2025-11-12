@@ -1,4 +1,4 @@
-# 😈 DegenLens
+# DegenLens
 
 AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized exchanges using advanced LLM models.
 
