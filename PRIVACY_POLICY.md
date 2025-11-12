@@ -113,7 +113,7 @@ DegenLens is open source. You can:
 - Audit API calls and data handling
 - Contribute to the project
 
-Repository: https://github.com/yourusername/degenlens
+Repository: https://github.com/azas-tips/degenlens
 
 ## Changes to This Policy
 
@@ -136,9 +136,8 @@ Currently, DegenLens does not use any analytics. If we add privacy-respecting an
 
 Questions about this Privacy Policy or DegenLens privacy practices?
 
-- **GitHub Issues**: https://github.com/yourusername/degenlens/issues
-- **Email**: support@degenlens.example
-- **GitHub Discussions**: https://github.com/yourusername/degenlens/discussions
+- **GitHub Issues**: https://github.com/azas-tips/degenlens/issues
+- **GitHub Discussions**: https://github.com/azas-tips/degenlens/discussions
 
 ## Consent
 

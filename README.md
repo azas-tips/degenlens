@@ -2,28 +2,35 @@
 
 AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized exchanges using advanced LLM models.
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/azas-tips/degenlens/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Chrome](https://img.shields.io/badge/chrome-extension-orange.svg)](https://chrome.google.com/webstore)
+
+🌐 **[Website](https://azas-tips.github.io/degenlens/)** | 📜 **[Privacy Policy](https://azas-tips.github.io/degenlens/privacy)** | 📋 **[Terms of Service](https://azas-tips.github.io/degenlens/terms)**
+
 ## Features
 
 - 🔍 **Multi-Chain Support**: Solana, Ethereum, BSC, Polygon, Arbitrum, Optimism, Base
-- 🤖 **AI-Powered Analysis**: Leverage Claude, OpenAI, and other LLMs via OpenRouter
+- 🤖 **AI-Powered Analysis**: Leverage Claude, GPT, and other LLMs via OpenRouter
 - 📊 **Comprehensive Metrics**: Volume, liquidity, price changes, transaction patterns
-- ⚡ **Smart Caching**: Reduces API calls and improves response time
-- 🔄 **Automatic Retries**: Exponential backoff for network resilience
+- ⚡ **Real-Time Model Fetching**: Live model list from OpenRouter API
 - 🌐 **Internationalization**: English and Japanese support
+- 🎨 **Cyber/Neon Theme**: Modern dark UI with animated effects
+- 💰 **Donation Support**: Built-in support for project contributions
+- 📜 **Legal Pages**: Comprehensive Privacy Policy and Terms of Service
 - ♿ **Accessibility**: Full keyboard navigation and screen reader support
-- 🎨 **Modern UI**: Dark mode, loading skeletons, real-time progress indicators
 
 ## Installation
 
 ### From Chrome Web Store
-1. Visit the [Chrome Web Store](#) (coming soon)
+1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (coming soon)
 2. Click "Add to Chrome"
 3. Click "Add Extension" to confirm
 
 ### From Source
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/degenlens.git
+   git clone https://github.com/azas-tips/degenlens.git
    cd degenlens
    ```
 
@@ -64,48 +71,54 @@ DEXscreener API key increases rate limits but is not required for basic usage.
 ### 2. Configure Extension
 
 1. Click the DegenLens icon in your browser toolbar
-2. Click "Settings" (or right-click → Options)
+2. Click "Settings" in the header
 3. Enter your OpenRouter API key
 4. (Optional) Enter your DEXscreener API key
-5. Click "Save Settings"
+5. Select your preferred language (English/Japanese)
+6. (Optional) Customize the analysis prompt template
+7. Click "Save Settings"
 
 ## Usage
 
 ### Basic Analysis
 
-1. Click the DegenLens icon to open the popup
-2. Select a blockchain network (e.g., Solana)
-3. Choose an LLM model:
-   - **Claude 3.5 Sonnet**: Best quality, higher cost
-   - **Claude 3 Haiku**: Fast and economical
-   - **GPT-4 Turbo**: Alternative high-quality option
-   - **GPT-3.5 Turbo**: Budget-friendly option
-4. Adjust "Max Pairs" slider (1-100)
-5. Click "Analyze" or press `Ctrl/Cmd+Enter`
+1. Click the DegenLens icon to open the dashboard
+2. Select a blockchain network (e.g., Solana, Base, Ethereum)
+3. Choose an LLM model from the dropdown:
+   - **Claude Opus 4.1**: Flagship performance
+   - **Claude Sonnet 4.5**: Best balance
+   - **Claude Haiku 4.5**: Fast and economical
+   - **GPT-5**: Strong alternative
+   - **GPT-4o mini**: Budget-friendly option
+   - *Models are fetched in real-time from OpenRouter*
+4. Click "Analyze" or press `Ctrl/Cmd+Enter`
+5. Wait for AI analysis (analyzes top 10 pairs automatically)
 
 ### Understanding Results
 
+#### Top Pick
+The AI selects the most promising token based on:
+- **Momentum Score**: Current market momentum (0-100)
+- **Catalyst**: Key factors driving price action
+- **Moonshot Potential**: Upside potential assessment
+- **Momentum Phase**: Current market cycle phase
+
 #### Risk Assessment
-- **Low**: Good liquidity, healthy volume, balanced buy/sell ratio
+- **Low**: Good liquidity, healthy volume, balanced patterns
 - **Medium**: Moderate concerns, requires careful evaluation
 - **High**: Low liquidity, suspicious patterns, or extreme volatility
 
-#### Score (1-10)
-- **8-10**: Strong fundamentals, worth monitoring
-- **5-7**: Average quality, proceed with caution
-- **1-4**: High risk, significant concerns
-
 #### Metrics
-- **24h Volume**: Trading activity indicator
+- **Price**: Current USD price
+- **24h Change**: Price volatility percentage
+- **Volume (6h)**: Recent trading activity
 - **Liquidity**: Available funds for trading
-- **24h Change**: Price volatility
-- **Transactions**: Buy/sell activity patterns
 
 ### Keyboard Shortcuts
 
-- `Ctrl/Cmd+Enter`: Start/Cancel analysis
+- `Ctrl/Cmd+Enter`: Start analysis
 - `Esc`: Cancel ongoing analysis
-- `Tab`: Navigate between form elements
+- `Tab`: Navigate between elements
 
 ## Development
 
@@ -115,14 +128,17 @@ DEXscreener API key increases rate limits but is not required for basic usage.
 degenlens/
 ├── src/
 │   ├── api/              # API clients (DEXscreener, OpenRouter)
+│   ├── app/              # Main dashboard UI
 │   ├── background/       # Service worker and handlers
-│   ├── i18n/            # Internationalization
-│   ├── options/         # Settings page
-│   ├── popup/           # Main UI
-│   ├── shared/          # Shared utilities
-│   └── types/           # TypeScript types
-├── public/              # Static assets
-└── dist/                # Build output
+│   ├── components/       # Shared React components
+│   ├── hooks/            # Custom React hooks
+│   ├── i18n/             # Internationalization
+│   ├── shared/           # Shared utilities and schemas
+│   ├── stores/           # Zustand state management
+│   └── types/            # TypeScript type definitions
+├── docs/                 # GitHub Pages (legal documents)
+├── public/               # Static assets
+└── dist/                 # Build output
 ```
 
 ### Build Commands
@@ -162,7 +178,7 @@ Before committing changes, ensure:
 
 - **Framework**: React 18 + TypeScript
 - **Build Tool**: Vite + CRXJS (Chrome Extension Plugin)
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS (Custom cyber/neon theme)
 - **State Management**: Zustand
 - **HTTP Client**: Ky
 - **Validation**: Zod
@@ -171,30 +187,68 @@ Before committing changes, ensure:
 
 ## API Costs
 
-DegenLens uses OpenRouter for LLM analysis. Costs vary by model:
+DegenLens analyzes the **top 10 pairs** per request. Costs vary by model.
 
-| Model | Input (per 1M tokens) | Output (per 1M tokens) | Typical Cost (20 pairs) |
-|-------|----------------------|------------------------|--------------------------|
-| Claude 3.5 Sonnet | $3.00 | $15.00 | ~$0.08 |
-| Claude 3 Haiku | $0.25 | $1.25 | ~$0.01 |
-| GPT-4 Turbo | $10.00 | $30.00 | ~$0.25 |
-| GPT-3.5 Turbo | $0.50 | $1.50 | ~$0.02 |
+📋 **[View all models and pricing on OpenRouter →](https://openrouter.ai/models)** _(opens in new tab)_
 
-*Costs are estimates. Actual usage may vary.*
+### Latest Models (January 2025)
+
+| Model | Provider | Input (per 1M) | Output (per 1M) | Est. Cost (10 pairs) |
+|-------|----------|----------------|-----------------|----------------------|
+| **Claude Opus 4.1** | Anthropic | $15.00 | $75.00 | ~$0.50 |
+| **Claude Sonnet 4.5** | Anthropic | $3.00 | $15.00 | ~$0.10 |
+| **Claude Haiku 4.5** | Anthropic | $1.00 | $5.00 | ~$0.03 |
+| **GPT-5** | OpenAI | $1.25 | $10.00 | ~$0.06 |
+| **GPT-4o** | OpenAI | $5.00 | $20.00 | ~$0.14 |
+| **GPT-4o mini** | OpenAI | $0.15 | $0.60 | < $0.01 |
+| **Gemini 2.5 Pro** | Google | $1.25 | $10.00 | ~$0.06 |
+| **Gemini 2.5 Flash** | Google | $0.10 | $0.40 | < $0.01 |
+
+*Costs are estimates with ~15% safety margin. Actual usage may vary based on token count.*
+
+### Recommended Models
+
+**🏆 Best Performance:**
+- **Claude Opus 4.1** - Most capable reasoning (~$0.50/analysis)
+- **GPT-5** - Strong general performance (~$0.06/analysis)
+
+**⚡ Best Balance:**
+- **Claude Sonnet 4.5** - Excellent quality/cost ratio (~$0.10/analysis)
+- **Gemini 2.5 Pro** - Cost-effective alternative (~$0.06/analysis)
+
+**💰 Best Economy:**
+- **Claude Haiku 4.5** - 2× speed, ~95% Sonnet performance (~$0.03/analysis)
+- **Gemini 2.5 Flash** - Ultra-low cost (< $0.01/analysis)
+- **GPT-4o mini** - Reliable budget option (< $0.01/analysis)
+
+**Cost Calculation:**
+- Prompt tokens: ~300 tokens per pair (includes system prompt + pair data)
+- Completion tokens: ~600 tokens per pair (LLM analysis output)
+- Total per request: ~3,000 prompt + ~6,000 completion tokens
 
 ## Privacy & Security
 
-- **Local Storage**: API keys are stored locally in Chrome's secure storage
+- **Local Storage**: API keys encrypted in Chrome's secure storage
 - **No Tracking**: DegenLens does not collect or transmit user data
-- **Cache**: Analysis results are cached in session storage and cleared when the browser closes
+- **No Servers**: All data processing happens locally in your browser
 - **HTTPS Only**: All API requests use secure HTTPS connections
+- **Open Source**: Fully auditable codebase
+
+For details, see our [Privacy Policy](https://azas-tips.github.io/degenlens/privacy).
+
+## Legal
+
+- **Privacy Policy**: [https://azas-tips.github.io/degenlens/privacy](https://azas-tips.github.io/degenlens/privacy)
+- **Terms of Service**: [https://azas-tips.github.io/degenlens/terms](https://azas-tips.github.io/degenlens/terms)
+- **License**: MIT License (see [LICENSE](LICENSE))
 
 ## Limitations
 
-- **Rate Limits**: API providers enforce rate limits. Use cache and adjust analysis frequency.
-- **Cost**: LLM analysis incurs costs. Monitor your OpenRouter usage.
-- **Not Financial Advice**: DegenLens provides data-driven insights, not investment advice. Always DYOR (Do Your Own Research).
+- **Rate Limits**: API providers enforce rate limits. Monitor your usage.
+- **Cost**: LLM analysis incurs costs. Track your OpenRouter spending.
+- **Not Financial Advice**: DegenLens provides insights, not investment advice. Always DYOR (Do Your Own Research).
 - **API Dependency**: Requires active internet connection and API availability.
+- **Fixed Analysis**: Analyzes top 10 pairs per chain (not user-configurable).
 
 ## Troubleshooting
 
@@ -203,20 +257,35 @@ DegenLens uses OpenRouter for LLM analysis. Costs vary by model:
 - Ensure you have credits in your OpenRouter account
 - Check for typos or extra spaces
 
+### "No models available" Warning
+- Enter your OpenRouter API key in Settings
+- Click "Retry" after adding the key
+- Check your internet connection
+
 ### "Rate limit reached" Error
 - Wait for the specified time before retrying
-- Reduce the number of pairs to analyze
-- Use cache refresh button to avoid redundant requests
+- Free models have strict rate limits
+- Consider using a paid model for reliable performance
 
 ### "Request timed out" Error
 - Check your internet connection
 - Try a faster model (e.g., Claude Haiku)
-- Reduce the number of pairs to analyze
+- Retry the analysis
 
-### Extensio doesn't load
-- Ensure you've completed the build process
-- Check the browser console for errors
+### Extension doesn't load
+- Ensure you've completed the build process: `npm run build`
+- Check the browser console for errors (F12)
 - Try reloading the extension in `chrome://extensions/`
+
+## Support
+
+If you find DegenLens useful, consider supporting the project:
+
+☕ **[Buy me a coffee](https://linqup.stream/s/70ed3496aed25440)** (via Linqup)
+
+For issues and questions:
+- **Issues**: [GitHub Issues](https://github.com/azas-tips/degenlens/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/azas-tips/degenlens/discussions)
 
 ## Contributing
 
@@ -239,21 +308,15 @@ docs(readme): Update installation instructions
 test(utils): Add tests for rate limiter
 ```
 
-## License
+## Roadmap
 
-MIT License - see LICENSE file for details.
-
-## Disclaimer
-
-⚠️ **NOT FINANCIAL ADVICE**
-
-DegenLens is a tool for informational purposes only. It does not provide financial, investment, or trading advice. Cryptocurrency trading involves substantial risk of loss. Always conduct your own research (DYOR) and consult with qualified financial advisors before making investment decisions.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/degenlens/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/degenlens/discussions)
-- **Email**: support@degenlens.example
+- [ ] Chrome Web Store publication
+- [ ] Firefox extension support
+- [ ] Chart integration for token pairs
+- [ ] Watchlist feature
+- [ ] Historical analysis comparison
+- [ ] More chain support (Avalanche, Fantom, etc.)
+- [ ] Multi-language legal documents (Japanese)
 
 ## Acknowledgments
 
@@ -261,7 +324,20 @@ DegenLens is a tool for informational purposes only. It does not provide financi
 - [OpenRouter](https://openrouter.ai) for unified LLM access
 - [Anthropic](https://anthropic.com) for Claude models
 - [OpenAI](https://openai.com) for GPT models
+- [Linqup](https://linqup.stream) for donation platform
+
+## Disclaimer
+
+⚠️ **NOT FINANCIAL ADVICE**
+
+DegenLens is a tool for informational purposes only. It does not provide financial, investment, or trading advice. Cryptocurrency trading involves substantial risk of loss. Always conduct your own research (DYOR) and consult with qualified financial advisors before making investment decisions.
+
+**You are solely responsible for your investment decisions and any losses incurred.**
+
+See our full [Terms of Service](https://azas-tips.github.io/degenlens/terms) for details.
 
 ---
 
 Built with 💜 for the degen community.
+
+**Version 1.0.0** | MIT License | [GitHub](https://github.com/azas-tips/degenlens)

@@ -9,8 +9,7 @@
     "maxPairs": "Max Pairs to Analyze: {{count}}",
     "analyze": "Analyze",
     "analyzing": "Analyzing...",
-    "cancel": "Cancel",
-    "clearCache": "Clear cache and fetch fresh data"
+    "cancel": "Cancel"
   },
   "progress": {
     "fetching_pairs": "Fetching data from DEXscreener...",
@@ -21,7 +20,39 @@
     "title": "Error",
     "retryWait": "Please wait {{seconds}} seconds before retrying",
     "suggestions": "Suggestions:",
-    "goToSettings": "Go to Settings"
+    "goToSettings": "Go to Settings",
+    "rateLimit": "Rate limit reached for {{service}}.{{waitMessage}}{{freeModelNote}}",
+    "waitSeconds": " Please wait {{seconds}}s before retrying.",
+    "waitLater": " Please try again later.",
+    "freeModelNote": " Note: Free models have very strict rate limits due to high demand.",
+    "modelNotAvailable": "Selected model is not available. The model may have been removed or is temporarily unavailable.",
+    "resourceNotFound": "Resource not found. Please try a different chain or pair.",
+    "invalidRequest": "Invalid request. Please check your input and try again.",
+    "serverError": "Server error occurred. Please try again later.",
+    "authError": "Invalid {{service}} API key. Please check your settings.",
+    "timeout": "Request timed out during {{service}}. Please try again.",
+    "networkError": "Network error. Please check your internet connection.",
+    "unknownError": "Unexpected error occurred. Please try again.",
+    "suggestion": {
+      "wait": "Wait {{seconds}} seconds before retrying",
+      "waitMoment": "Wait a moment before retrying",
+      "freeModelLimits": "Free models have very strict rate limits",
+      "usePaidModel": "Consider using a paid model for reliable performance",
+      "tryLater": "Try again in a few minutes when usage decreases",
+      "tryDifferentModel": "Consider using a less demanding model",
+      "checkAccountLimits": "Check your OpenRouter account limits",
+      "tryFewerPairs": "Try analyzing fewer pairs",
+      "tryDifferentChain": "Try selecting a different chain or model",
+      "refreshExtension": "Refresh the extension and try again",
+      "checkDeprecated": "Check if the model is deprecated on OpenRouter",
+      "checkInternet": "Check your internet connection",
+      "tryFasterModel": "Try a faster model (e.g., Claude Haiku instead of Sonnet)",
+      "checkConsole": "Check the browser console for details",
+      "goToSettings": "Click the extension icon and go to Settings",
+      "verifyApiKey": "Verify your {{service}} API key is correct",
+      "getNewKey": "Get a new API key from {{url}}",
+      "checkServiceStatus": "Check if the service is experiencing issues"
+    }
   },
   "results": {
     "token": "Token",
@@ -44,14 +75,13 @@
     "analyzing": "Analyzing token pairs..."
   },
   "footer": {
-    "warning": "⚠️ Not financial advice. DYOR."
+    "warning": "⚠️ Not financial advice. DYOR.",
+    "settings": "Settings"
   },
   "options": {
     "title": "Settings",
     "openrouterKey": "OpenRouter API Key",
     "openrouterKeyDesc": "Required for LLM analysis",
-    "dexKey": "DEXscreener API Key",
-    "dexKeyDesc": "Optional - increases rate limits",
     "language": "Language",
     "save": "Save Settings",
     "saving": "Saving...",

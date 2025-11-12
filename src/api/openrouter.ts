@@ -9,7 +9,6 @@ import type {
   OpenRouterModelsResponse,
 } from '@/types/openrouter';
 import { llmLimiter } from '@/background/utils/rate-limiter';
-import { cacheManager, getModelsCacheKey } from '@/background/utils/cache';
 import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
 
@@ -35,32 +34,128 @@ async function createOpenRouterClient() {
       'HTTP-Referer': 'https://github.com/yourusername/degenlens', // TODO: Update with actual repo URL
       'X-Title': 'DegenLens',
     },
-    timeout: 60000, // 60 seconds (LLM calls can be slow)
+    timeout: 300000, // 5 minutes (LLM analysis can take time with large token counts)
   });
 }
 
 /**
  * Fetch available models
- * Uses cache to avoid excessive API calls
+ * Filters models to only include chat-compatible models
  *
  * @returns Array of available models
  */
 export async function fetchModels(): Promise<OpenRouterModel[]> {
-  const cacheKey = getModelsCacheKey();
-
   return llmLimiter.execute(async () => {
-    return cacheManager.getOrFetch(cacheKey, async () => {
-      console.log('[OpenRouter API] Fetching models list');
+    console.log('[OpenRouter API] Fetching models list');
 
-      const client = await createOpenRouterClient();
+    const client = await createOpenRouterClient();
 
-      const response = await retryWithBackoff(
-        () => client.get('models').json<OpenRouterModelsResponse>(),
-        { maxAttempts: 3 }
-      );
+    const response = await retryWithBackoff(
+      () => client.get('models').json<OpenRouterModelsResponse>(),
+      { maxAttempts: 3 }
+    );
 
-      return response.data;
+    // Filter models to only include chat-compatible ones
+    const excludedModels: Record<string, string[]> = {
+      modality: [],
+      pricing: [],
+      extended: [],
+      top_provider: [],
+    };
+
+    const filteredModels = response.data.filter(model => {
+      // Must output text (exclude image/audio generation models)
+      // Accept: "text->text", "text+image->text", etc.
+      // Reject: "text->image", "text+image->text+image", "text->audio", etc.
+      const modality = model.architecture?.modality;
+      if (modality && !modality.endsWith('->text')) {
+        excludedModels.modality.push(model.id);
+        return false;
+      }
+
+      // Must have pricing info
+      if (!model.pricing || !model.pricing.prompt || !model.pricing.completion) {
+        excludedModels.pricing.push(model.id);
+        return false;
+      }
+
+      // Exclude models with ':extended' suffix (often not available)
+      if (model.id.includes(':extended')) {
+        excludedModels.extended.push(model.id);
+        return false;
+      }
+
+      // Must have top_provider (indicates model is actually available)
+      if (!model.top_provider) {
+        excludedModels.top_provider.push(model.id);
+        return false;
+      }
+
+      return true;
     });
+
+    console.log(
+      `[OpenRouter API] Filtered ${response.data.length} models to ${filteredModels.length} chat-compatible models`
+    );
+    console.log('[OpenRouter API] Excluded models by reason:', {
+      modality: excludedModels.modality.length,
+      pricing: excludedModels.pricing.length,
+      extended: excludedModels.extended.length,
+      top_provider: excludedModels.top_provider.length,
+    });
+
+    // Log specific models if gpt-5 or grok are excluded
+    const gpt5Models = [
+      ...excludedModels.modality,
+      ...excludedModels.pricing,
+      ...excludedModels.extended,
+      ...excludedModels.top_provider,
+    ].filter(id => id.includes('gpt-5') || id.includes('o3'));
+    const grokModels = [
+      ...excludedModels.modality,
+      ...excludedModels.pricing,
+      ...excludedModels.extended,
+      ...excludedModels.top_provider,
+    ].filter(id => id.includes('grok'));
+
+    if (gpt5Models.length > 0) {
+      console.log('[OpenRouter API] GPT-5/O3 models excluded:', gpt5Models);
+      gpt5Models.forEach(id => {
+        if (excludedModels.modality.includes(id))
+          console.log(`  ${id}: missing text->text modality`);
+        if (excludedModels.pricing.includes(id)) console.log(`  ${id}: missing pricing info`);
+        if (excludedModels.extended.includes(id)) console.log(`  ${id}: has :extended suffix`);
+        if (excludedModels.top_provider.includes(id)) console.log(`  ${id}: missing top_provider`);
+      });
+    }
+
+    if (grokModels.length > 0) {
+      console.log('[OpenRouter API] Grok models excluded:', grokModels);
+      grokModels.forEach(id => {
+        if (excludedModels.modality.includes(id))
+          console.log(`  ${id}: missing text->text modality`);
+        if (excludedModels.pricing.includes(id)) console.log(`  ${id}: missing pricing info`);
+        if (excludedModels.extended.includes(id)) console.log(`  ${id}: has :extended suffix`);
+        if (excludedModels.top_provider.includes(id)) console.log(`  ${id}: missing top_provider`);
+      });
+    }
+
+    // Sort by provider + name for consistent ordering
+    const sortedModels = filteredModels.sort((a, b) => {
+      // Extract provider from model ID (e.g., "anthropic/claude-3.5-sonnet" -> "anthropic")
+      const providerA = a.id.split('/')[0];
+      const providerB = b.id.split('/')[0];
+
+      // First sort by provider
+      if (providerA !== providerB) {
+        return providerA.localeCompare(providerB);
+      }
+
+      // Then sort by name within same provider
+      return a.name.localeCompare(b.name);
+    });
+
+    return sortedModels;
   });
 }
 
@@ -75,7 +170,11 @@ export async function chatCompletion(
   request: OpenRouterChatRequest
 ): Promise<OpenRouterChatResponse> {
   return llmLimiter.execute(async () => {
-    console.log(`[OpenRouter API] Chat completion with model: ${request.model}`);
+    console.log(`[OpenRouter API] Chat completion request:`, {
+      model: request.model,
+      messageCount: request.messages.length,
+      temperature: request.temperature,
+    });
 
     const client = await createOpenRouterClient();
 
@@ -87,32 +186,26 @@ export async function chatCompletion(
       },
     };
 
-    const response = await retryWithBackoff(
-      () =>
-        client
-          .post('chat/completions', {
-            json: requestWithUsage,
-          })
-          .json<OpenRouterChatResponse>(),
-      { maxAttempts: 3 }
-    );
-
-    // Log usage info
-    if (response.usage) {
-      console.log(
-        `[OpenRouter API] Tokens used: ${response.usage.total_tokens} (prompt: ${response.usage.prompt_tokens}, completion: ${response.usage.completion_tokens})`
+    try {
+      const response = await retryWithBackoff(
+        () =>
+          client
+            .post('chat/completions', {
+              json: requestWithUsage,
+            })
+            .json<OpenRouterChatResponse>(),
+        { maxAttempts: 3 }
       );
+
+      console.log(`[OpenRouter API] Success:`, {
+        model: response.model,
+        tokens: response.usage?.total_tokens,
+      });
+
+      return response;
+    } catch (error) {
+      console.error(`[OpenRouter API] Failed for model "${request.model}":`, error);
+      throw error;
     }
-
-    return response;
   });
-}
-
-/**
- * Clear models cache
- */
-export async function clearModelsCache(): Promise<void> {
-  const cacheKey = getModelsCacheKey();
-  await cacheManager.delete(cacheKey);
-  console.log('[OpenRouter API] Cleared models cache');
 }

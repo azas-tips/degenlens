@@ -17,11 +17,44 @@ export interface AnalysisProgress {
 }
 
 /**
+ * Analyzed token pair data
+ */
+export interface AnalyzedPair {
+  symbol?: string;
+  priceUsd?: string;
+  volume6h?: number;
+  liquidity?: number;
+  priceChange6h?: number;
+  risk?: string;
+  observations?: string;
+  score?: number;
+  analysis?: string;
+  momentum?: number;
+  catalyst?: string;
+  moonshotPotential?: string;
+}
+
+/**
  * Analysis result data
  */
 export interface AnalysisResult {
-  pairs: any[]; // TODO: Define proper type later
+  pairs: AnalyzedPair[];
   analysis: string;
+  topPick?: {
+    symbol?: string;
+    reason?: string;
+    momentum?: number;
+    catalyst?: string;
+    moonshotPotential?: string;
+    momentumPhase?: string;
+    contractAddress?: string;
+    chainId?: string;
+    pairAddress?: string;
+  };
+  runnerUps?: Array<{
+    symbol?: string;
+    reason?: string;
+  }>;
   metadata?: {
     tokensUsed?: number;
     estimatedCost?: number;
@@ -83,7 +116,7 @@ export interface AppState extends PersistedPrefs, TemporaryState {
 /**
  * App store with automatic chrome.storage.local sync
  */
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>()((set, get) => ({
   // Default persisted preferences
   chain: 'solana',
   model: '',
@@ -115,11 +148,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   // Analysis state actions (memory only)
-  setAnalyzing: analyzing => set({ analyzing }),
+  setAnalyzing: analyzing => {
+    console.log('[Store] setAnalyzing called with:', analyzing);
+    set({ analyzing });
+    const newState = get();
+    console.log('[Store] State after setAnalyzing:', newState.analyzing);
+    console.log('[Store] Full state:', {
+      analyzing: newState.analyzing,
+      results: !!newState.results,
+    });
+  },
 
-  setProgress: progress => set({ progress }),
+  setProgress: progress => {
+    console.log('[Store] setProgress called with:', progress);
+    set({ progress });
+  },
 
-  setResults: results =>
+  setResults: results => {
+    console.log('[Store] setResults called, analyzing -> false');
     set({
       results,
       error: '',
@@ -127,17 +173,36 @@ export const useAppStore = create<AppState>((set, get) => ({
       errorSuggestions: [],
       retryAfterMs: 0,
       analyzing: false,
-    }),
+    });
+    console.log(
+      '[Store] State after setResults - analyzing:',
+      get().analyzing,
+      'results:',
+      !!get().results
+    );
+  },
 
-  setError: (error, errorCode = '', suggestions = [], retryAfterMs = 0) =>
-    set({
-      error,
-      errorCode,
-      errorSuggestions: suggestions,
-      retryAfterMs,
-      results: null,
-      analyzing: false,
-    }),
+  setError: (error, errorCode = '', suggestions = [], retryAfterMs = 0) => {
+    // Only set analyzing: false if there's an actual error
+    // If error is empty string, we're just clearing errors, don't change analyzing
+    if (error) {
+      set({
+        error,
+        errorCode,
+        errorSuggestions: suggestions,
+        retryAfterMs,
+        results: null,
+        analyzing: false,
+      });
+    } else {
+      set({
+        error: '',
+        errorCode: '',
+        errorSuggestions: [],
+        retryAfterMs: 0,
+      });
+    }
+  },
 
   // Utility actions
   clearResults: () =>

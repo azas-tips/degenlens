@@ -17,6 +17,8 @@ export async function migrateStorage(): Promise<void> {
     if (!raw.version) {
       console.log('[Storage Migration] First run, initializing storage...');
       await chrome.storage.local.set(DEFAULT_STORAGE);
+      // Clear any old cache
+      await chrome.storage.session.clear();
       return;
     }
 
@@ -41,6 +43,10 @@ export async function migrateStorage(): Promise<void> {
       //   await chrome.storage.local.set(migratedData);
       //   console.log('[Storage Migration] Migrated to v2');
       // }
+
+      // Clear cache on migration
+      await chrome.storage.session.clear();
+      console.log('[Storage Migration] Cache cleared');
     }
 
     console.log('[Storage Migration] Migration complete');

@@ -4,8 +4,10 @@
 import type { AnalyzeReq } from '@/shared/schema';
 import { handleApiError } from '@/shared/errors';
 import { fetchPairsByChain } from '@/api/dexscreener';
-import { chatCompletion } from '@/api/openrouter';
+import { chatCompletion, fetchModels } from '@/api/openrouter';
 import { buildAnalysisPrompt } from '../utils/prompt-builder';
+import { STORAGE_KEYS } from '@/types/storage';
+import type { OpenRouterModel } from '@/types/openrouter';
 
 /**
  * Safe post function type
@@ -19,15 +21,33 @@ interface AnalysisResult {
   pairs: Array<{
     symbol: string;
     priceUsd: string;
-    volume24h: number;
+    volume6h: number;
     liquidity: number;
-    priceChange24h: number;
+    priceChange6h: number;
     risk?: string;
     observations?: string;
     score?: number;
     analysis?: string;
+    momentum?: number;
+    catalyst?: string;
+    moonshotPotential?: string;
   }>;
   analysis: string;
+  topPick?: {
+    symbol?: string;
+    reason?: string;
+    momentum?: number;
+    catalyst?: string;
+    moonshotPotential?: string;
+    momentumPhase?: string;
+    contractAddress?: string;
+    chainId?: string;
+    pairAddress?: string;
+  };
+  runnerUps?: Array<{
+    symbol?: string;
+    reason?: string;
+  }>;
   metadata?: {
     tokensUsed?: number;
     estimatedCost?: number;
@@ -81,6 +101,16 @@ export async function handleAnalyzeRequest(
 
     if (aborted) return;
 
+    // Fetch model information for accurate cost calculation
+    let modelInfo: OpenRouterModel | undefined;
+    try {
+      const models = await fetchModels();
+      modelInfo = models.find(m => m.id === model);
+    } catch (error) {
+      console.warn('[Analyze] Failed to fetch model info for cost calculation:', error);
+      // Continue without model info - will use fallback pricing
+    }
+
     // Step 2: Analyze with LLM (40-80%)
     safePost({
       type: 'progress',
@@ -89,93 +119,168 @@ export async function handleAnalyzeRequest(
       progress: 50,
     });
 
-    const prompt = buildAnalysisPrompt(pairs, chain);
+    // Get custom prompt and language from storage
+    const storage = await chrome.storage.local.get([
+      STORAGE_KEYS.CUSTOM_PROMPT,
+      STORAGE_KEYS.LANGUAGE,
+    ]);
+    const customPrompt = storage[STORAGE_KEYS.CUSTOM_PROMPT] as string | undefined;
+    const language = (storage[STORAGE_KEYS.LANGUAGE] as 'en' | 'ja' | undefined) || 'en';
 
-    console.log(`[Analyze] Sending to LLM (${model})`);
+    const prompt = buildAnalysisPrompt(pairs, chain, customPrompt, language);
 
-    const llmResponse = await chatCompletion({
-      model,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.3, // Lower temperature for more consistent analysis
-    });
+    console.log(`[Analyze] Sending to LLM (${model}) in ${language}`);
 
-    if (aborted) return;
+    // Keep-alive mechanism: Send progress updates every 20 seconds during LLM call
+    // This prevents Service Worker from being terminated during long LLM requests
+    const keepAliveInterval = setInterval(() => {
+      if (!aborted) {
+        safePost({
+          type: 'progress',
+          id,
+          step: 'analyzing_llm',
+          progress: 60, // Keep at 60% during LLM analysis
+        });
+        console.log('[Analyze] Keep-alive ping sent');
+      }
+    }, 20000); // Every 20 seconds
 
-    safePost({
-      type: 'progress',
-      id,
-      step: 'analyzing_llm',
-      progress: 80,
-    });
-
-    // Step 3: Format results (80-100%)
-    safePost({
-      type: 'progress',
-      id,
-      step: 'formatting_results',
-      progress: 90,
-    });
-
-    if (aborted) return;
-
-    // Extract LLM response
-    const llmContent = llmResponse.choices?.[0]?.message?.content || '';
-
-    console.log(`[Analyze] LLM response received (${llmContent.length} chars)`);
-
-    // Try to parse JSON response
-    let llmAnalysis: any = null;
     try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch =
-        llmContent.match(/```json\s*([\s\S]*?)\s*```/) ||
-        llmContent.match(/```\s*([\s\S]*?)\s*```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : llmContent;
-      llmAnalysis = JSON.parse(jsonString);
-    } catch (parseError) {
-      console.warn('[Analyze] Failed to parse LLM JSON, using raw response');
-    }
+      const llmResponse = await chatCompletion({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.3, // Lower temperature for more consistent analysis
+      });
 
-    // Build result
-    const result: AnalysisResult = {
-      pairs: pairs.map((pair, index) => {
-        const llmPair = llmAnalysis?.pairs?.[index];
+      clearInterval(keepAliveInterval);
 
-        return {
-          symbol: `${pair.baseToken?.symbol || 'Unknown'}/${pair.quoteToken?.symbol || 'Unknown'}`,
-          priceUsd: pair.priceUsd || '0',
-          volume24h: pair.volume?.h24 || 0,
-          liquidity: pair.liquidity?.usd || 0,
-          priceChange24h: pair.priceChange?.h24 || 0,
-          risk: llmPair?.risk,
-          observations: llmPair?.observations,
-          score: llmPair?.score,
-          analysis: llmPair?.observations,
+      if (aborted) return;
+
+      safePost({
+        type: 'progress',
+        id,
+        step: 'analyzing_llm',
+        progress: 80,
+      });
+
+      // Step 3: Format results (80-100%)
+      safePost({
+        type: 'progress',
+        id,
+        step: 'formatting_results',
+        progress: 90,
+      });
+
+      if (aborted) return;
+
+      // Extract LLM response
+      const llmContent = llmResponse.choices?.[0]?.message?.content || '';
+
+      console.log(`[Analyze] LLM response received (${llmContent.length} chars)`);
+
+      // Try to parse JSON response
+      interface LLMAnalysis {
+        topPick?: {
+          symbol?: string;
+          reason?: string;
+          momentum?: number;
+          catalyst?: string;
+          moonshotPotential?: string;
+          momentumPhase?: string;
         };
-      }),
-      analysis: llmAnalysis?.summary || llmContent.substring(0, 500), // Fallback to first 500 chars
-      metadata: {
-        tokensUsed: llmResponse.usage?.total_tokens,
-        estimatedCost: calculateCost(llmResponse.usage?.total_tokens || 0, model),
-      },
-    };
+        pairs?: Array<{
+          symbol?: string;
+          momentum?: number;
+          catalyst?: string;
+          observations?: string;
+          moonshotPotential?: string;
+          risk?: string;
+          score?: number; // Backward compatibility
+        }>;
+        runnerUps?: Array<{
+          symbol?: string;
+          reason?: string;
+        }>;
+        marketPulse?: string;
+        summary?: string; // Backward compatibility
+      }
+      let llmAnalysis: LLMAnalysis | null = null;
+      try {
+        // Extract JSON from markdown code blocks if present
+        const jsonMatch =
+          llmContent.match(/```json\s*([\s\S]*?)\s*```/) ||
+          llmContent.match(/```\s*([\s\S]*?)\s*```/);
+        const jsonString = jsonMatch ? jsonMatch[1] : llmContent;
+        llmAnalysis = JSON.parse(jsonString);
+      } catch {
+        console.warn('[Analyze] Failed to parse LLM JSON, using raw response');
+      }
 
-    // Send result
-    safePost({
-      type: 'result',
-      id,
-      data: result,
-    });
+      // Build result
+      const result: AnalysisResult = {
+        pairs: pairs.map((pair, index) => {
+          const llmPair = llmAnalysis?.pairs?.[index];
 
-    console.log('[Analyze] Analysis completed successfully');
+          return {
+            symbol: `${pair.baseToken?.symbol || 'Unknown'}/${pair.quoteToken?.symbol || 'Unknown'}`,
+            priceUsd: pair.priceUsd || '0',
+            volume6h: pair.volume?.h6 || 0,
+            liquidity: pair.liquidity?.usd || 0,
+            priceChange6h: pair.priceChange?.h6 || 0,
+            risk: llmPair?.risk,
+            observations: llmPair?.observations,
+            score: llmPair?.score || llmPair?.momentum,
+            analysis: llmPair?.observations,
+            momentum: llmPair?.momentum,
+            catalyst: llmPair?.catalyst,
+            moonshotPotential: llmPair?.moonshotPotential,
+          };
+        }),
+        analysis: llmAnalysis?.marketPulse || llmAnalysis?.summary || llmContent.substring(0, 500), // Fallback
+        topPick: llmAnalysis?.topPick
+          ? (() => {
+              const topPickSymbol = llmAnalysis.topPick.symbol?.split('/')[0]; // Get base token symbol
+              const matchedPair = pairs.find(pair => pair.baseToken?.symbol === topPickSymbol);
+
+              return {
+                ...llmAnalysis.topPick,
+                contractAddress: matchedPair?.baseToken?.address,
+                chainId: matchedPair?.chainId,
+                pairAddress: matchedPair?.pairAddress,
+              };
+            })()
+          : undefined,
+        runnerUps: llmAnalysis?.runnerUps,
+        metadata: {
+          tokensUsed: llmResponse.usage?.total_tokens,
+          estimatedCost: calculateActualCost(
+            llmResponse.usage?.prompt_tokens || 0,
+            llmResponse.usage?.completion_tokens || 0,
+            modelInfo
+          ),
+        },
+      };
+
+      // Send result
+      safePost({
+        type: 'result',
+        id,
+        data: result,
+      });
+
+      console.log('[Analyze] Analysis completed successfully');
+    } catch (llmError) {
+      clearInterval(keepAliveInterval);
+      throw llmError;
+    }
   } catch (error) {
     console.error('[Analyze] Analysis failed:', error);
-    const errorInfo = handleApiError(error);
+    const errorInfo = await handleApiError(error);
     safePost({
       type: 'result',
       id,
@@ -188,21 +293,26 @@ export async function handleAnalyzeRequest(
 }
 
 /**
- * Calculate estimated cost
- * Rough estimate based on token count and model
+ * Calculate actual cost based on token usage and model pricing
+ * @param promptTokens - Number of prompt tokens used
+ * @param completionTokens - Number of completion tokens used
+ * @param modelInfo - Model pricing information
+ * @returns Actual cost in USD
  */
-function calculateCost(tokens: number, model: string): number {
-  // Rough pricing (per 1M tokens)
-  const pricing: Record<string, number> = {
-    'claude-3.5-sonnet': 3.0, // $3 per 1M input tokens
-    'claude-3-haiku': 0.25,
-    'gpt-4-turbo': 10.0,
-    'gpt-3.5-turbo': 0.5,
-  };
+function calculateActualCost(
+  promptTokens: number,
+  completionTokens: number,
+  modelInfo: OpenRouterModel | undefined
+): number {
+  if (!modelInfo) {
+    // Fallback to rough estimate if model info not available
+    const totalTokens = promptTokens + completionTokens;
+    return (totalTokens / 1_000_000) * 3.0; // Default $3 per 1M tokens
+  }
 
-  // Find matching model
-  const modelKey = Object.keys(pricing).find(key => model.includes(key));
-  const pricePerMillion = modelKey ? pricing[modelKey] : 3.0; // Default to $3
+  // OpenRouter pricing is per token (not per 1M)
+  const promptCost = promptTokens * parseFloat(modelInfo.pricing.prompt);
+  const completionCost = completionTokens * parseFloat(modelInfo.pricing.completion);
 
-  return (tokens / 1_000_000) * pricePerMillion;
+  return promptCost + completionCost;
 }

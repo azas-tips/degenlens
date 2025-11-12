@@ -1,6 +1,8 @@
 // Error Code System
 // Separates internal error codes from user-facing messages
 
+import { translate } from '@/i18n/translate';
+
 /**
  * Error code constants
  */
@@ -67,8 +69,9 @@ export function isHTTPError(error: unknown): error is HTTPError {
 /**
  * API error handler
  * Converts HTTP errors and timeouts to appropriate ErrorInfo
+ * Now async to support i18n
  */
-export function handleApiError(error: unknown): ErrorInfo {
+export async function handleApiError(error: unknown): Promise<ErrorInfo> {
   // HTTPError case
   if (isHTTPError(error)) {
     const status = error.response.status;
@@ -80,17 +83,52 @@ export function handleApiError(error: unknown): ErrorInfo {
       const waitSeconds = Math.ceil(retryAfter / 1000);
       const serviceName = isLLM ? 'OpenRouter' : 'DEXscreener';
 
+      // Check if it's a free model (extract from URL or error message)
+      const isFreeModel = error.response.url.includes(':free');
+
+      const waitMessage =
+        waitSeconds > 0
+          ? await translate('error.waitSeconds', { seconds: waitSeconds })
+          : await translate('error.waitLater');
+
+      const freeModelNote = isFreeModel ? await translate('error.freeModelNote') : '';
+
+      const userMessage = await translate('error.rateLimit', {
+        service: serviceName,
+        waitMessage,
+        freeModelNote,
+      });
+
+      const suggestions: string[] = [];
+      if (waitSeconds > 0) {
+        suggestions.push(await translate('error.suggestion.wait', { seconds: waitSeconds }));
+      } else {
+        suggestions.push(await translate('error.suggestion.waitMoment'));
+      }
+
+      if (isLLM) {
+        if (isFreeModel) {
+          suggestions.push(
+            await translate('error.suggestion.freeModelLimits'),
+            await translate('error.suggestion.usePaidModel'),
+            await translate('error.suggestion.tryLater')
+          );
+        } else {
+          suggestions.push(
+            await translate('error.suggestion.tryDifferentModel'),
+            await translate('error.suggestion.checkAccountLimits')
+          );
+        }
+      } else {
+        suggestions.push(await translate('error.suggestion.tryFewerPairs'));
+      }
+
       return {
         code: isLLM ? ERR.LLM_RATE_LIMIT : ERR.DEX_RATE_LIMIT,
-        userMessage: `Rate limit reached for ${serviceName}.${waitSeconds > 0 ? ` Please wait ${waitSeconds}s before retrying.` : ' Please try again later.'}`,
+        userMessage,
         developerMessage: error.message,
         retryAfterMs: retryAfter,
-        suggestions: [
-          waitSeconds > 0
-            ? `Wait ${waitSeconds} seconds before retrying`
-            : 'Wait a moment before retrying',
-          isLLM ? 'Consider using a less demanding model' : 'Try analyzing fewer pairs',
-        ],
+        suggestions,
       };
     }
 
@@ -99,14 +137,39 @@ export function handleApiError(error: unknown): ErrorInfo {
       const serviceName = isLLM ? 'OpenRouter' : 'DEXscreener';
       return {
         code: isLLM ? ERR.LLM_UNAUTHORIZED : ERR.DEX_UNAUTHORIZED,
-        userMessage: `Invalid ${serviceName} API key. Please check your settings.`,
+        userMessage: await translate('error.authError', { service: serviceName }),
         developerMessage: error.message,
         suggestions: [
-          'Click the extension icon and go to Settings',
-          `Verify your ${serviceName} API key is correct`,
+          await translate('error.suggestion.goToSettings'),
+          await translate('error.suggestion.verifyApiKey', { service: serviceName }),
           isLLM
-            ? 'Get a new API key from https://openrouter.ai/keys'
-            : 'Check if DEXscreener API key is required',
+            ? await translate('error.suggestion.getNewKey', { url: 'https://openrouter.ai/keys' })
+            : 'Check if DEXscreener API key is required', // No translation for now
+        ],
+      };
+    }
+
+    // 404: Model/Resource not found
+    if (status === 404) {
+      if (isLLM) {
+        return {
+          code: ERR.LLM_BAD_REQUEST,
+          userMessage: await translate('error.modelNotAvailable'),
+          developerMessage: `${error.message} (URL: ${error.response.url})`,
+          suggestions: [
+            await translate('error.suggestion.tryDifferentChain'),
+            await translate('error.suggestion.refreshExtension'),
+            await translate('error.suggestion.checkDeprecated'),
+          ],
+        };
+      }
+      return {
+        code: ERR.DEX_BAD_REQUEST,
+        userMessage: await translate('error.resourceNotFound'),
+        developerMessage: error.message,
+        suggestions: [
+          await translate('error.suggestion.tryDifferentChain'),
+          await translate('error.suggestion.refreshExtension'),
         ],
       };
     }
@@ -115,11 +178,11 @@ export function handleApiError(error: unknown): ErrorInfo {
     if (status >= 400 && status < 500) {
       return {
         code: isLLM ? ERR.LLM_BAD_REQUEST : ERR.DEX_BAD_REQUEST,
-        userMessage: 'Invalid request. Please check your input and try again.',
+        userMessage: await translate('error.invalidRequest'),
         developerMessage: error.message,
         suggestions: [
-          'Try selecting a different chain or model',
-          'Refresh the extension and try again',
+          await translate('error.suggestion.tryDifferentChain'),
+          await translate('error.suggestion.refreshExtension'),
         ],
       };
     }
@@ -127,11 +190,11 @@ export function handleApiError(error: unknown): ErrorInfo {
     // 500-599: Server errors
     return {
       code: isLLM ? ERR.LLM_BAD_REQUEST : ERR.DEX_NETWORK_ERROR,
-      userMessage: 'Server error occurred. Please try again later.',
+      userMessage: await translate('error.serverError'),
       developerMessage: error.message,
       suggestions: [
-        'Wait a few moments and try again',
-        'Check if the service is experiencing issues',
+        await translate('error.suggestion.waitMoment'),
+        await translate('error.suggestion.checkServiceStatus'),
       ],
     };
   }
@@ -143,17 +206,19 @@ export function handleApiError(error: unknown): ErrorInfo {
     const isLLM = errorStr.includes('openrouter') || errorStr.includes('chat/completions');
     const serviceName = isLLM ? 'LLM analysis' : 'DEX data fetch';
 
+    const suggestions: string[] = [await translate('error.suggestion.checkInternet')];
+    if (isLLM) {
+      suggestions.push(await translate('error.suggestion.tryFasterModel'));
+    } else {
+      suggestions.push(await translate('error.suggestion.tryDifferentChain'));
+    }
+    suggestions.push(await translate('error.suggestion.tryFewerPairs'));
+
     return {
       code: isLLM ? ERR.LLM_TIMEOUT : ERR.DEX_TIMEOUT,
-      userMessage: `Request timed out during ${serviceName}. Please try again.`,
+      userMessage: await translate('error.timeout', { service: serviceName }),
       developerMessage: error.message,
-      suggestions: [
-        'Check your internet connection',
-        isLLM
-          ? 'Try a faster model (e.g., Claude Haiku instead of Sonnet)'
-          : 'Try analyzing a different chain',
-        'Reduce the number of pairs to analyze',
-      ],
+      suggestions,
     };
   }
 
@@ -161,18 +226,24 @@ export function handleApiError(error: unknown): ErrorInfo {
   if (error instanceof TypeError && error.message.includes('fetch')) {
     return {
       code: ERR.NETWORK_ERROR,
-      userMessage: 'Network error. Please check your internet connection.',
+      userMessage: await translate('error.networkError'),
       developerMessage: error.message,
-      suggestions: ['Check your internet connection', 'Try again in a moment'],
+      suggestions: [
+        await translate('error.suggestion.checkInternet'),
+        await translate('error.suggestion.waitMoment'),
+      ],
     };
   }
 
   // Other errors
   return {
     code: ERR.UNKNOWN,
-    userMessage: 'Unexpected error occurred. Please try again.',
+    userMessage: await translate('error.unknownError'),
     developerMessage: error instanceof Error ? error.message : String(error),
-    suggestions: ['Try refreshing the extension', 'Check the browser console for details'],
+    suggestions: [
+      await translate('error.suggestion.refreshExtension'),
+      await translate('error.suggestion.checkConsole'),
+    ],
   };
 }
 

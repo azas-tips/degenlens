@@ -22,6 +22,7 @@ export interface AppStorageV1 {
     model: string; // OpenRouter model ID
     maxPairs: number; // Number of pairs to analyze (1-100)
   };
+  custom_prompt?: string; // Custom analysis prompt (optional)
   telemetry_enabled?: boolean; // Local error logging enabled (default: false)
 }
 
@@ -40,7 +41,7 @@ export const DEFAULT_STORAGE: AppStorageV1 = {
   prefs: {
     chain: 'solana',
     model: '',
-    maxPairs: 20,
+    maxPairs: 10, // Fixed: Top 10 pairs to find THE ONE
   },
   telemetry_enabled: false,
 };
@@ -51,6 +52,7 @@ export const STORAGE_KEYS = {
   DEX_API_KEY: 'dex_api_key',
   OPENROUTER_API_KEY: 'openrouter_api_key',
   PREFS: 'prefs',
+  CUSTOM_PROMPT: 'custom_prompt',
   TELEMETRY_ENABLED: 'telemetry_enabled',
   LANGUAGE: 'language',
 } as const;
