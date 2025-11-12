@@ -53,14 +53,53 @@ function App() {
             {/* Logo and Title */}
             <div className="flex items-center space-x-4 animate-slide-in">
               <div className="relative w-10 h-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-neon-purple to-neon-pink rounded-lg opacity-20"></div>
-                <div className="absolute inset-0.5 bg-cyber-darker rounded-lg"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div
-                    className="w-6 h-6 border-2 border-neon-purple animate-glow-pulse"
-                    style={{ clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' }}
-                  ></div>
-                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 128 128"
+                  className="w-full h-full"
+                >
+                  <rect width="128" height="128" rx="24" fill="#0A0A0F" />
+                  <circle cx="56" cy="64" r="32" fill="none" stroke="#A855F7" strokeWidth="6" />
+                  <circle cx="52" cy="60" r="8" fill="#A855F7" opacity="0.4" />
+                  <path
+                    d="M 80 88 L 100 108"
+                    stroke="#A855F7"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 84 92 L 104 112"
+                    stroke="#A855F7"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    opacity="0.6"
+                  />
+                  <path d="M 36 36 Q 32 24 28 20 Q 32 22 36 32" fill="#A855F7" />
+                  <path d="M 76 36 Q 80 24 84 20 Q 80 22 76 32" fill="#A855F7" />
+                  <circle
+                    cx="56"
+                    cy="64"
+                    r="32"
+                    fill="none"
+                    stroke="#A855F7"
+                    strokeWidth="2"
+                    opacity="0.3"
+                  />
+                  <circle
+                    cx="56"
+                    cy="64"
+                    r="36"
+                    fill="none"
+                    stroke="#A855F7"
+                    strokeWidth="1"
+                    opacity="0.2"
+                  />
+                  <circle cx="48" cy="64" r="2" fill="#10b981" />
+                  <circle cx="56" cy="70" r="2" fill="#10b981" />
+                  <circle cx="64" cy="64" r="2" fill="#10b981" />
+                  <circle cx="56" cy="58" r="2" fill="#f59e0b" />
+                  <circle cx="52" cy="68" r="2" fill="#ef4444" />
+                </svg>
               </div>
               <div>
                 <h1 className="text-2xl font-bold neon-text tracking-wider">{t('app.title')}</h1>
