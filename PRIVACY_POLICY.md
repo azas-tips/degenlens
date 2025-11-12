@@ -41,7 +41,7 @@ DegenLens connects to external APIs using **your own API keys**:
 ### 1. DEXscreener API
 - **Purpose**: Fetch token pair data from decentralized exchanges
 - **Data Sent**: Chain name, token addresses (no personal data)
-- **Privacy Policy**: https://dexscreener.com/privacy
+- **Privacy Policy**: https://docs.dexscreener.com/privacy/privacy-policy
 - **Your Control**: Optional API key (not required for basic usage)
 
 ### 2. OpenRouter API
