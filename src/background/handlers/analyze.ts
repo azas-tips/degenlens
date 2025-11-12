@@ -63,7 +63,7 @@ export async function handleAnalyzeRequest(
   safePost: SafePost,
   aborted: boolean
 ): Promise<void> {
-  const { id, chain, model, maxPairs } = msg;
+  const { id, chain, model, maxPairs, timeframe } = msg;
 
   try {
     console.log(`[Analyze] Starting analysis for ${chain} with ${model}`);
@@ -78,7 +78,7 @@ export async function handleAnalyzeRequest(
 
     if (aborted) return;
 
-    const pairs = await fetchPairsByChain(chain, maxPairs);
+    const pairs = await fetchPairsByChain(chain, maxPairs, timeframe);
 
     if (pairs.length === 0) {
       safePost({
@@ -127,7 +127,7 @@ export async function handleAnalyzeRequest(
     const customPrompt = storage[STORAGE_KEYS.CUSTOM_PROMPT] as string | undefined;
     const language = (storage[STORAGE_KEYS.LANGUAGE] as 'en' | 'ja' | undefined) || 'en';
 
-    const prompt = buildAnalysisPrompt(pairs, chain, customPrompt, language);
+    const prompt = buildAnalysisPrompt(pairs, chain, timeframe, customPrompt, language);
 
     console.log(`[Analyze] Sending to LLM (${model}) in ${language}`);
 
@@ -229,9 +229,9 @@ export async function handleAnalyzeRequest(
           return {
             symbol: `${pair.baseToken?.symbol || 'Unknown'}/${pair.quoteToken?.symbol || 'Unknown'}`,
             priceUsd: pair.priceUsd || '0',
-            volume6h: pair.volume?.h6 || 0,
+            volume6h: pair.volume?.[timeframe] || 0,
             liquidity: pair.liquidity?.usd || 0,
-            priceChange6h: pair.priceChange?.h6 || 0,
+            priceChange6h: pair.priceChange?.[timeframe] || 0,
             risk: llmPair?.risk,
             observations: llmPair?.observations,
             score: llmPair?.score || llmPair?.momentum,

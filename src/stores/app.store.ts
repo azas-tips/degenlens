@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import { STORAGE_KEYS } from '@/types/storage';
+import { DEFAULT_TIMEFRAME, type Timeframe } from '@/types/dexscreener';
 
 // ============================================
 // Types
@@ -68,6 +69,7 @@ export interface PersistedPrefs {
   chain: string;
   model: string;
   maxPairs: number;
+  timeframe: Timeframe;
 }
 
 /**
@@ -91,6 +93,7 @@ export interface AppState extends PersistedPrefs, TemporaryState {
   setChain: (chain: string) => void;
   setModel: (model: string) => void;
   setMaxPairs: (maxPairs: number) => void;
+  setTimeframe: (timeframe: Timeframe) => void;
 
   // Actions for analysis state
   setAnalyzing: (analyzing: boolean) => void;
@@ -121,6 +124,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   chain: 'solana',
   model: '',
   maxPairs: 20,
+  timeframe: DEFAULT_TIMEFRAME,
 
   // Default temporary state
   analyzing: false,
@@ -144,6 +148,11 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
   setMaxPairs: maxPairs => {
     set({ maxPairs });
+    get().savePreferences();
+  },
+
+  setTimeframe: timeframe => {
+    set({ timeframe });
     get().savePreferences();
   },
 
@@ -229,6 +238,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           chain: prefs.chain || 'solana',
           model: prefs.model || '',
           maxPairs: prefs.maxPairs || 20,
+          timeframe: prefs.timeframe || DEFAULT_TIMEFRAME,
         });
       }
     } catch (error) {
@@ -241,13 +251,14 @@ export const useAppStore = create<AppState>()((set, get) => ({
    */
   savePreferences: async () => {
     try {
-      const { chain, model, maxPairs } = get();
+      const { chain, model, maxPairs, timeframe } = get();
 
       await chrome.storage.local.set({
         [STORAGE_KEYS.PREFS]: {
           chain,
           model,
           maxPairs,
+          timeframe,
         },
       });
     } catch (error) {

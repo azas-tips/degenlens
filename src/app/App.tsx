@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation, type Language } from '@/i18n';
 import { STORAGE_KEYS } from '@/types/storage';
+import { TIMEFRAMES, type Timeframe } from '@/types/dexscreener';
 import { useAppStore, initializeStore } from '@/stores/app.store';
 import { ModelSelector } from '@/components/ModelSelector';
 import { TopPickDisplay } from '@/components/TopPickDisplay';
@@ -238,6 +239,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   // Use individual selectors to ensure proper subscription
   const chain = useAppStore(state => state.chain);
   const model = useAppStore(state => state.model);
+  const timeframe = useAppStore(state => state.timeframe);
   const analyzing = useAppStore(state => state.analyzing);
   const progress = useAppStore(state => state.progress);
   const results = useAppStore(state => state.results);
@@ -246,6 +248,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const retryAfterMs = useAppStore(state => state.retryAfterMs);
   const setChain = useAppStore(state => state.setChain);
   const setModel = useAppStore(state => state.setModel);
+  const setTimeframe = useAppStore(state => state.setTimeframe);
 
   // Debug: Subscribe to store changes directly
   useEffect(() => {
@@ -322,7 +325,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
       {/* Controls Section */}
       <div className="cyber-card p-6 rounded-xl shadow-cyber-card animate-fade-in">
         <h2 className="text-xl font-bold mb-6 neon-text tracking-wide">Analysis Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Chain Selector */}
           <section>
             <label htmlFor="chain-select" className="block text-sm font-medium mb-2 text-neon-cyan">
@@ -352,6 +355,29 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
             disabled={analyzing}
             onNavigateToSettings={onNavigateToSettings}
           />
+
+          {/* Timeframe Selector */}
+          <section>
+            <label
+              htmlFor="timeframe-select"
+              className="block text-sm font-medium mb-2 text-neon-cyan"
+            >
+              {t('form.timeframe')}
+            </label>
+            <select
+              id="timeframe-select"
+              value={timeframe}
+              onChange={e => setTimeframe(e.target.value as Timeframe)}
+              disabled={analyzing}
+              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-sm hover:border-purple-500/50"
+            >
+              {Object.entries(TIMEFRAMES).map(([key, { labelKey }]) => (
+                <option key={key} value={key}>
+                  {t(labelKey)}
+                </option>
+              ))}
+            </select>
+          </section>
         </div>
 
         {/* Action Buttons */}
@@ -546,7 +572,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
 
   const handleSaveKeys = async () => {
     if (!openrouterInput.trim()) {
-      setSaveMessage('⚠️ Please enter an API key');
+      setSaveMessage(`⚠️ ${t('options.pleaseEnterKey')}`);
       setTimeout(() => setSaveMessage(''), 3000);
       return;
     }
@@ -561,11 +587,11 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
 
       await loadSavedStatus();
       setOpenrouterInput('');
-      setSaveMessage('✅ API key saved successfully');
+      setSaveMessage(`✅ ${t('options.keySavedSuccess')}`);
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Failed to save API key:', error);
-      setSaveMessage('❌ Failed to save');
+      setSaveMessage(`❌ ${t('options.saveFailed')}`);
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setSaving(false);
@@ -582,16 +608,16 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
           [STORAGE_KEYS.CUSTOM_PROMPT]: customPrompt.trim(),
         });
         setHasCustomPrompt(true);
-        setSaveMessage('✅ Custom prompt saved successfully');
+        setSaveMessage(`✅ ${t('options.promptSavedSuccess')}`);
       } else {
         await chrome.storage.local.remove(STORAGE_KEYS.CUSTOM_PROMPT);
         setHasCustomPrompt(false);
-        setSaveMessage('✅ Custom prompt removed');
+        setSaveMessage(`✅ ${t('options.promptRemoved')}`);
       }
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Failed to save prompt:', error);
-      setSaveMessage('❌ Failed to save prompt');
+      setSaveMessage(`❌ ${t('options.promptSaveFailed')}`);
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setSaving(false);
@@ -599,7 +625,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
   };
 
   const handleResetPrompt = async () => {
-    if (!confirm('Reset to default prompt?')) {
+    if (!confirm(t('options.confirmResetPrompt'))) {
       return;
     }
 
@@ -607,17 +633,17 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
       await chrome.storage.local.remove(STORAGE_KEYS.CUSTOM_PROMPT);
       setCustomPrompt('');
       setHasCustomPrompt(false);
-      setSaveMessage('✅ Prompt reset to default');
+      setSaveMessage(`✅ ${t('options.promptResetSuccess')}`);
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Failed to reset prompt:', error);
-      setSaveMessage('❌ Failed to reset prompt');
+      setSaveMessage(`❌ ${t('options.promptResetFailed')}`);
       setTimeout(() => setSaveMessage(''), 3000);
     }
   };
 
   const handleFullReset = async () => {
-    if (!confirm('This will delete all settings and data. Are you sure?')) {
+    if (!confirm(t('options.confirmDeleteAll'))) {
       return;
     }
 
@@ -627,11 +653,11 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
       setSavedKeys({ openrouter: false });
       setCustomPrompt('');
       setHasCustomPrompt(false);
-      setSaveMessage('✅ All data has been deleted');
+      setSaveMessage(`✅ ${t('options.allDataDeleted')}`);
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       console.error('Failed to reset data:', error);
-      setSaveMessage('❌ Failed to delete data');
+      setSaveMessage(`❌ ${t('options.deleteFailed')}`);
       setTimeout(() => setSaveMessage(''), 3000);
     }
   };
@@ -656,14 +682,12 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
           <option value="en">🇺🇸 English</option>
           <option value="ja">🇯🇵 日本語</option>
         </select>
-        <p className="text-xs text-neon-cyan mt-3 font-mono">
-          ✓ Language preference is automatically saved
-        </p>
+        <p className="text-xs text-neon-cyan mt-3 font-mono">✓ {t('options.languageAutoSaved')}</p>
       </section>
 
       {/* API Keys Section */}
       <section className="cyber-card p-6 rounded-xl shadow-cyber-card">
-        <h2 className="text-xl font-bold mb-4 neon-text">API Configuration</h2>
+        <h2 className="text-xl font-bold mb-4 neon-text">{t('options.apiConfiguration')}</h2>
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -672,7 +696,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
               </label>
               {savedKeys.openrouter && (
                 <span className="text-xs text-neon-green font-bold animate-glow-pulse">
-                  ✓ Saved
+                  ✓ {t('options.keySaved')}
                 </span>
               )}
             </div>
@@ -684,7 +708,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
               className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none transition-all font-mono text-sm hover:border-purple-500/50"
             />
             <p className="text-xs text-gray-400 mt-2 font-mono">
-              {t('options.openrouterKeyDesc')} - Get your key at{' '}
+              {t('options.openrouterKeyDesc')} - {t('options.getKeyAt')}{' '}
               <a
                 href="https://openrouter.ai"
                 target="_blank"
@@ -712,16 +736,16 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
 
       {/* Custom Prompt Section */}
       <section className="cyber-card p-6 rounded-xl shadow-cyber-card">
-        <h2 className="text-xl font-bold mb-4 neon-text">Analysis Prompt</h2>
+        <h2 className="text-xl font-bold mb-4 neon-text">{t('options.analysisPrompt')}</h2>
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-neon-cyan">
-                Custom Prompt Template
+                {t('options.customPromptTemplate')}
               </label>
               {hasCustomPrompt && (
                 <span className="text-xs text-neon-green font-bold animate-glow-pulse">
-                  ✓ Using Custom Prompt
+                  ✓ {t('options.usingCustomPrompt')}
                 </span>
               )}
             </div>
@@ -729,12 +753,12 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
               value={customPrompt}
               onChange={e => setCustomPrompt(e.target.value)}
               placeholder={DEFAULT_ANALYSIS_PROMPT}
-              rows={12}
+              rows={24}
               className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none font-mono text-sm hover:border-purple-500/50 transition-all resize-none"
             />
             <div className="mt-3 space-y-2">
               <p className="text-xs text-neon-cyan/80">
-                Available variables:{' '}
+                {t('options.availableVariables')}{' '}
                 <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
                   {'{pairsData}'}
                 </code>{' '}
@@ -746,7 +770,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
                 </code>
               </p>
               <p className="text-xs text-gray-500 font-mono">
-                💡 Leave empty to use the default prompt template
+                💡 {t('options.leaveEmptyForDefault')}
               </p>
             </div>
           </div>
@@ -768,7 +792,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
                 onClick={handleResetPrompt}
                 className="neon-button px-5 py-3 bg-gradient-to-r from-neon-cyan/20 to-neon-blue/20 hover:from-neon-cyan/30 hover:to-neon-blue/30 border-2 border-neon-cyan/30 hover:border-neon-cyan/50 text-neon-cyan rounded-lg font-bold transition-all"
               >
-                🔄 Reset to Default
+                🔄 {t('options.resetToDefault')}
               </button>
             )}
           </div>
@@ -777,7 +801,7 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
           {!hasCustomPrompt && (
             <details className="text-xs">
               <summary className="cursor-pointer text-neon-cyan/70 hover:text-neon-cyan font-mono transition-colors">
-                📄 View default prompt template
+                📄 {t('options.viewDefaultPrompt')}
               </summary>
               <pre className="mt-3 p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg overflow-x-auto text-gray-400 font-mono text-xs">
                 {DEFAULT_ANALYSIS_PROMPT}
@@ -789,19 +813,16 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
 
       {/* Data Management Section */}
       <section className="cyber-card p-6 rounded-xl shadow-cyber-card border-2 border-neon-pink/20">
-        <h2 className="text-xl font-bold mb-4 neon-text">Data Management</h2>
+        <h2 className="text-xl font-bold mb-4 neon-text">{t('options.dataManagement')}</h2>
         <div className="space-y-3">
           <div>
             <button
               onClick={handleFullReset}
               className="neon-button px-6 py-3 bg-gradient-to-r from-neon-pink/20 to-loss/20 hover:from-neon-pink/30 hover:to-loss/30 border-2 border-neon-pink/40 hover:border-neon-pink/60 text-neon-pink rounded-lg font-bold transition-all hover:scale-[1.02]"
             >
-              Delete All Data
+              {t('options.deleteAllData')}
             </button>
-            <p className="text-xs text-gray-500 mt-2 font-mono">
-              <span className="text-neon-pink">WARNING:</span> Delete all settings including API
-              keys (cannot be restored)
-            </p>
+            <p className="text-xs text-gray-500 mt-2 font-mono">{t('options.deleteWarning')}</p>
           </div>
         </div>
       </section>
@@ -810,14 +831,11 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
       <section className="text-center text-sm pt-8 border-t border-purple-500/20">
         <div className="flex items-center justify-center space-x-2 mb-3">
           <div className="w-2 h-2 rounded-full bg-neon-green animate-glow-pulse"></div>
-          <p className="text-neon-cyan font-mono font-bold">DegenLens v1.0.0</p>
+          <p className="text-neon-cyan font-mono font-bold">{t('options.versionInfo')}</p>
           <div className="w-1 h-1 rounded-full bg-purple-500"></div>
-          <p className="text-gray-500 font-mono">MIT License</p>
+          <p className="text-gray-500 font-mono">{t('options.mitLicense')}</p>
         </div>
-        <p className="text-xs text-gray-500 font-mono">
-          <span className="text-neon-cyan">SECURE:</span> API keys are stored locally and never sent
-          to external servers
-        </p>
+        <p className="text-xs text-gray-500 font-mono">{t('options.secureNote')}</p>
       </section>
     </div>
   );

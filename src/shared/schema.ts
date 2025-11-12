@@ -2,6 +2,7 @@
 // Validation for Popup ⇄ Background messages
 
 import { z } from 'zod';
+import { DEFAULT_TIMEFRAME } from '@/types/dexscreener';
 
 // ============================================
 // Analyze Request/Response
@@ -16,6 +17,7 @@ export const AnalyzeReqSchema = z.object({
   chain: z.string().min(1),
   model: z.string().min(1),
   maxPairs: z.number().min(1).max(100).optional().default(10), // Cost control: fixed to 10 pairs
+  timeframe: z.enum(['m5', 'h1', 'h6', 'h24']).optional().default(DEFAULT_TIMEFRAME),
 });
 
 export type AnalyzeReq = z.infer<typeof AnalyzeReqSchema>;
