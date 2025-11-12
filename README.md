@@ -1,4 +1,4 @@
-# 😈 DegenLens
+# DegenLens
 
 AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized exchanges using advanced LLM models.
 
@@ -62,21 +62,14 @@ OpenRouter provides access to multiple LLM providers with a single API key.
 3. Create a new API key
 4. Add credits to your account
 
-#### DEXscreener (Optional)
-DEXscreener API key increases rate limits but is not required for basic usage.
-
-1. Visit [DEXscreener](https://dexscreener.com)
-2. Check their documentation for API key requirements
-
 ### 2. Configure Extension
 
 1. Click the DegenLens icon in your browser toolbar
 2. Click "Settings" in the header
 3. Enter your OpenRouter API key
-4. (Optional) Enter your DEXscreener API key
-5. Select your preferred language (English/Japanese)
-6. (Optional) Customize the analysis prompt template
-7. Click "Save Settings"
+4. Select your preferred language (English/Japanese)
+5. (Optional) Customize the analysis prompt template
+6. Click "Save Settings"
 
 ## Usage
 
