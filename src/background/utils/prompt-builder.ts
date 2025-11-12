@@ -47,6 +47,15 @@ Analyze {pairsCount} tokens from {chain} showing significant market activity.
 - Identify **catalysts** driving price action (market narratives, liquidity events)
 - Assess **volatility characteristics** and their implications
 - Evaluate tokens showing **active market participation**
+- **Pair Age Analysis**: Consider token maturity (newer = higher risk, older = more established)
+- **Labels Interpretation**: Pay attention to DEXscreener labels (e.g., "scam", "top", "v2", "v3")
+  - WARNING labels (scam, honeypot) = EXTREME risk, recommend avoiding
+  - POSITIVE labels (top, verified) = potentially more reliable
+  - Version labels (v2, v3) = protocol version information
+- **Multi-Timeframe Trend Analysis**: Compare short-term vs long-term momentum
+  - Consistent trends across timeframes = stronger signal
+  - Divergent trends (e.g., +50% in 5m but -20% in 24h) = possible pump/dump, higher risk
+  - Look for sustained momentum vs short-term spikes
 - Maintain objective, data-driven analysis
 
 Format your response as JSON:
@@ -81,6 +90,42 @@ Format your response as JSON:
 Note: This analysis is for informational purposes only and does not constitute financial advice.`;
 
 /**
+ * Format pair age from creation timestamp
+ */
+function formatPairAge(pairCreatedAt?: number): string {
+  if (!pairCreatedAt) return 'Unknown';
+
+  const now = Date.now();
+  const ageMs = now - pairCreatedAt;
+  const ageMinutes = Math.floor(ageMs / (1000 * 60));
+  const ageHours = Math.floor(ageMs / (1000 * 60 * 60));
+  const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+
+  if (ageMinutes < 60) return `${ageMinutes} minutes`;
+  if (ageHours < 24) return `${ageHours} hours`;
+  return `${ageDays} days`;
+}
+
+/**
+ * Format multi-timeframe trend comparison
+ */
+function formatTrendComparison(pair: DexPair): string {
+  const m5Change = pair.priceChange?.m5;
+  const h1Change = pair.priceChange?.h1;
+  const h6Change = pair.priceChange?.h6;
+  const h24Change = pair.priceChange?.h24;
+
+  const trends: string[] = [];
+  if (m5Change !== undefined) trends.push(`5m: ${m5Change > 0 ? '+' : ''}${m5Change.toFixed(2)}%`);
+  if (h1Change !== undefined) trends.push(`1h: ${h1Change > 0 ? '+' : ''}${h1Change.toFixed(2)}%`);
+  if (h6Change !== undefined) trends.push(`6h: ${h6Change > 0 ? '+' : ''}${h6Change.toFixed(2)}%`);
+  if (h24Change !== undefined)
+    trends.push(`24h: ${h24Change > 0 ? '+' : ''}${h24Change.toFixed(2)}%`);
+
+  return trends.length > 0 ? trends.join(' | ') : 'No trend data';
+}
+
+/**
  * Format pair data for prompt
  */
 function formatPairData(pair: DexPair, timeframe: Timeframe): string {
@@ -95,6 +140,15 @@ function formatPairData(pair: DexPair, timeframe: Timeframe): string {
   const marketCap = pair.marketCap || 0;
   const timeframeLabel = getTimeframeLabel(timeframe);
 
+  // Format labels (if any)
+  const labels = pair.labels && pair.labels.length > 0 ? pair.labels.join(', ') : 'None';
+
+  // Format pair age
+  const pairAge = formatPairAge(pair.pairCreatedAt);
+
+  // Format multi-timeframe trend
+  const trendComparison = formatTrendComparison(pair);
+
   return `
 ${baseToken}/${quoteToken}
 - Price: $${priceUsd}
@@ -106,6 +160,9 @@ ${baseToken}/${quoteToken}
 - FDV: $${fdv.toLocaleString()}
 - Chain: ${pair.chainId || 'Unknown'}
 - DEX: ${pair.dexId || 'Unknown'}
+- Pair Age: ${pairAge}
+- Labels: ${labels}
+- Trend Comparison: ${trendComparison}
 `.trim();
 }
 
