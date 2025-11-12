@@ -14,6 +14,7 @@ export function useAnalyze() {
   const chain = useAppStore(state => state.chain);
   const model = useAppStore(state => state.model);
   const maxPairs = useAppStore(state => state.maxPairs);
+  const timeframe = useAppStore(state => state.timeframe);
 
   // Store port reference for cancellation
   const portRef = useRef<chrome.runtime.Port | null>(null);
@@ -123,6 +124,7 @@ export function useAnalyze() {
         chain,
         model,
         maxPairs,
+        timeframe,
       };
 
       console.log('[useAnalyze] Sending analyze request:', request);
@@ -133,7 +135,7 @@ export function useAnalyze() {
       setError('Failed to start analysis. Please try again.');
       setAnalyzing(false);
     }
-  }, [chain, model, maxPairs]);
+  }, [chain, model, maxPairs, timeframe]);
 
   /**
    * Cancel ongoing analysis

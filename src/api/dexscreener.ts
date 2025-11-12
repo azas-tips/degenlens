@@ -2,7 +2,8 @@
 // Handles all DEXscreener API requests with caching, rate limiting, and retry logic
 
 import ky from 'ky';
-import type { DexPair, DexPairsResponse } from '@/types/dexscreener';
+import type { DexPair, DexPairsResponse, Timeframe } from '@/types/dexscreener';
+import { DEFAULT_TIMEFRAME } from '@/types/dexscreener';
 import { dexLimiter } from '@/background/utils/rate-limiter';
 import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
@@ -100,9 +101,14 @@ async function fetchBoostedTokens(chain: string): Promise<string[]> {
  *
  * @param chain - Chain name (e.g., 'solana', 'ethereum', 'bsc')
  * @param maxPairs - Maximum number of pairs to return (default: 20)
+ * @param timeframe - Timeframe for scoring pairs (default: DEFAULT_TIMEFRAME)
  * @returns Array of token pairs
  */
-export async function fetchPairsByChain(chain: string, maxPairs: number = 20): Promise<DexPair[]> {
+export async function fetchPairsByChain(
+  chain: string,
+  maxPairs: number = 20,
+  timeframe: Timeframe = DEFAULT_TIMEFRAME
+): Promise<DexPair[]> {
   return dexLimiter.execute(async () => {
     // Map chain name to DEXscreener API chain ID
     const apiChainId = mapChainName(chain);
@@ -125,14 +131,12 @@ export async function fetchPairsByChain(chain: string, maxPairs: number = 20): P
 
         // Calculate momentum scores and return top pairs
         const pairsWithScore = directResponse.pairs.map(pair => {
-          const priceChange6h = pair.priceChange?.h6 || 0;
-          const volume6h = pair.volume?.h6 || 0;
+          const priceChange = pair.priceChange?.[timeframe] || 0;
+          const volume = pair.volume?.[timeframe] || 0;
           const liquidity = pair.liquidity?.usd || 0;
 
           const momentumScore =
-            Math.abs(priceChange6h) * 10 +
-            Math.log10(volume6h + 1) * 2 +
-            (liquidity > 10000 ? 5 : 0);
+            Math.abs(priceChange) * 10 + Math.log10(volume + 1) * 2 + (liquidity > 10000 ? 5 : 0);
 
           return { pair, score: momentumScore };
         });
@@ -200,10 +204,10 @@ export async function fetchPairsByChain(chain: string, maxPairs: number = 20): P
     console.log(`[DEX API] Total unique pairs collected for ${apiChainId}: ${allPairs.length}`);
 
     // Calculate momentum score for each pair
-    // Prioritizes: price change, volume acceleration, and liquidity (6h timeframe)
+    // Prioritizes: price change, volume acceleration, and liquidity
     const pairsWithScore = allPairs.map(pair => {
-      const priceChange6h = pair.priceChange?.h6 || 0;
-      const volume6h = pair.volume?.h6 || 0;
+      const priceChange = pair.priceChange?.[timeframe] || 0;
+      const volume = pair.volume?.[timeframe] || 0;
       const liquidity = pair.liquidity?.usd || 0;
 
       // Momentum score formula:
@@ -211,8 +215,8 @@ export async function fetchPairsByChain(chain: string, maxPairs: number = 20): P
       // - Volume matters but less than price movement
       // - Minimum liquidity requirement to filter out scams
       const momentumScore =
-        Math.abs(priceChange6h) * 10 + // Price change is most important
-        Math.log10(volume6h + 1) * 2 + // Log scale for volume
+        Math.abs(priceChange) * 10 + // Price change is most important
+        Math.log10(volume + 1) * 2 + // Log scale for volume
         (liquidity > 10000 ? 5 : 0); // Bonus for sufficient liquidity
 
       return { pair, score: momentumScore };

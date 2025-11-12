@@ -2,6 +2,20 @@
 // Constructs prompts for analyzing DEX token pairs
 
 import type { DexPair } from '@/types/dexscreener';
+import type { Timeframe } from '@/types/dexscreener';
+
+/**
+ * Get human-readable label for timeframe
+ */
+function getTimeframeLabel(timeframe: Timeframe): string {
+  const labels: Record<Timeframe, string> = {
+    m5: '5-minute',
+    h1: '1-hour',
+    h6: '6-hour',
+    h24: '24-hour',
+  };
+  return labels[timeframe];
+}
 
 /**
  * Default analysis prompt template
@@ -69,24 +83,25 @@ Note: This analysis is for informational purposes only and does not constitute f
 /**
  * Format pair data for prompt
  */
-function formatPairData(pair: DexPair): string {
+function formatPairData(pair: DexPair, timeframe: Timeframe): string {
   const baseToken = pair.baseToken?.symbol || 'Unknown';
   const quoteToken = pair.quoteToken?.symbol || 'Unknown';
   const priceUsd = pair.priceUsd || 'N/A';
-  const volume6h = pair.volume?.h6 || 0;
+  const volume = pair.volume?.[timeframe] || 0;
   const liquidity = pair.liquidity?.usd || 0;
-  const priceChange6h = pair.priceChange?.h6 || 0;
-  const txns6h = pair.txns?.h6 || { buys: 0, sells: 0 };
+  const priceChange = pair.priceChange?.[timeframe] || 0;
+  const txns = pair.txns?.[timeframe] || { buys: 0, sells: 0 };
   const fdv = pair.fdv || 0;
   const marketCap = pair.marketCap || 0;
+  const timeframeLabel = getTimeframeLabel(timeframe);
 
   return `
 ${baseToken}/${quoteToken}
 - Price: $${priceUsd}
-- 6h Volume: $${volume6h.toLocaleString()}
+- ${timeframeLabel} Volume: $${volume.toLocaleString()}
 - Liquidity: $${liquidity.toLocaleString()}
-- 6h Change: ${priceChange6h > 0 ? '+' : ''}${priceChange6h.toFixed(2)}%
-- 6h Transactions: ${txns6h.buys} buys / ${txns6h.sells} sells
+- ${timeframeLabel} Change: ${priceChange > 0 ? '+' : ''}${priceChange.toFixed(2)}%
+- ${timeframeLabel} Transactions: ${txns.buys} buys / ${txns.sells} sells
 - Market Cap: $${marketCap.toLocaleString()}
 - FDV: $${fdv.toLocaleString()}
 - Chain: ${pair.chainId || 'Unknown'}
@@ -99,6 +114,7 @@ ${baseToken}/${quoteToken}
  *
  * @param pairs - Array of token pairs to analyze
  * @param chain - Chain name
+ * @param timeframe - Timeframe for analysis (m5, h1, h6, h24)
  * @param customPrompt - Optional custom prompt template (uses default if not provided)
  * @param language - Language for LLM response ('en' or 'ja')
  * @returns Formatted prompt string
@@ -106,12 +122,13 @@ ${baseToken}/${quoteToken}
 export function buildAnalysisPrompt(
   pairs: DexPair[],
   chain: string,
+  timeframe: Timeframe,
   customPrompt?: string,
   language: 'en' | 'ja' = 'en'
 ): string {
   const pairsData = pairs
     .map((pair, index) => {
-      return `\n${index + 1}. ${formatPairData(pair)}`;
+      return `\n${index + 1}. ${formatPairData(pair, timeframe)}`;
     })
     .join('\n');
 
@@ -137,10 +154,12 @@ export function buildAnalysisPrompt(
  * Build prompt for specific token analysis
  *
  * @param pair - Single token pair to analyze
+ * @param timeframe - Timeframe for analysis
  * @returns Formatted prompt string
  */
-export function buildTokenPrompt(pair: DexPair): string {
-  const pairData = formatPairData(pair);
+export function buildTokenPrompt(pair: DexPair, timeframe: Timeframe = 'h6'): string {
+  const pairData = formatPairData(pair, timeframe);
+  const timeframeLabel = getTimeframeLabel(timeframe);
 
   return `You are a cryptocurrency market analyst. Analyze this specific token pair:
 
@@ -148,8 +167,8 @@ ${pairData}
 
 Provide a detailed analysis including:
 1. **Liquidity Assessment**: Is the liquidity sufficient for safe trading?
-2. **Volume Analysis**: Is the 6h volume healthy relative to liquidity?
-3. **Price Action**: What does the 6h price change indicate?
+2. **Volume Analysis**: Is the ${timeframeLabel} volume healthy relative to liquidity?
+3. **Price Action**: What does the ${timeframeLabel} price change indicate?
 4. **Transaction Pattern**: What do the buy/sell ratios suggest?
 5. **Risk Factors**: What are the main risks?
 6. **Overall Score** (1-10): Trading viability score

@@ -1,6 +1,20 @@
 // DEXscreener API Type Definitions
 // Based on official API documentation and community implementations
 
+/**
+ * Timeframe options for analysis
+ */
+export type Timeframe = 'm5' | 'h1' | 'h6' | 'h24';
+
+export const TIMEFRAMES: Record<Timeframe, { label: string; labelKey: string }> = {
+  m5: { label: '5 minutes', labelKey: 'timeframe.m5' },
+  h1: { label: '1 hour', labelKey: 'timeframe.h1' },
+  h6: { label: '6 hours', labelKey: 'timeframe.h6' },
+  h24: { label: '24 hours', labelKey: 'timeframe.h24' },
+};
+
+export const DEFAULT_TIMEFRAME: Timeframe = 'm5';
+
 export interface DexScreenerTokenInfo {
   address: string;
   name: string;
