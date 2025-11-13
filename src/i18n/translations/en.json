@@ -74,7 +74,15 @@
     "aiSummary": "AI Analysis Summary",
     "detailedAnalysis": "Detailed Analysis",
     "disclaimer": "Data is provided for informational purposes only.",
-    "dyor": "Always DYOR before making any investment decisions."
+    "dyor": "Always DYOR before making any investment decisions.",
+    "riskLevel": {
+      "safe": "Safe",
+      "caution": "Caution",
+      "warning": "Warning",
+      "danger": "Danger",
+      "critical": "CRITICAL"
+    },
+    "riskFactors": "Risk Factors"
   },
   "empty": {
     "instructions": "Select a chain and model",

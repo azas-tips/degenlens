@@ -9,6 +9,7 @@ import { buildAnalysisPrompt } from '../utils/prompt-builder';
 import { STORAGE_KEYS } from '@/types/storage';
 import type { OpenRouterModel } from '@/types/openrouter';
 import type { AnalysisResult } from '@/types/analysis';
+import { calculateRiskLevel } from '@/utils/risk-assessment';
 
 /**
  * Safe post function type
@@ -186,6 +187,7 @@ export async function handleAnalyzeRequest(
       const result: AnalysisResult = {
         pairs: pairs.map((pair, index) => {
           const llmPair = llmAnalysis?.pairs?.[index];
+          const riskAssessment = calculateRiskLevel(pair);
 
           return {
             symbol: `${pair.baseToken?.symbol || 'Unknown'}/${pair.quoteToken?.symbol || 'Unknown'}`,
@@ -200,6 +202,8 @@ export async function handleAnalyzeRequest(
             momentum: llmPair?.momentum,
             catalyst: llmPair?.catalyst,
             moonshotPotential: llmPair?.moonshotPotential,
+            riskLevel: riskAssessment.level,
+            riskFactors: riskAssessment.factors,
           };
         }),
         analysis: llmAnalysis?.marketPulse || llmAnalysis?.summary || llmContent.substring(0, 500), // Fallback
@@ -207,12 +211,15 @@ export async function handleAnalyzeRequest(
           ? (() => {
               const topPickSymbol = llmAnalysis.topPick.symbol?.split('/')[0]; // Get base token symbol
               const matchedPair = pairs.find(pair => pair.baseToken?.symbol === topPickSymbol);
+              const riskAssessment = matchedPair ? calculateRiskLevel(matchedPair) : null;
 
               return {
                 ...llmAnalysis.topPick,
                 contractAddress: matchedPair?.baseToken?.address,
                 chainId: matchedPair?.chainId,
                 pairAddress: matchedPair?.pairAddress,
+                riskLevel: riskAssessment?.level,
+                riskFactors: riskAssessment?.factors,
               };
             })()
           : undefined,

@@ -4,6 +4,11 @@
 import type { Timeframe } from './dexscreener';
 
 /**
+ * Risk level classification
+ */
+export type RiskLevel = 'safe' | 'caution' | 'warning' | 'danger' | 'critical';
+
+/**
  * Progress information during analysis
  */
 export interface AnalysisProgress {
@@ -27,6 +32,8 @@ export interface AnalyzedPair {
   momentum?: number;
   catalyst?: string;
   moonshotPotential?: string;
+  riskLevel?: RiskLevel;
+  riskFactors?: string[];
 }
 
 /**
@@ -42,6 +49,8 @@ export interface TopPick {
   contractAddress?: string;
   chainId?: string;
   pairAddress?: string;
+  riskLevel?: RiskLevel;
+  riskFactors?: string[];
 }
 
 /**

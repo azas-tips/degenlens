@@ -74,7 +74,15 @@
     "aiSummary": "AI分析サマリー",
     "detailedAnalysis": "詳細分析",
     "disclaimer": "このデータは情報提供のみを目的としています。",
-    "dyor": "投資判断は必ず自己責任で行ってください。"
+    "dyor": "投資判断は必ず自己責任で行ってください。",
+    "riskLevel": {
+      "safe": "安全",
+      "caution": "注意",
+      "warning": "警戒",
+      "danger": "危険",
+      "critical": "重大"
+    },
+    "riskFactors": "リスク要因"
   },
   "empty": {
     "instructions": "チェーンとモデルを選択",
