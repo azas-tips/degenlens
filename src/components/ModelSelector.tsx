@@ -350,6 +350,20 @@ export function ModelSelector({
         </div>
       )}
 
+      {/* Available Models Count */}
+      {maxPairs && maxPairs > 0 && (
+        <div className="text-xs text-gray-400 font-mono">
+          <span className="text-neon-cyan font-bold">{filteredModels.length}</span> /{' '}
+          {models.length} models available for {maxPairs} pair
+          {maxPairs !== 1 ? 's' : ''}
+          {filteredModels.length < models.length && (
+            <span className="text-yellow-500 ml-2">
+              ({models.length - filteredModels.length} filtered due to token limits)
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Model Select */}
       <select
         value={value}
