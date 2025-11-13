@@ -6,6 +6,7 @@ import { useTranslation } from '@/i18n';
 import type { AnalysisResult } from '@/types/analysis';
 import { getRiskLevelInfo } from '@/utils/risk-assessment';
 import { RiskBreakdown } from './RiskBreakdown';
+import { RiskScoreGauge } from './RiskScoreGauge';
 
 interface TopPickDisplayProps {
   data: AnalysisResult;
@@ -208,9 +209,22 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             )}
           </div>
 
-          {/* Risk Breakdown - Show detailed scoring */}
+          {/* Risk Assessment Visualization */}
           {topPick.riskBreakdown && topPick.riskLevel && (
-            <div className="mb-6">
+            <div className="mb-6 space-y-6">
+              {/* Visual Gauge */}
+              <RiskScoreGauge
+                score={
+                  topPick.riskBreakdown.ageScore +
+                  topPick.riskBreakdown.liquidityScore +
+                  topPick.riskBreakdown.labelScore +
+                  topPick.riskBreakdown.volumeScore +
+                  topPick.riskBreakdown.volatilityScore
+                }
+                level={topPick.riskLevel}
+              />
+
+              {/* Detailed Breakdown */}
               <RiskBreakdown
                 breakdown={topPick.riskBreakdown}
                 totalScore={
