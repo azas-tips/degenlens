@@ -1,6 +1,8 @@
 // Analysis Types
 // Consolidated type definitions for token analysis results
 
+import type { Timeframe } from './dexscreener';
+
 /**
  * Progress information during analysis
  */
@@ -57,6 +59,9 @@ export interface AnalysisMetadata {
   tokensUsed?: number;
   estimatedCost?: number;
   analyzedAt?: string; // ISO 8601 timestamp
+  model?: string; // Model used for analysis
+  chain?: string; // Chain analyzed
+  timeframe?: Timeframe; // Timeframe used
 }
 
 /**
@@ -68,4 +73,18 @@ export interface AnalysisResult {
   topPick?: TopPick;
   runnerUps?: RunnerUp[];
   metadata?: AnalysisMetadata;
+}
+
+/**
+ * Analysis history entry
+ */
+export interface HistoryEntry {
+  id: string; // UUID
+  timestamp: string; // ISO 8601
+  chain: string; // 'solana', 'ethereum', etc.
+  model: string; // 'anthropic/claude-3.5-sonnet'
+  timeframe: Timeframe; // 'h6', 'm5', etc.
+  maxPairs: number; // Number of pairs analyzed
+  result: AnalysisResult; // Full analysis result
+  topPickSymbol?: string; // For quick search/display
 }

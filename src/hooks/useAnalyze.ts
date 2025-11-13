@@ -5,6 +5,7 @@ import { useCallback, useRef } from 'react';
 import { useAppStore } from '@/stores/app.store';
 import type { AnalysisResult } from '@/types/analysis';
 import type { AnalyzeReq, AnalyzeProgress, AnalyzeResult } from '@/shared/schema';
+import { saveToHistory } from '@/utils/history';
 
 /**
  * Hook for managing analysis requests via Port communication
@@ -100,7 +101,13 @@ export function useAnalyze() {
           // Success
           else if (resultMsg.data) {
             console.log('[useAnalyze] Success result, calling setResults');
-            setResults(resultMsg.data as AnalysisResult);
+            const result = resultMsg.data as AnalysisResult;
+            setResults(result);
+
+            // Save to history
+            saveToHistory(result, chain, model, timeframe, maxPairs).catch(error => {
+              console.error('[useAnalyze] Failed to save to history:', error);
+            });
           }
 
           // Disconnect port

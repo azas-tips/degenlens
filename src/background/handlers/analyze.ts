@@ -225,6 +225,9 @@ export async function handleAnalyzeRequest(
             modelInfo
           ),
           analyzedAt: new Date().toISOString(),
+          model,
+          chain,
+          timeframe,
         },
       };
 
