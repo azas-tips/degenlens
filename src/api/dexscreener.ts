@@ -46,6 +46,156 @@ async function createDexClient() {
 }
 
 /**
+ * Calculate buy/sell pressure score
+ * Higher score indicates stronger buy pressure
+ */
+function calculateBuySellPressure(pair: DexPair, timeframe: Timeframe): number {
+  const txns = pair.txns?.[timeframe];
+  if (!txns || (txns.buys === 0 && txns.sells === 0)) return 0;
+
+  const total = txns.buys + txns.sells;
+  const buyRatio = txns.buys / total;
+
+  // Score from -1 (all sells) to +1 (all buys)
+  return (buyRatio - 0.5) * 2;
+}
+
+/**
+ * Calculate volume acceleration across timeframes
+ * Measures if volume is increasing over time
+ */
+function calculateVolumeAcceleration(pair: DexPair): number {
+  const m5Vol = pair.volume?.m5 || 0;
+  const h1Vol = pair.volume?.h1 || 0;
+  const h6Vol = pair.volume?.h6 || 0;
+
+  if (m5Vol === 0 || h1Vol === 0 || h6Vol === 0) return 0;
+
+  // Calculate velocity (rate of change)
+  // Positive = accelerating, Negative = decelerating
+  const shortTerm = (m5Vol * 12 - h1Vol) / (h1Vol + 1); // m5 to h1 velocity
+  const midTerm = (h1Vol * 6 - h6Vol) / (h6Vol + 1); // h1 to h6 velocity
+
+  // Average velocity, normalized
+  return (shortTerm + midTerm) / 2;
+}
+
+/**
+ * Calculate liquidity health ratio
+ * Healthy tokens have liquidity proportional to market cap
+ */
+function calculateLiquidityHealthRatio(pair: DexPair): number {
+  const liquidity = pair.liquidity?.usd || 0;
+  const marketCap = pair.marketCap || 0;
+
+  if (marketCap === 0) return 0;
+
+  // Ideal ratio is 5-15% (healthy)
+  const ratio = liquidity / marketCap;
+
+  // Score: 1.0 for ideal range, lower for extremes
+  if (ratio >= 0.05 && ratio <= 0.15) return 1.0;
+  if (ratio < 0.05) return ratio / 0.05; // 0 to 1.0
+  if (ratio > 0.15) return Math.max(0, 1.0 - (ratio - 0.15) * 2); // 1.0 to 0
+
+  return 0;
+}
+
+/**
+ * Calculate trend consistency across timeframes
+ * Higher score = more consistent trend
+ */
+function calculateTrendConsistency(pair: DexPair): number {
+  const m5 = pair.priceChange?.m5 || 0;
+  const h1 = pair.priceChange?.h1 || 0;
+  const h6 = pair.priceChange?.h6 || 0;
+  const h24 = pair.priceChange?.h24 || 0;
+
+  // Check if all timeframes have same direction
+  const signs = [Math.sign(m5), Math.sign(h1), Math.sign(h6), Math.sign(h24)];
+  const positiveCount = signs.filter(s => s > 0).length;
+  const negativeCount = signs.filter(s => s < 0).length;
+
+  // All same direction = 1.0, mixed = 0.0
+  const directionScore = Math.max(positiveCount, negativeCount) / 4;
+
+  // Calculate magnitude consistency (variance)
+  const changes = [m5, h1, h6, h24].filter(c => c !== 0);
+  if (changes.length === 0) return 0;
+
+  const mean = changes.reduce((a, b) => Math.abs(a) + Math.abs(b), 0) / changes.length;
+  const variance =
+    changes.reduce((acc, c) => acc + Math.pow(Math.abs(c) - mean, 2), 0) / changes.length;
+  const magnitudeScore = 1 / (1 + variance / 100); // Lower variance = higher score
+
+  return directionScore * 0.7 + magnitudeScore * 0.3;
+}
+
+/**
+ * Calculate risk penalty based on labels and pair age
+ * Returns a multiplier (0-1): 1 = no risk, 0 = extreme risk
+ */
+function calculateRiskAdjustment(pair: DexPair): number {
+  let riskMultiplier = 1.0;
+
+  // Label-based risk
+  const labels = pair.labels || [];
+  if (labels.some(l => l.toLowerCase().includes('scam'))) return 0; // Exclude scams
+  if (labels.some(l => l.toLowerCase().includes('honeypot'))) return 0; // Exclude honeypots
+  if (labels.some(l => l.toLowerCase().includes('top'))) riskMultiplier *= 1.2; // Boost trusted
+  if (labels.some(l => l.toLowerCase().includes('verified'))) riskMultiplier *= 1.15;
+
+  // Age-based risk (newer = riskier)
+  if (pair.pairCreatedAt) {
+    const ageMs = Date.now() - pair.pairCreatedAt;
+    const ageHours = ageMs / (1000 * 60 * 60);
+
+    if (ageHours < 1)
+      riskMultiplier *= 0.3; // Very new = very risky
+    else if (ageHours < 24)
+      riskMultiplier *= 0.6; // Less than 1 day
+    else if (ageHours < 168) riskMultiplier *= 0.8; // Less than 1 week
+    // Older than 1 week = no penalty
+  }
+
+  return Math.min(riskMultiplier, 1.0); // Cap at 1.0
+}
+
+/**
+ * Calculate advanced momentum score
+ * Combines multiple factors for comprehensive scoring
+ */
+function calculateAdvancedMomentumScore(pair: DexPair, timeframe: Timeframe): number {
+  const priceChange = pair.priceChange?.[timeframe] || 0;
+  const volume = pair.volume?.[timeframe] || 0;
+  const liquidity = pair.liquidity?.usd || 0;
+
+  // Base score components
+  const priceScore = Math.abs(priceChange) * 10; // Price change magnitude
+  const volumeScore = Math.log10(volume + 1) * 2; // Volume (log scale)
+  const liquidityBonus = liquidity > 10000 ? 5 : 0; // Minimum liquidity threshold
+
+  // Advanced components
+  const buySellPressure = calculateBuySellPressure(pair, timeframe);
+  const volumeAccel = calculateVolumeAcceleration(pair);
+  const liquidityHealth = calculateLiquidityHealthRatio(pair);
+  const trendConsistency = calculateTrendConsistency(pair);
+  const riskAdjustment = calculateRiskAdjustment(pair);
+
+  // Weighted combination
+  const baseScore = priceScore + volumeScore + liquidityBonus;
+  const advancedBonus =
+    buySellPressure * 15 + // Buy pressure is highly valuable
+    volumeAccel * 10 + // Volume acceleration indicates momentum
+    liquidityHealth * 5 + // Healthy liquidity structure
+    trendConsistency * 8; // Consistent trends are more reliable
+
+  const finalScore = (baseScore + advancedBonus) * riskAdjustment;
+
+  return finalScore;
+}
+
+/**
  * Get popular search queries for each chain
  */
 const CHAIN_POPULAR_QUERIES: Record<string, string[]> = {
@@ -129,15 +279,9 @@ export async function fetchPairsByChain(
       if (directResponse.pairs && directResponse.pairs.length > 0) {
         console.log(`[DEX API] Direct fetch returned ${directResponse.pairs.length} pairs`);
 
-        // Calculate momentum scores and return top pairs
+        // Calculate advanced momentum scores and return top pairs
         const pairsWithScore = directResponse.pairs.map(pair => {
-          const priceChange = pair.priceChange?.[timeframe] || 0;
-          const volume = pair.volume?.[timeframe] || 0;
-          const liquidity = pair.liquidity?.usd || 0;
-
-          const momentumScore =
-            Math.abs(priceChange) * 10 + Math.log10(volume + 1) * 2 + (liquidity > 10000 ? 5 : 0);
-
+          const momentumScore = calculateAdvancedMomentumScore(pair, timeframe);
           return { pair, score: momentumScore };
         });
 
@@ -170,55 +314,50 @@ export async function fetchPairsByChain(
 
     console.log(`[DEX API] Search targets for ${apiChainId}:`, searchTargets);
 
-    // Fetch pairs for each search target
+    // Fetch pairs for each search target in parallel for better performance
     const allPairs: DexPair[] = [];
     const seenPairs = new Set<string>();
 
-    for (const target of searchTargets) {
-      try {
-        const response = await retryWithBackoff(
-          () => client.get(`search?q=${encodeURIComponent(target)}`).json<DexPairsResponse>(),
-          { maxAttempts: 2 }
-        );
+    // Parallel API calls with Promise.all to reduce total request time
+    const searchResults = await Promise.all(
+      searchTargets.map(async target => {
+        try {
+          const response = await retryWithBackoff(
+            () => client.get(`search?q=${encodeURIComponent(target)}`).json<DexPairsResponse>(),
+            { maxAttempts: 2 }
+          );
 
-        // Add unique pairs from this chain (use mapped API chain ID)
-        const chainPairs = (response.pairs || []).filter(
-          (pair: DexPair) =>
-            pair.chainId?.toLowerCase() === apiChainId.toLowerCase() &&
-            !seenPairs.has(pair.pairAddress)
-        );
+          // Filter pairs from this chain (use mapped API chain ID)
+          const chainPairs = (response.pairs || []).filter(
+            (pair: DexPair) => pair.chainId?.toLowerCase() === apiChainId.toLowerCase()
+          );
 
-        console.log(
-          `[DEX API] Search "${target}": found ${chainPairs.length} pairs for ${apiChainId}`
-        );
+          console.log(
+            `[DEX API] Search "${target}": found ${chainPairs.length} pairs for ${apiChainId}`
+          );
 
-        chainPairs.forEach((pair: DexPair) => {
-          seenPairs.add(pair.pairAddress);
-          allPairs.push(pair);
-        });
-      } catch (error) {
-        console.warn(`[DEX API] Failed to fetch pairs for target "${target}":`, error);
+          return chainPairs;
+        } catch (error) {
+          console.warn(`[DEX API] Failed to fetch pairs for target "${target}":`, error);
+          return [];
+        }
+      })
+    );
+
+    // Deduplicate pairs by address
+    searchResults.flat().forEach(pair => {
+      if (!seenPairs.has(pair.pairAddress)) {
+        seenPairs.add(pair.pairAddress);
+        allPairs.push(pair);
       }
-    }
+    });
 
     console.log(`[DEX API] Total unique pairs collected for ${apiChainId}: ${allPairs.length}`);
 
-    // Calculate momentum score for each pair
-    // Prioritizes: price change, volume acceleration, and liquidity
+    // Calculate advanced momentum score for each pair
+    // Combines: price change, volume, liquidity, buy pressure, trend consistency, and risk
     const pairsWithScore = allPairs.map(pair => {
-      const priceChange = pair.priceChange?.[timeframe] || 0;
-      const volume = pair.volume?.[timeframe] || 0;
-      const liquidity = pair.liquidity?.usd || 0;
-
-      // Momentum score formula:
-      // - High weight on price change (volatility = opportunity)
-      // - Volume matters but less than price movement
-      // - Minimum liquidity requirement to filter out scams
-      const momentumScore =
-        Math.abs(priceChange) * 10 + // Price change is most important
-        Math.log10(volume + 1) * 2 + // Log scale for volume
-        (liquidity > 10000 ? 5 : 0); // Bonus for sufficient liquidity
-
+      const momentumScore = calculateAdvancedMomentumScore(pair, timeframe);
       return { pair, score: momentumScore };
     });
 

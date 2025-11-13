@@ -11,6 +11,39 @@ interface ModelSelectorProps {
   onNavigateToSettings: () => void;
 }
 
+/**
+ * Extract provider name from model ID
+ * Example: "anthropic/claude-3.5-sonnet" → "Anthropic"
+ */
+function extractProvider(modelId: string): string {
+  const providerMap: Record<string, string> = {
+    anthropic: 'Anthropic',
+    openai: 'OpenAI',
+    google: 'Google',
+    meta: 'Meta',
+    'meta-llama': 'Meta',
+    mistralai: 'Mistral',
+    cohere: 'Cohere',
+    'x-ai': 'xAI',
+    deepseek: 'DeepSeek',
+    qwen: 'Qwen',
+    perplexity: 'Perplexity',
+    nvidia: 'NVIDIA',
+    microsoft: 'Microsoft',
+  };
+
+  const prefix = modelId.split('/')[0]?.toLowerCase() || '';
+  return providerMap[prefix] || 'Other';
+}
+
+/**
+ * Get unique providers from models list
+ */
+function getUniqueProviders(models: OpenRouterModel[]): string[] {
+  const providers = new Set(models.map(m => extractProvider(m.id)));
+  return Array.from(providers).sort();
+}
+
 export function ModelSelector({
   value,
   onChange,
@@ -21,6 +54,7 @@ export function ModelSelector({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
 
   const fetchModels = useCallback(async () => {
     try {
@@ -102,13 +136,13 @@ export function ModelSelector({
    * Estimated with buffer: 300 prompt + 600 completion tokens per pair
    */
   const getEstimatedCost = (model: OpenRouterModel): string => {
-    const maxPairs = 10; // Fixed: analyze top 10 pairs
+    const maxPairs = 20; // Fixed: analyze top 20 pairs
 
     // Conservative estimates with safety margin
     // Prompt tokens include: system prompt + pair data formatting
-    const estimatedPromptTokens = 300 * maxPairs; // 3,000 tokens (actual: ~2,800)
+    const estimatedPromptTokens = 300 * maxPairs; // 6,000 tokens (actual: ~5,600)
     // Completion tokens include: LLM analysis output
-    const estimatedCompletionTokens = 600 * maxPairs; // 6,000 tokens (actual: ~5,000)
+    const estimatedCompletionTokens = 600 * maxPairs; // 12,000 tokens (actual: ~10,000)
 
     // Calculate cost separately for prompt and completion (different pricing)
     const promptCost = parseFloat(model.pricing.prompt) * estimatedPromptTokens;
@@ -119,16 +153,48 @@ export function ModelSelector({
   };
 
   /**
-   * Filter models based on search query
+   * Get available providers
+   */
+  const availableProviders = useMemo(() => getUniqueProviders(models), [models]);
+
+  /**
+   * Toggle provider selection
+   */
+  const toggleProvider = (provider: string) => {
+    setSelectedProviders(prev =>
+      prev.includes(provider) ? prev.filter(p => p !== provider) : [...prev, provider]
+    );
+  };
+
+  /**
+   * Clear all filters
+   */
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedProviders([]);
+  };
+
+  /**
+   * Filter models based on search query and selected providers
    */
   const filteredModels = useMemo(() => {
-    if (!searchQuery.trim()) return models;
+    let filtered = models;
 
-    const query = searchQuery.toLowerCase();
-    return models.filter(
-      model => model.name.toLowerCase().includes(query) || model.id.toLowerCase().includes(query)
-    );
-  }, [models, searchQuery]);
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        model => model.name.toLowerCase().includes(query) || model.id.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by selected providers
+    if (selectedProviders.length > 0) {
+      filtered = filtered.filter(model => selectedProviders.includes(extractProvider(model.id)));
+    }
+
+    return filtered;
+  }, [models, searchQuery, selectedProviders]);
 
   const selectedModel = models.find(m => m.id === value);
 
@@ -213,6 +279,55 @@ export function ModelSelector({
         className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed text-base font-mono hover:border-purple-500/50 transition-all"
       />
 
+      {/* Provider Filters */}
+      {availableProviders.length > 0 && (
+        <div className="bg-cyber-darker/50 border border-purple-500/20 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono text-gray-400">
+              Providers:{' '}
+              {selectedProviders.length > 0 ? (
+                <span className="text-neon-cyan font-bold">
+                  {selectedProviders.length} selected
+                </span>
+              ) : (
+                <span className="text-gray-500">All</span>
+              )}
+            </span>
+            {(searchQuery || selectedProviders.length > 0) && (
+              <button
+                onClick={clearFilters}
+                className="text-xs text-neon-pink hover:text-neon-pink/80 font-mono transition-colors"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {availableProviders.map(provider => (
+              <label
+                key={provider}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono cursor-pointer transition-all ${
+                  selectedProviders.includes(provider)
+                    ? 'bg-neon-purple/20 border-2 border-neon-purple/50 text-neon-cyan shadow-neon-purple/30'
+                    : 'bg-cyber-darker border border-purple-500/30 text-gray-400 hover:border-purple-500/50'
+                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedProviders.includes(provider)}
+                  onChange={() => !disabled && toggleProvider(provider)}
+                  disabled={disabled}
+                  className="sr-only"
+                />
+                <span className={selectedProviders.includes(provider) ? 'font-bold' : ''}>
+                  {provider}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Model Select */}
       <select
         value={value}
@@ -247,7 +362,7 @@ export function ModelSelector({
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Estimated Cost (10 pairs):</span>
+            <span className="text-gray-400">Estimated Cost (20 pairs):</span>
             <span className="text-neon-green font-bold">{getEstimatedCost(selectedModel)}</span>
           </div>
         </div>

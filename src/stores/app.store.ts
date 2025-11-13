@@ -4,64 +4,13 @@
 import { create } from 'zustand';
 import { STORAGE_KEYS } from '@/types/storage';
 import { DEFAULT_TIMEFRAME, type Timeframe } from '@/types/dexscreener';
+import type { AnalysisProgress, AnalysisResult } from '@/types/analysis';
 
 // ============================================
 // Types
 // ============================================
 
-/**
- * Progress information during analysis
- */
-export interface AnalysisProgress {
-  step: 'fetching_pairs' | 'analyzing_llm' | 'formatting_results' | '';
-  progress: number; // 0-100
-}
-
-/**
- * Analyzed token pair data
- */
-export interface AnalyzedPair {
-  symbol?: string;
-  priceUsd?: string;
-  volume6h?: number;
-  liquidity?: number;
-  priceChange6h?: number;
-  risk?: string;
-  observations?: string;
-  score?: number;
-  analysis?: string;
-  momentum?: number;
-  catalyst?: string;
-  moonshotPotential?: string;
-}
-
-/**
- * Analysis result data
- */
-export interface AnalysisResult {
-  pairs: AnalyzedPair[];
-  analysis: string;
-  topPick?: {
-    symbol?: string;
-    reason?: string;
-    momentum?: number;
-    catalyst?: string;
-    moonshotPotential?: string;
-    momentumPhase?: string;
-    contractAddress?: string;
-    chainId?: string;
-    pairAddress?: string;
-  };
-  runnerUps?: Array<{
-    symbol?: string;
-    reason?: string;
-  }>;
-  metadata?: {
-    tokensUsed?: number;
-    estimatedCost?: number;
-    analyzedAt?: string; // ISO 8601 timestamp
-  };
-}
+// Analysis types moved to @/types/analysis
 
 /**
  * Persisted preferences (saved to chrome.storage.local)

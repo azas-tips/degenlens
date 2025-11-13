@@ -16,7 +16,7 @@ export const AnalyzeReqSchema = z.object({
   id: z.string().uuid(), // Correlation ID required
   chain: z.string().min(1),
   model: z.string().min(1),
-  maxPairs: z.number().min(1).max(100).optional().default(10), // Cost control: fixed to 10 pairs
+  maxPairs: z.number().min(1).max(100).optional().default(20), // Cost control: fixed to 20 pairs
   timeframe: z.enum(['m5', 'h1', 'h6', 'h24']).optional().default(DEFAULT_TIMEFRAME),
 });
 

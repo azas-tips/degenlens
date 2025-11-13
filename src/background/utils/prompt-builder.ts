@@ -52,10 +52,27 @@ Analyze {pairsCount} tokens from {chain} showing significant market activity.
   - WARNING labels (scam, honeypot) = EXTREME risk, recommend avoiding
   - POSITIVE labels (top, verified) = potentially more reliable
   - Version labels (v2, v3) = protocol version information
-- **Multi-Timeframe Trend Analysis**: Compare short-term vs long-term momentum
-  - Consistent trends across timeframes = stronger signal
-  - Divergent trends (e.g., +50% in 5m but -20% in 24h) = possible pump/dump, higher risk
-  - Look for sustained momentum vs short-term spikes
+- **Multi-Timeframe Trend Analysis**: Analyze Trend Strength, Momentum, Volatility, and Buy Pressure
+  - **Trend Strength (0-100)**: Higher score = more consistent trend across all timeframes
+    - 70+ = Strong trend (high confidence)
+    - 40-70 = Moderate trend
+    - <40 = Weak trend (mixed signals)
+  - **Momentum Pattern**: Accelerating (gaining strength), Decelerating (losing strength), Reversing (trend change), or Stable
+    - Accelerating momentum with high trend strength = strongest signal
+    - Reversing momentum = potential trend change opportunity/risk
+  - **Volatility Pattern**: Understand price fluctuation consistency
+    - Low Volatility = stable, predictable movement
+    - Consistent High Volatility = sustained high activity
+    - Extreme Volatility Spike = short-term anomaly, higher risk
+  - **Buy Pressure (0-100%)**: Buy vs Sell transaction ratio
+    - >60% = Bullish pressure (strong buying interest)
+    - <40% = Bearish pressure (selling dominance)
+    - 40-60% = Neutral (balanced market)
+- **Integrated Analysis**: Prioritize tokens with:
+  - High Trend Strength + Accelerating Momentum + Bullish Buy Pressure = Strongest picks
+  - Consistent trends across timeframes = more reliable signals
+  - Strong buy pressure with volume acceleration = sustainable momentum
+  - Avoid: Divergent trends + Extreme volatility spikes = pump/dump risk
 - Maintain objective, data-driven analysis
 
 Format your response as JSON:
@@ -126,6 +143,117 @@ function formatTrendComparison(pair: DexPair): string {
 }
 
 /**
+ * Analyze trend strength across all timeframes
+ * Returns a score from 0-100 indicating trend consistency
+ */
+function analyzeTrendStrength(pair: DexPair): number {
+  const m5 = pair.priceChange?.m5 || 0;
+  const h1 = pair.priceChange?.h1 || 0;
+  const h6 = pair.priceChange?.h6 || 0;
+  const h24 = pair.priceChange?.h24 || 0;
+
+  // Check if all timeframes have same direction
+  const signs = [Math.sign(m5), Math.sign(h1), Math.sign(h6), Math.sign(h24)];
+  const positiveCount = signs.filter(s => s > 0).length;
+  const negativeCount = signs.filter(s => s < 0).length;
+
+  // Direction consistency: all same direction = 100, mixed = 0
+  const directionConsistency = (Math.max(positiveCount, negativeCount) / 4) * 100;
+
+  // Magnitude consistency: lower variance = stronger trend
+  const changes = [Math.abs(m5), Math.abs(h1), Math.abs(h6), Math.abs(h24)].filter(c => c > 0);
+  if (changes.length === 0) return 0;
+
+  const mean = changes.reduce((a, b) => a + b, 0) / changes.length;
+  const variance = changes.reduce((acc, c) => acc + Math.pow(c - mean, 2), 0) / changes.length;
+  const magnitudeConsistency = 100 / (1 + variance / 10);
+
+  // Combined score (70% direction, 30% magnitude)
+  return directionConsistency * 0.7 + magnitudeConsistency * 0.3;
+}
+
+/**
+ * Detect momentum shift patterns
+ * Identifies if momentum is accelerating, decelerating, or reversing
+ */
+function detectMomentumShift(pair: DexPair): string {
+  const m5 = pair.priceChange?.m5 || 0;
+  const h1 = pair.priceChange?.h1 || 0;
+  const h6 = pair.priceChange?.h6 || 0;
+  const h24 = pair.priceChange?.h24 || 0;
+
+  // Calculate momentum velocity (rate of change between timeframes)
+  const shortTermVelocity = Math.abs(m5) - Math.abs(h1); // m5 to h1
+  const midTermVelocity = Math.abs(h1) - Math.abs(h6); // h1 to h6
+  const longTermVelocity = Math.abs(h6) - Math.abs(h24); // h6 to h24
+
+  const avgVelocity = (shortTermVelocity + midTermVelocity + longTermVelocity) / 3;
+
+  // Check for trend reversal
+  const recentDirection = Math.sign(m5);
+  const historicalDirection = Math.sign(h24);
+  if (
+    recentDirection !== 0 &&
+    historicalDirection !== 0 &&
+    recentDirection !== historicalDirection
+  ) {
+    return 'Reversing';
+  }
+
+  // Accelerating vs Decelerating
+  if (avgVelocity > 2) return 'Accelerating';
+  if (avgVelocity < -2) return 'Decelerating';
+  return 'Stable';
+}
+
+/**
+ * Calculate volatility pattern
+ * Measures price fluctuation consistency
+ */
+function calculateVolatilityPattern(pair: DexPair): string {
+  const changes = [
+    Math.abs(pair.priceChange?.m5 || 0),
+    Math.abs(pair.priceChange?.h1 || 0),
+    Math.abs(pair.priceChange?.h6 || 0),
+    Math.abs(pair.priceChange?.h24 || 0),
+  ].filter(c => c > 0);
+
+  if (changes.length === 0) return 'No Data';
+
+  const maxChange = Math.max(...changes);
+  const minChange = Math.min(...changes);
+  const range = maxChange - minChange;
+
+  if (maxChange < 5) return 'Low Volatility';
+  if (range < 5) return 'Consistent High Volatility';
+  if (maxChange > 20 && range > 15) return 'Extreme Volatility Spike';
+  return 'Moderate Volatility';
+}
+
+/**
+ * Format multi-timeframe analysis
+ * Provides comprehensive trend analysis across all timeframes
+ */
+function formatMultiTimeframeAnalysis(pair: DexPair): string {
+  const trendStrength = analyzeTrendStrength(pair);
+  const momentumShift = detectMomentumShift(pair);
+  const volatilityPattern = calculateVolatilityPattern(pair);
+
+  // Calculate buy/sell pressure
+  const m5Txns = pair.txns?.m5;
+  const buySellRatio =
+    m5Txns && m5Txns.buys + m5Txns.sells > 0
+      ? (m5Txns.buys / (m5Txns.buys + m5Txns.sells)) * 100
+      : 50;
+
+  return `
+- Trend Strength: ${trendStrength.toFixed(0)}/100 (${trendStrength > 70 ? 'Strong' : trendStrength > 40 ? 'Moderate' : 'Weak'})
+- Momentum: ${momentumShift}
+- Volatility: ${volatilityPattern}
+- Buy Pressure: ${buySellRatio.toFixed(0)}% (${buySellRatio > 60 ? 'Bullish' : buySellRatio < 40 ? 'Bearish' : 'Neutral'})`.trim();
+}
+
+/**
  * Format pair data for prompt
  */
 function formatPairData(pair: DexPair, timeframe: Timeframe): string {
@@ -149,6 +277,9 @@ function formatPairData(pair: DexPair, timeframe: Timeframe): string {
   // Format multi-timeframe trend
   const trendComparison = formatTrendComparison(pair);
 
+  // Format multi-timeframe analysis
+  const multiTimeframeAnalysis = formatMultiTimeframeAnalysis(pair);
+
   return `
 ${baseToken}/${quoteToken}
 - Price: $${priceUsd}
@@ -163,6 +294,8 @@ ${baseToken}/${quoteToken}
 - Pair Age: ${pairAge}
 - Labels: ${labels}
 - Trend Comparison: ${trendComparison}
+- Multi-Timeframe Analysis:
+${multiTimeframeAnalysis}
 `.trim();
 }
 

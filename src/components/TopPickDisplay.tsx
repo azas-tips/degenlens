@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/i18n';
-import type { AnalysisResult } from '../stores/app.store';
+import type { AnalysisResult } from '@/types/analysis';
 
 interface TopPickDisplayProps {
   data: AnalysisResult;

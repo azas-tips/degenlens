@@ -11,6 +11,7 @@ import type {
 import { llmLimiter } from '@/background/utils/rate-limiter';
 import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
+import { decryptString, isEncrypted } from '@/utils/crypto';
 
 const OPENROUTER_API_BASE = 'https://openrouter.ai/api/v1';
 
@@ -21,17 +22,27 @@ const OPENROUTER_API_BASE = 'https://openrouter.ai/api/v1';
 async function createOpenRouterClient() {
   // Get API key from storage
   const storage = await chrome.storage.local.get(STORAGE_KEYS.OPENROUTER_API_KEY);
-  const apiKey = storage[STORAGE_KEYS.OPENROUTER_API_KEY] as string | undefined;
+  let apiKey = storage[STORAGE_KEYS.OPENROUTER_API_KEY] as string | undefined;
 
   if (!apiKey) {
     throw new Error('OpenRouter API key not found. Please configure in settings.');
+  }
+
+  // Decrypt API key if it's encrypted
+  if (isEncrypted(apiKey)) {
+    try {
+      apiKey = await decryptString(apiKey);
+    } catch (error) {
+      console.error('[OpenRouter API] Failed to decrypt API key:', error);
+      throw new Error('Failed to decrypt API key. Please re-enter your key in settings.');
+    }
   }
 
   return ky.create({
     prefixUrl: OPENROUTER_API_BASE,
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'HTTP-Referer': 'https://github.com/yourusername/degenlens', // TODO: Update with actual repo URL
+      'HTTP-Referer': 'https://github.com/azas-tips/degenlens',
       'X-Title': 'DegenLens',
     },
     timeout: 300000, // 5 minutes (LLM analysis can take time with large token counts)

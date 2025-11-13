@@ -8,52 +8,12 @@ import { chatCompletion, fetchModels } from '@/api/openrouter';
 import { buildAnalysisPrompt } from '../utils/prompt-builder';
 import { STORAGE_KEYS } from '@/types/storage';
 import type { OpenRouterModel } from '@/types/openrouter';
+import type { AnalysisResult } from '@/types/analysis';
 
 /**
  * Safe post function type
  */
 type SafePost = (msg: unknown) => void;
-
-/**
- * Analysis result interface
- */
-interface AnalysisResult {
-  pairs: Array<{
-    symbol: string;
-    priceUsd: string;
-    volume6h: number;
-    liquidity: number;
-    priceChange6h: number;
-    risk?: string;
-    observations?: string;
-    score?: number;
-    analysis?: string;
-    momentum?: number;
-    catalyst?: string;
-    moonshotPotential?: string;
-  }>;
-  analysis: string;
-  topPick?: {
-    symbol?: string;
-    reason?: string;
-    momentum?: number;
-    catalyst?: string;
-    moonshotPotential?: string;
-    momentumPhase?: string;
-    contractAddress?: string;
-    chainId?: string;
-    pairAddress?: string;
-  };
-  runnerUps?: Array<{
-    symbol?: string;
-    reason?: string;
-  }>;
-  metadata?: {
-    tokensUsed?: number;
-    estimatedCost?: number;
-    analyzedAt?: string; // ISO 8601 timestamp
-  };
-}
 
 /**
  * Handle analyze request

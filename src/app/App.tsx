@@ -8,6 +8,7 @@ import { TopPickDisplay } from '@/components/TopPickDisplay';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { DEFAULT_ANALYSIS_PROMPT } from '@/background/utils/prompt-builder';
+import { encryptString } from '@/utils/crypto';
 
 type Tab = 'analysis' | 'settings';
 
@@ -541,6 +542,7 @@ interface SettingsSectionProps {
 
 function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
   const { t } = useTranslation();
+  const SHOW_CUSTOM_PROMPT = false; // Set to true to enable custom prompt editor
   const [savedKeys, setSavedKeys] = useState({ openrouter: false });
   const [openrouterInput, setOpenrouterInput] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -583,8 +585,11 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
     setSaveMessage('');
 
     try {
+      // Encrypt API key before storing
+      const encryptedKey = await encryptString(openrouterInput.trim());
+
       await chrome.storage.local.set({
-        [STORAGE_KEYS.OPENROUTER_API_KEY]: openrouterInput.trim(),
+        [STORAGE_KEYS.OPENROUTER_API_KEY]: encryptedKey,
       });
 
       await loadSavedStatus();
@@ -736,82 +741,84 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
         </div>
       </section>
 
-      {/* Custom Prompt Section */}
-      <section className="cyber-card p-6 rounded-xl shadow-cyber-card">
-        <h2 className="text-xl font-bold mb-4 neon-text">{t('options.analysisPrompt')}</h2>
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-neon-cyan">
-                {t('options.customPromptTemplate')}
-              </label>
+      {/* Custom Prompt Section - Hidden (set SHOW_CUSTOM_PROMPT to true to enable) */}
+      {SHOW_CUSTOM_PROMPT && (
+        <section className="cyber-card p-6 rounded-xl shadow-cyber-card">
+          <h2 className="text-xl font-bold mb-4 neon-text">{t('options.analysisPrompt')}</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-neon-cyan">
+                  {t('options.customPromptTemplate')}
+                </label>
+                {hasCustomPrompt && (
+                  <span className="text-xs text-neon-green font-bold animate-glow-pulse">
+                    ✓ {t('options.usingCustomPrompt')}
+                  </span>
+                )}
+              </div>
+              <textarea
+                value={customPrompt}
+                onChange={e => setCustomPrompt(e.target.value)}
+                placeholder={DEFAULT_ANALYSIS_PROMPT}
+                rows={24}
+                className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none font-mono text-sm hover:border-purple-500/50 transition-all resize-none"
+              />
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-neon-cyan/80">
+                  {t('options.availableVariables')}{' '}
+                  <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
+                    {'{pairsData}'}
+                  </code>{' '}
+                  <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
+                    {'{pairsCount}'}
+                  </code>{' '}
+                  <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
+                    {'{chain}'}
+                  </code>
+                </p>
+                <p className="text-xs text-gray-500 font-mono">
+                  💡 {t('options.leaveEmptyForDefault')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleSavePrompt}
+                disabled={saving}
+                className={`neon-button px-6 py-3 rounded-lg font-bold transition-all ${
+                  saving
+                    ? 'bg-gray-700 cursor-not-allowed opacity-50'
+                    : 'bg-gradient-to-r from-primary to-neon-purple hover:from-primary-light hover:to-neon-pink shadow-neon-purple hover:shadow-neon-pink'
+                }`}
+              >
+                <span>{saving ? t('options.saving') : t('options.save')}</span>
+              </button>
               {hasCustomPrompt && (
-                <span className="text-xs text-neon-green font-bold animate-glow-pulse">
-                  ✓ {t('options.usingCustomPrompt')}
-                </span>
+                <button
+                  onClick={handleResetPrompt}
+                  className="neon-button px-5 py-3 bg-gradient-to-r from-neon-cyan/20 to-neon-blue/20 hover:from-neon-cyan/30 hover:to-neon-blue/30 border-2 border-neon-cyan/30 hover:border-neon-cyan/50 text-neon-cyan rounded-lg font-bold transition-all"
+                >
+                  🔄 {t('options.resetToDefault')}
+                </button>
               )}
             </div>
-            <textarea
-              value={customPrompt}
-              onChange={e => setCustomPrompt(e.target.value)}
-              placeholder={DEFAULT_ANALYSIS_PROMPT}
-              rows={24}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none font-mono text-sm hover:border-purple-500/50 transition-all resize-none"
-            />
-            <div className="mt-3 space-y-2">
-              <p className="text-xs text-neon-cyan/80">
-                {t('options.availableVariables')}{' '}
-                <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
-                  {'{pairsData}'}
-                </code>{' '}
-                <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
-                  {'{pairsCount}'}
-                </code>{' '}
-                <code className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded text-neon-pink font-bold">
-                  {'{chain}'}
-                </code>
-              </p>
-              <p className="text-xs text-gray-500 font-mono">
-                💡 {t('options.leaveEmptyForDefault')}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSavePrompt}
-              disabled={saving}
-              className={`neon-button px-6 py-3 rounded-lg font-bold transition-all ${
-                saving
-                  ? 'bg-gray-700 cursor-not-allowed opacity-50'
-                  : 'bg-gradient-to-r from-primary to-neon-purple hover:from-primary-light hover:to-neon-pink shadow-neon-purple hover:shadow-neon-pink'
-              }`}
-            >
-              <span>{saving ? t('options.saving') : t('options.save')}</span>
-            </button>
-            {hasCustomPrompt && (
-              <button
-                onClick={handleResetPrompt}
-                className="neon-button px-5 py-3 bg-gradient-to-r from-neon-cyan/20 to-neon-blue/20 hover:from-neon-cyan/30 hover:to-neon-blue/30 border-2 border-neon-cyan/30 hover:border-neon-cyan/50 text-neon-cyan rounded-lg font-bold transition-all"
-              >
-                🔄 {t('options.resetToDefault')}
-              </button>
+            {/* Show default prompt for reference */}
+            {!hasCustomPrompt && (
+              <details className="text-xs">
+                <summary className="cursor-pointer text-neon-cyan/70 hover:text-neon-cyan font-mono transition-colors">
+                  📄 {t('options.viewDefaultPrompt')}
+                </summary>
+                <pre className="mt-3 p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg overflow-x-auto text-gray-400 font-mono text-xs">
+                  {DEFAULT_ANALYSIS_PROMPT}
+                </pre>
+              </details>
             )}
           </div>
-
-          {/* Show default prompt for reference */}
-          {!hasCustomPrompt && (
-            <details className="text-xs">
-              <summary className="cursor-pointer text-neon-cyan/70 hover:text-neon-cyan font-mono transition-colors">
-                📄 {t('options.viewDefaultPrompt')}
-              </summary>
-              <pre className="mt-3 p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg overflow-x-auto text-gray-400 font-mono text-xs">
-                {DEFAULT_ANALYSIS_PROMPT}
-              </pre>
-            </details>
-          )}
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Data Management Section */}
       <section className="cyber-card p-6 rounded-xl shadow-cyber-card border-2 border-neon-pink/20">

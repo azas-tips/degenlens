@@ -1,7 +1,7 @@
 // Cache Manager Utility
 // Manages cache in chrome.storage.session with TTL and LRU eviction
 
-const TTL_MS = 60_000; // 1 minute
+const TTL_MS = 300_000; // 5 minutes (optimized for DEX data freshness)
 const MAX_ENTRIES = 5;
 const INDEX_KEY = 'cache_index';
 
