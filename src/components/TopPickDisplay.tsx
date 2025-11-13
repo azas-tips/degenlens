@@ -140,18 +140,19 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
               <div className={getMoonshotStyle(topPick.moonshotPotential)}>
                 {topPick.moonshotPotential || 'High Potential'}
               </div>
-              {topPick.riskLevel && (() => {
-                const riskInfo = getRiskLevelInfo(topPick.riskLevel);
-                return (
-                  <div
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${riskInfo.color} bg-cyber-darker/80 border-2 ${riskInfo.color.replace('text-', 'border-')}/50`}
-                    title={riskInfo.description}
-                  >
-                    <span className="text-2xl">{riskInfo.emoji}</span>
-                    <span>{riskInfo.label}</span>
-                  </div>
-                );
-              })()}
+              {topPick.riskLevel &&
+                (() => {
+                  const riskInfo = getRiskLevelInfo(topPick.riskLevel);
+                  return (
+                    <div
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${riskInfo.color} bg-cyber-darker/80 border-2 ${riskInfo.color.replace('text-', 'border-')}/50`}
+                      title={riskInfo.description}
+                    >
+                      <span className="text-2xl">{riskInfo.emoji}</span>
+                      <span>{riskInfo.label}</span>
+                    </div>
+                  );
+                })()}
             </div>
             {topPick.riskFactors && topPick.riskFactors.length > 0 && (
               <div className="mt-3 p-3 bg-cyber-darker/50 border border-yellow-500/30 rounded-lg">

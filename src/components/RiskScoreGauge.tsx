@@ -64,11 +64,7 @@ export function RiskScoreGauge({ score, level }: RiskScoreGaugeProps) {
       {/* Gauge Background */}
       <div className="relative w-full aspect-[2/1]">
         {/* Semi-circle track */}
-        <svg
-          className="w-full h-full"
-          viewBox="0 0 200 100"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg className="w-full h-full" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
           {/* Background arc */}
           <path
             d="M 20 100 A 80 80 0 0 1 180 100"
@@ -119,12 +115,7 @@ export function RiskScoreGauge({ score, level }: RiskScoreGaugeProps) {
           >
             {score}
           </text>
-          <text
-            x="100"
-            y="85"
-            textAnchor="middle"
-            className="text-xs text-gray-400 fill-current"
-          >
+          <text x="100" y="85" textAnchor="middle" className="text-xs text-gray-400 fill-current">
             / {maxScore}
           </text>
 
@@ -145,26 +136,25 @@ export function RiskScoreGauge({ score, level }: RiskScoreGaugeProps) {
             transform: `translateX(-50%) rotate(${rotation}deg)`,
           }}
         >
-          <div className={`w-full h-full bg-gradient-to-t ${getGradientColors()} rounded-full shadow-lg`} />
+          <div
+            className={`w-full h-full bg-gradient-to-t ${getGradientColors()} rounded-full shadow-lg`}
+          />
           <div className="absolute bottom-0 left-1/2 w-4 h-4 rounded-full bg-gray-800 border-2 border-gray-600 transform -translate-x-1/2 translate-y-1/2" />
         </div>
       </div>
 
       {/* Risk Level Label */}
       <div className="text-center mt-4">
-        <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-full ${getTextColor()} bg-cyber-darker/80 border-2`}
+        <div
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-full ${getTextColor()} bg-cyber-darker/80 border-2`}
           style={{
             borderColor: `${riskInfo.color.replace('text-', '')}`,
           }}
         >
           <span className="text-3xl">{riskInfo.emoji}</span>
           <div className="text-left">
-            <div className="text-lg font-bold uppercase tracking-wider">
-              {riskInfo.label}
-            </div>
-            <div className="text-xs text-gray-400">
-              {riskInfo.description}
-            </div>
+            <div className="text-lg font-bold uppercase tracking-wider">{riskInfo.label}</div>
+            <div className="text-xs text-gray-400">{riskInfo.description}</div>
           </div>
         </div>
       </div>

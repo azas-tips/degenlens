@@ -111,9 +111,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
 
             {/* Reason */}
             {factor.reason && (
-              <div className="text-xs text-gray-400 font-mono pl-2">
-                {factor.reason}
-              </div>
+              <div className="text-xs text-gray-400 font-mono pl-2">{factor.reason}</div>
             )}
           </div>
         ))}
