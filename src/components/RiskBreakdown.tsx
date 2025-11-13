@@ -51,31 +51,35 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
       name: t('results.riskBreakdown.factors.age'),
       score: breakdown.ageScore,
       max: breakdown.ageMax,
-      reason: breakdown.ageReason,
+      reason: breakdown.ageReasonKey ? t(breakdown.ageReasonKey, breakdown.ageReasonParams) : breakdown.ageReason,
     },
     {
       name: t('results.riskBreakdown.factors.liquidity'),
       score: breakdown.liquidityScore,
       max: breakdown.liquidityMax,
-      reason: breakdown.liquidityReason,
+      reason: breakdown.liquidityReasonKey
+        ? t(breakdown.liquidityReasonKey, breakdown.liquidityReasonParams)
+        : breakdown.liquidityReason,
     },
     {
       name: t('results.riskBreakdown.factors.labels'),
       score: breakdown.labelScore,
       max: breakdown.labelMax,
-      reason: breakdown.labelReason,
+      reason: breakdown.labelReasonKey ? t(breakdown.labelReasonKey, breakdown.labelReasonParams) : breakdown.labelReason,
     },
     {
       name: t('results.riskBreakdown.factors.volume'),
       score: breakdown.volumeScore,
       max: breakdown.volumeMax,
-      reason: breakdown.volumeReason,
+      reason: breakdown.volumeReasonKey ? t(breakdown.volumeReasonKey, breakdown.volumeReasonParams) : breakdown.volumeReason,
     },
     {
       name: t('results.riskBreakdown.factors.volatility'),
       score: breakdown.volatilityScore,
       max: breakdown.volatilityMax,
-      reason: breakdown.volatilityReason,
+      reason: breakdown.volatilityReasonKey
+        ? t(breakdown.volatilityReasonKey, breakdown.volatilityReasonParams)
+        : breakdown.volatilityReason,
     },
   ];
 

@@ -103,6 +103,38 @@
       "critical": "Critical - Extreme caution advised"
     }
   },
+  "risk": {
+    "age": {
+      "veryNew": "Very new ({{hours}}h old)",
+      "new": "New ({{days}} days old)",
+      "relativelyNew": "Relatively new ({{days}} days old)",
+      "established": "Established ({{days}} days old)",
+      "unknown": "Age unknown"
+    },
+    "liquidity": {
+      "veryLow": "Very low liquidity (${{amount}}k)",
+      "low": "Low liquidity (${{amount}}k)",
+      "moderate": "Moderate liquidity (${{amount}}k)",
+      "good": "Good liquidity (${{amount}}k)",
+      "withLowRatio": "{{amount}}k | Low L/MC ratio ({{ratio}}%)",
+      "withHighRatio": "{{amount}}k | High L/MC ratio ({{ratio}}%)"
+    },
+    "labels": {
+      "scam": "⛔ SCAM/HONEYPOT detected",
+      "verified": "✓ Verified or top token",
+      "none": "No special labels"
+    },
+    "volume": {
+      "veryLow": "Very low volume (${{amount}}/24h)",
+      "low": "Low volume (${{amount}}k/24h)",
+      "good": "Good volume (${{amount}}k/24h)"
+    },
+    "volatility": {
+      "extreme": "Extreme volatility (5m: {{change5m}}%, 1h: {{change1h}}%)",
+      "high": "High volatility (5m: {{change5m}}%, 1h: {{change1h}}%)",
+      "normal": "Normal volatility (5m: {{change5m}}%, 1h: {{change1h}}%)"
+    }
+  },
   "empty": {
     "instructions": "Select a chain and model",
     "thenAnalyze": "then click \"Analyze\"",

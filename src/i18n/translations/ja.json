@@ -103,6 +103,38 @@
       "critical": "重大 - 極度の注意が必要"
     }
   },
+  "risk": {
+    "age": {
+      "veryNew": "新規 ({{hours}}時間)",
+      "new": "新しい ({{days}}日)",
+      "relativelyNew": "比較的新しい ({{days}}日)",
+      "established": "確立済み ({{days}}日)",
+      "unknown": "年齢不明"
+    },
+    "liquidity": {
+      "veryLow": "流動性極小 (${{amount}}k)",
+      "low": "流動性低 (${{amount}}k)",
+      "moderate": "流動性中程度 (${{amount}}k)",
+      "good": "流動性良好 (${{amount}}k)",
+      "withLowRatio": "${{amount}}k | L/MC比率低 ({{ratio}}%)",
+      "withHighRatio": "${{amount}}k | L/MC比率高 ({{ratio}}%)"
+    },
+    "labels": {
+      "scam": "⛔ SCAM/HONEYPOT検出",
+      "verified": "✓ 認証済み・トップトークン",
+      "none": "特別なラベルなし"
+    },
+    "volume": {
+      "veryLow": "取引量極小 (${{amount}}/24h)",
+      "low": "取引量低 (${{amount}}k/24h)",
+      "good": "取引量良好 (${{amount}}k/24h)"
+    },
+    "volatility": {
+      "extreme": "極度の変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)",
+      "high": "高変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)",
+      "normal": "通常の変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)"
+    }
+  },
   "empty": {
     "instructions": "チェーンとモデルを選択",
     "thenAnalyze": "「分析開始」をクリック",
