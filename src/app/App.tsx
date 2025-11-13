@@ -6,11 +6,12 @@ import { useAppStore, initializeStore } from '@/stores/app.store';
 import { ModelSelector } from '@/components/ModelSelector';
 import { TopPickDisplay } from '@/components/TopPickDisplay';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { HistoryList } from '@/components/HistoryList';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { DEFAULT_ANALYSIS_PROMPT } from '@/background/utils/prompt-builder';
 import { encryptString } from '@/utils/crypto';
 
-type Tab = 'analysis' | 'settings';
+type Tab = 'analysis' | 'history' | 'settings';
 
 function App() {
   const [tab, setTab] = useState<Tab>('analysis');
@@ -126,6 +127,18 @@ function App() {
                 </button>
                 <button
                   role="tab"
+                  aria-selected={tab === 'history'}
+                  onClick={() => setTab('history')}
+                  className={`neon-button px-6 py-2 rounded-lg font-medium transition-all ${
+                    tab === 'history'
+                      ? 'bg-primary shadow-neon-purple text-white scale-105'
+                      : 'text-gray-400 hover:text-white bg-cyber-card hover:shadow-neon-purple/50'
+                  }`}
+                >
+                  <span>{t('history.title')}</span>
+                </button>
+                <button
+                  role="tab"
                   aria-selected={tab === 'settings'}
                   onClick={() => setTab('settings')}
                   className={`neon-button px-6 py-2 rounded-lg font-medium transition-all ${
@@ -162,6 +175,8 @@ function App() {
       <main className="container mx-auto max-w-6xl px-6 py-8">
         {tab === 'analysis' ? (
           <AnalysisSection onNavigateToSettings={() => setTab('settings')} />
+        ) : tab === 'history' ? (
+          <HistoryList />
         ) : (
           <SettingsSection language={language} setLanguage={setLanguage} />
         )}

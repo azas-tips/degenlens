@@ -124,5 +124,15 @@
     "saving": "Saving...",
     "saved": "Settings saved successfully!",
     "failed": "Failed to save settings"
+  },
+  "history": {
+    "title": "Analysis History",
+    "noHistory": "No analysis history yet",
+    "noResults": "No matching results",
+    "backToList": "Back to List",
+    "confirmDelete": "Delete this analysis from history?",
+    "confirmClearAll": "Delete all analysis history? This cannot be undone.",
+    "clearAll": "Clear All History",
+    "delete": "Delete"
   }
 }

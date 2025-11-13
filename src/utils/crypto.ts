@@ -27,13 +27,9 @@ async function getOrCreateDeviceKey(): Promise<CryptoKey> {
   const keyMaterial = encoder.encode(keyId);
 
   // Import the key material
-  const importedKey = await crypto.subtle.importKey(
-    'raw',
-    keyMaterial,
-    { name: 'PBKDF2' },
-    false,
-    ['deriveKey']
-  );
+  const importedKey = await crypto.subtle.importKey('raw', keyMaterial, { name: 'PBKDF2' }, false, [
+    'deriveKey',
+  ]);
 
   // Derive a stronger key using PBKDF2
   const salt = encoder.encode('degenlens-salt-v1'); // Static salt for consistency

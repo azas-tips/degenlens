@@ -55,4 +55,5 @@ export const STORAGE_KEYS = {
   CUSTOM_PROMPT: 'custom_prompt',
   TELEMETRY_ENABLED: 'telemetry_enabled',
   LANGUAGE: 'language',
+  ANALYSIS_HISTORY: 'analysis_history',
 } as const;
