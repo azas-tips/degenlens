@@ -325,7 +325,9 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
       {/* Controls Section */}
       <div className="cyber-card p-6 rounded-xl shadow-cyber-card animate-fade-in">
         <h2 className="text-xl font-bold mb-6 neon-text tracking-wide">Analysis Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {/* Row 1: Chain + Timeframe */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Chain Selector */}
           <section>
             <label htmlFor="chain-select" className="block text-sm font-medium mb-2 text-neon-cyan">
@@ -336,7 +338,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
               value={chain}
               onChange={e => setChain(e.target.value)}
               disabled={analyzing}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-sm hover:border-purple-500/50"
+              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
             >
               <option value="solana">Solana</option>
               <option value="ethereum">Ethereum</option>
@@ -347,14 +349,6 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
               <option value="base">Base</option>
             </select>
           </section>
-
-          {/* Model Selector */}
-          <ModelSelector
-            value={model}
-            onChange={setModel}
-            disabled={analyzing}
-            onNavigateToSettings={onNavigateToSettings}
-          />
 
           {/* Timeframe Selector */}
           <section>
@@ -369,7 +363,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
               value={timeframe}
               onChange={e => setTimeframe(e.target.value as Timeframe)}
               disabled={analyzing}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-sm hover:border-purple-500/50"
+              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
             >
               {Object.entries(TIMEFRAMES).map(([key, { labelKey }]) => (
                 <option key={key} value={key}>
@@ -379,6 +373,14 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
             </select>
           </section>
         </div>
+
+        {/* Row 2: Model Selector (full width with cost estimate) */}
+        <ModelSelector
+          value={model}
+          onChange={setModel}
+          disabled={analyzing}
+          onNavigateToSettings={onNavigateToSettings}
+        />
 
         {/* Action Buttons */}
         <div className="flex space-x-3 mt-6">

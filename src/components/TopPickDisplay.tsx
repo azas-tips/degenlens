@@ -2,6 +2,7 @@
 // Displays THE TOP PICK prominently for degen trading
 
 import { useState } from 'react';
+import { useTranslation } from '@/i18n';
 import type { AnalysisResult } from '../stores/app.store';
 
 interface TopPickDisplayProps {
@@ -11,6 +12,7 @@ interface TopPickDisplayProps {
 export function TopPickDisplay({ data }: TopPickDisplayProps) {
   const { topPick, pairs = [] } = data;
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation();
 
   /**
    * Copy contract address to clipboard
@@ -84,16 +86,25 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
     <div className="space-y-6 animate-fade-in">
       {/* Metadata */}
       {data.metadata && (
-        <div className="flex justify-between text-xs font-mono pb-3 border-b border-purple-500/30">
-          {data.metadata.tokensUsed && (
-            <span className="text-neon-cyan">
-              Tokens: {data.metadata.tokensUsed.toLocaleString()}
-            </span>
-          )}
-          {data.metadata.estimatedCost && (
-            <span className="text-neon-green font-bold">
-              Cost: ${data.metadata.estimatedCost.toFixed(4)}
-            </span>
+        <div className="space-y-2 text-xs font-mono pb-3 border-b border-purple-500/30">
+          <div className="flex justify-between items-center">
+            {data.metadata.tokensUsed && (
+              <span className="text-neon-cyan">
+                {t('results.tokensUsed', { count: data.metadata.tokensUsed.toLocaleString() })}
+              </span>
+            )}
+            {data.metadata.estimatedCost && (
+              <span className="text-neon-green font-bold">
+                {t('results.cost', { amount: data.metadata.estimatedCost.toFixed(4) })}
+              </span>
+            )}
+          </div>
+          {data.metadata.analyzedAt && (
+            <div className="text-gray-400 text-center">
+              {t('results.analyzedAt', {
+                date: new Date(data.metadata.analyzedAt).toLocaleString(),
+              })}
+            </div>
           )}
         </div>
       )}

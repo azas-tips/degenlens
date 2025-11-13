@@ -51,6 +51,7 @@ interface AnalysisResult {
   metadata?: {
     tokensUsed?: number;
     estimatedCost?: number;
+    analyzedAt?: string; // ISO 8601 timestamp
   };
 }
 
@@ -263,6 +264,7 @@ export async function handleAnalyzeRequest(
             llmResponse.usage?.completion_tokens || 0,
             modelInfo
           ),
+          analyzedAt: new Date().toISOString(),
         },
       };
 

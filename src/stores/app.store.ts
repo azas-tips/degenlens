@@ -59,6 +59,7 @@ export interface AnalysisResult {
   metadata?: {
     tokensUsed?: number;
     estimatedCost?: number;
+    analyzedAt?: string; // ISO 8601 timestamp
   };
 }
 

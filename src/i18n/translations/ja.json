@@ -70,6 +70,7 @@
     "score": "スコア",
     "tokensUsed": "使用トークン数: {{count}}",
     "cost": "コスト: ${{amount}}",
+    "analyzedAt": "分析日時: {{date}}",
     "aiSummary": "AI分析サマリー",
     "detailedAnalysis": "詳細分析",
     "disclaimer": "このデータは情報提供のみを目的としています。",
