@@ -220,6 +220,7 @@ export async function handleAnalyzeRequest(
                 pairAddress: matchedPair?.pairAddress,
                 riskLevel: riskAssessment?.level,
                 riskFactors: riskAssessment?.factors,
+                riskBreakdown: riskAssessment?.breakdown,
               };
             })()
           : undefined,

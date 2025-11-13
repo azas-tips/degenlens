@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from '@/i18n';
 import type { AnalysisResult } from '@/types/analysis';
 import { getRiskLevelInfo } from '@/utils/risk-assessment';
+import { RiskBreakdown } from './RiskBreakdown';
 
 interface TopPickDisplayProps {
   data: AnalysisResult;
@@ -206,6 +207,22 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
               </div>
             )}
           </div>
+
+          {/* Risk Breakdown - Show detailed scoring */}
+          {topPick.riskBreakdown && topPick.riskLevel && (
+            <div className="mb-6">
+              <RiskBreakdown
+                breakdown={topPick.riskBreakdown}
+                totalScore={
+                  topPick.riskBreakdown.ageScore +
+                  topPick.riskBreakdown.liquidityScore +
+                  topPick.riskBreakdown.labelScore +
+                  topPick.riskBreakdown.volumeScore +
+                  topPick.riskBreakdown.volatilityScore
+                }
+              />
+            </div>
+          )}
 
           {/* Contract Address */}
           {topPick.contractAddress && (

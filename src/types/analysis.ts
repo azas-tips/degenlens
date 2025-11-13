@@ -2,6 +2,7 @@
 // Consolidated type definitions for token analysis results
 
 import type { Timeframe } from './dexscreener';
+import type { ScoringBreakdown } from '@/utils/risk-assessment';
 
 /**
  * Risk level classification
@@ -51,6 +52,7 @@ export interface TopPick {
   pairAddress?: string;
   riskLevel?: RiskLevel;
   riskFactors?: string[];
+  riskBreakdown?: ScoringBreakdown;
 }
 
 /**
