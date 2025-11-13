@@ -2,7 +2,8 @@
 // Manages Port communication with Background Worker for analysis
 
 import { useCallback, useRef } from 'react';
-import { useAppStore, type AnalysisResult } from '@/stores/app.store';
+import { useAppStore } from '@/stores/app.store';
+import type { AnalysisResult } from '@/types/analysis';
 import type { AnalyzeReq, AnalyzeProgress, AnalyzeResult } from '@/shared/schema';
 
 /**

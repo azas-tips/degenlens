@@ -8,6 +8,7 @@ import { TopPickDisplay } from '@/components/TopPickDisplay';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { DEFAULT_ANALYSIS_PROMPT } from '@/background/utils/prompt-builder';
+import { encryptString } from '@/utils/crypto';
 
 type Tab = 'analysis' | 'settings';
 
@@ -584,8 +585,11 @@ function SettingsSection({ language, setLanguage }: SettingsSectionProps) {
     setSaveMessage('');
 
     try {
+      // Encrypt API key before storing
+      const encryptedKey = await encryptString(openrouterInput.trim());
+
       await chrome.storage.local.set({
-        [STORAGE_KEYS.OPENROUTER_API_KEY]: openrouterInput.trim(),
+        [STORAGE_KEYS.OPENROUTER_API_KEY]: encryptedKey,
       });
 
       await loadSavedStatus();

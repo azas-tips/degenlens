@@ -314,36 +314,43 @@ export async function fetchPairsByChain(
 
     console.log(`[DEX API] Search targets for ${apiChainId}:`, searchTargets);
 
-    // Fetch pairs for each search target
+    // Fetch pairs for each search target in parallel for better performance
     const allPairs: DexPair[] = [];
     const seenPairs = new Set<string>();
 
-    for (const target of searchTargets) {
-      try {
-        const response = await retryWithBackoff(
-          () => client.get(`search?q=${encodeURIComponent(target)}`).json<DexPairsResponse>(),
-          { maxAttempts: 2 }
-        );
+    // Parallel API calls with Promise.all to reduce total request time
+    const searchResults = await Promise.all(
+      searchTargets.map(async target => {
+        try {
+          const response = await retryWithBackoff(
+            () => client.get(`search?q=${encodeURIComponent(target)}`).json<DexPairsResponse>(),
+            { maxAttempts: 2 }
+          );
 
-        // Add unique pairs from this chain (use mapped API chain ID)
-        const chainPairs = (response.pairs || []).filter(
-          (pair: DexPair) =>
-            pair.chainId?.toLowerCase() === apiChainId.toLowerCase() &&
-            !seenPairs.has(pair.pairAddress)
-        );
+          // Filter pairs from this chain (use mapped API chain ID)
+          const chainPairs = (response.pairs || []).filter(
+            (pair: DexPair) => pair.chainId?.toLowerCase() === apiChainId.toLowerCase()
+          );
 
-        console.log(
-          `[DEX API] Search "${target}": found ${chainPairs.length} pairs for ${apiChainId}`
-        );
+          console.log(
+            `[DEX API] Search "${target}": found ${chainPairs.length} pairs for ${apiChainId}`
+          );
 
-        chainPairs.forEach((pair: DexPair) => {
-          seenPairs.add(pair.pairAddress);
-          allPairs.push(pair);
-        });
-      } catch (error) {
-        console.warn(`[DEX API] Failed to fetch pairs for target "${target}":`, error);
+          return chainPairs;
+        } catch (error) {
+          console.warn(`[DEX API] Failed to fetch pairs for target "${target}":`, error);
+          return [];
+        }
+      })
+    );
+
+    // Deduplicate pairs by address
+    searchResults.flat().forEach(pair => {
+      if (!seenPairs.has(pair.pairAddress)) {
+        seenPairs.add(pair.pairAddress);
+        allPairs.push(pair);
       }
-    }
+    });
 
     console.log(`[DEX API] Total unique pairs collected for ${apiChainId}: ${allPairs.length}`);
 
