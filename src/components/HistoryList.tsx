@@ -225,6 +225,9 @@ export function HistoryList() {
                       {entry.chain.toUpperCase()} • {entry.timeframe.toUpperCase()} •{' '}
                       {entry.maxPairs} pairs
                     </div>
+                    <div className="truncate max-w-md" title={entry.model}>
+                      {entry.model}
+                    </div>
                     <div>{new Date(entry.timestamp).toLocaleString()}</div>
                   </div>
                 </div>
