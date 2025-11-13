@@ -7,7 +7,7 @@
     "chain": "Chain",
     "model": "LLM Model",
     "maxInputTokens": "Max Input Tokens",
-    "estimatedCost": "Estimated Cost (20 pairs)",
+    "estimatedCost": "Estimated Cost ({{count}} pairs)",
     "timeframe": "Timeframe",
     "maxPairs": "Max Pairs to Analyze: {{count}}",
     "maxPairsLabel": "Max Pairs",

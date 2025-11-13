@@ -51,6 +51,7 @@ export function ModelSelector({
   onChange,
   disabled,
   onNavigateToSettings,
+  maxPairs,
 }: ModelSelectorProps) {
   const { t } = useTranslation();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
@@ -133,19 +134,27 @@ export function ModelSelector({
   };
 
   /**
+   * Calculate estimated prompt tokens based on pair count
+   * Conservative estimate with safety margin (~15% buffer over actual usage)
+   * Actual usage: ~280 prompt tokens per pair
+   * Estimated with buffer: 300 prompt tokens per pair
+   */
+  const calculateEstimatedPromptTokens = (pairCount: number): number => {
+    return 300 * pairCount;
+  };
+
+  /**
    * Calculate estimated cost for analysis
    * Conservative estimate with safety margin (~15% buffer over actual usage)
    * Actual usage: ~280 prompt + ~500 completion tokens per pair
    * Estimated with buffer: 300 prompt + 600 completion tokens per pair
    */
-  const getEstimatedCost = (model: OpenRouterModel): string => {
-    const maxPairs = 20; // Fixed: analyze top 20 pairs
-
+  const getEstimatedCost = (model: OpenRouterModel, pairCount: number = 20): string => {
     // Conservative estimates with safety margin
     // Prompt tokens include: system prompt + pair data formatting
-    const estimatedPromptTokens = 300 * maxPairs; // 6,000 tokens (actual: ~5,600)
+    const estimatedPromptTokens = calculateEstimatedPromptTokens(pairCount);
     // Completion tokens include: LLM analysis output
-    const estimatedCompletionTokens = 600 * maxPairs; // 12,000 tokens (actual: ~10,000)
+    const estimatedCompletionTokens = 600 * pairCount;
 
     // Calculate cost separately for prompt and completion (different pricing)
     const promptCost = parseFloat(model.pricing.prompt) * estimatedPromptTokens;
@@ -178,7 +187,7 @@ export function ModelSelector({
   };
 
   /**
-   * Filter models based on search query and selected providers
+   * Filter models based on search query, selected providers, and max input tokens
    */
   const filteredModels = useMemo(() => {
     let filtered = models;
@@ -196,8 +205,18 @@ export function ModelSelector({
       filtered = filtered.filter(model => selectedProviders.includes(extractProvider(model.id)));
     }
 
+    // Filter by max input tokens (based on pair count)
+    if (maxPairs && maxPairs > 0) {
+      const requiredTokens = calculateEstimatedPromptTokens(maxPairs);
+      filtered = filtered.filter(model => {
+        const maxInputTokens =
+          model.context_length - (model.top_provider?.max_completion_tokens || 8192);
+        return maxInputTokens >= requiredTokens;
+      });
+    }
+
     return filtered;
-  }, [models, searchQuery, selectedProviders]);
+  }, [models, searchQuery, selectedProviders, maxPairs]);
 
   const selectedModel = models.find(m => m.id === value);
 
@@ -369,8 +388,12 @@ export function ModelSelector({
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">{t('form.estimatedCost')}:</span>
-            <span className="text-neon-green font-bold">{getEstimatedCost(selectedModel)}</span>
+            <span className="text-gray-400">
+              {t('form.estimatedCost', { count: maxPairs || 20 })}:
+            </span>
+            <span className="text-neon-green font-bold">
+              {getEstimatedCost(selectedModel, maxPairs || 20)}
+            </span>
           </div>
         </div>
       )}
