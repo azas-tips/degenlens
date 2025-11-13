@@ -70,6 +70,7 @@
     "score": "Score",
     "tokensUsed": "Tokens Used: {{count}}",
     "cost": "Cost: ${{amount}}",
+    "analyzedAt": "Analyzed: {{date}}",
     "aiSummary": "AI Analysis Summary",
     "detailedAnalysis": "Detailed Analysis",
     "disclaimer": "Data is provided for informational purposes only.",
