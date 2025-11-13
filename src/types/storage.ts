@@ -46,6 +46,17 @@ export const DEFAULT_STORAGE: AppStorageV1 = {
   telemetry_enabled: false,
 };
 
+/**
+ * Excluded Token
+ * Represents a token that should be excluded from analysis (all pairs containing this token)
+ */
+export interface ExcludedToken {
+  tokenAddress: string; // Token contract address (primary identifier)
+  symbol: string; // Token symbol (e.g., "BONK", "POPFROG")
+  chainId: string; // Chain identifier
+  excludedAt: string; // ISO timestamp when excluded
+}
+
 // Storage key constants
 export const STORAGE_KEYS = {
   VERSION: 'version',
@@ -56,4 +67,5 @@ export const STORAGE_KEYS = {
   TELEMETRY_ENABLED: 'telemetry_enabled',
   LANGUAGE: 'language',
   ANALYSIS_HISTORY: 'analysis_history',
+  EXCLUDED_TOKENS: 'excluded_tokens',
 } as const;

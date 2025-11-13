@@ -8,6 +8,7 @@
     "model": "LLM Model",
     "timeframe": "Timeframe",
     "maxPairs": "Max Pairs to Analyze: {{count}}",
+    "maxPairsLabel": "Max Pairs",
     "analyze": "Analyze",
     "analyzing": "Analyzing...",
     "cancel": "Cancel"
@@ -74,7 +75,120 @@
     "aiSummary": "AI Analysis Summary",
     "detailedAnalysis": "Detailed Analysis",
     "disclaimer": "Data is provided for informational purposes only.",
-    "dyor": "Always DYOR before making any investment decisions."
+    "dyor": "Always DYOR before making any investment decisions.",
+    "riskLevel": {
+      "safe": "Safe",
+      "safeDesc": "Low risk - established token with good fundamentals",
+      "caution": "Caution",
+      "cautionDesc": "Moderate risk - proceed with research",
+      "warning": "Warning",
+      "warningDesc": "High risk - exercise caution",
+      "danger": "Danger",
+      "dangerDesc": "Very high risk - not recommended",
+      "critical": "CRITICAL",
+      "criticalDesc": "Extreme risk - AVOID"
+    },
+    "riskFactors": "Risk Factors",
+    "riskBreakdown": {
+      "title": "Risk Analysis Breakdown",
+      "totalScore": "Total Risk Score",
+      "helpText": "Lower scores indicate lower risk. Each factor is weighted by importance.",
+      "factors": {
+        "age": "Contract Age",
+        "liquidity": "Liquidity",
+        "labels": "Labels",
+        "volume": "Volume",
+        "volatility": "Volatility"
+      }
+    },
+    "riskGauge": {
+      "excellent": "Excellent - Minimal risk factors detected",
+      "moderate": "Moderate - Some risk factors present",
+      "elevated": "Elevated - Multiple risk factors detected",
+      "high": "High - Significant risks identified",
+      "critical": "Critical - Extreme caution advised"
+    }
+  },
+  "risk": {
+    "age": {
+      "veryNew": "Very new ({{hours}}h old)",
+      "new": "New ({{days}} days old)",
+      "relativelyNew": "Relatively new ({{days}} days old)",
+      "established": "Established ({{days}} days old)",
+      "unknown": "Age unknown"
+    },
+    "liquidity": {
+      "veryLow": "Very low liquidity (${{amount}}k)",
+      "low": "Low liquidity (${{amount}}k)",
+      "moderate": "Moderate liquidity (${{amount}}k)",
+      "good": "Good liquidity (${{amount}}k)",
+      "withLowRatio": "{{amount}}k | Low L/MC ratio ({{ratio}}%)",
+      "withHighRatio": "{{amount}}k | High L/MC ratio ({{ratio}}%)"
+    },
+    "labels": {
+      "scam": "⛔ SCAM/HONEYPOT detected",
+      "verified": "✓ Verified or top token",
+      "none": "No special labels"
+    },
+    "volume": {
+      "veryLow": "Very low volume (${{amount}}/24h)",
+      "low": "Low volume (${{amount}}k/24h)",
+      "good": "Good volume (${{amount}}k/24h)"
+    },
+    "volatility": {
+      "extreme": "Extreme volatility (5m: {{change5m}}%, 1h: {{change1h}}%)",
+      "high": "High volatility (5m: {{change5m}}%, 1h: {{change1h}}%)",
+      "normal": "Normal volatility (5m: {{change5m}}%, 1h: {{change1h}}%)"
+    },
+    "factors": {
+      "age": {
+        "veryNew": "Very new contract (< 1 day)",
+        "new": "New contract (< 1 week)",
+        "relativelyNew": "Relatively new contract (< 1 month)",
+        "unknown": "Contract age unknown"
+      },
+      "liquidity": {
+        "veryLow": "Very low liquidity (< $10k)",
+        "low": "Low liquidity (< $50k)",
+        "moderate": "Moderate liquidity (< $100k)",
+        "lowRatio": "Low liquidity/mcap ratio (< 2%)",
+        "highRatio": "Unusually high liquidity/mcap ratio (> 50%)"
+      },
+      "labels": {
+        "scam": "⛔ SCAM/HONEYPOT LABEL DETECTED",
+        "verified": "✓ Verified or top token"
+      },
+      "volume": {
+        "veryLow": "Very low 24h volume (< $1k)",
+        "low": "Low 24h volume (< $10k)"
+      },
+      "volatility": {
+        "extreme": "Extreme price volatility",
+        "high": "High price volatility"
+      }
+    }
+  },
+  "loading": {
+    "analyzing": "Analyzing token pairs...",
+    "findingBest": "Finding the best opportunity",
+    "initializing": "Loading..."
+  },
+  "modelSelector": {
+    "loadingModels": "Loading models...",
+    "retry": "Retry",
+    "noModels": "⚠️ No models available",
+    "configureApiKey": "Please configure your OpenRouter API key in settings to access AI models.",
+    "searchPlaceholder": "🔍 Search models...",
+    "providers": "Providers",
+    "providersSelected": "{{count}} selected",
+    "providersAll": "All",
+    "clearFilters": "Clear filters",
+    "selectModel": "Select a model...",
+    "modelsShown": "{{shown}} of {{total}} models shown",
+    "contextLength": "Context Length",
+    "estimatedCost": "Estimated Cost (20 pairs)",
+    "estimatedCostPairs": "Estimated Cost ({{pairs}} pairs)",
+    "pleaseSelect": "Please select a model to continue"
   },
   "empty": {
     "instructions": "Select a chain and model",
@@ -84,7 +198,12 @@
   },
   "footer": {
     "warning": "⚠️ Not financial advice. DYOR.",
-    "settings": "Settings"
+    "settings": "Settings",
+    "shortcuts": "Shortcuts: ⌘/Ctrl+Enter to analyze, Esc to cancel",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "github": "GitHub",
+    "support": "Support"
   },
   "options": {
     "title": "Settings",
@@ -133,6 +252,56 @@
     "confirmDelete": "Delete this analysis from history?",
     "confirmClearAll": "Delete all analysis history? This cannot be undone.",
     "clearAll": "Clear All History",
-    "delete": "Delete"
+    "delete": "Delete",
+    "loading": "Loading history...",
+    "chain": "Chain",
+    "model": "Model",
+    "timeframe": "Timeframe",
+    "analyzed": "Analyzed",
+    "totalAnalyses": "Total Analyses",
+    "totalCost": "Total Cost",
+    "allChains": "All Chains",
+    "searchPlaceholder": "Search...",
+    "pairsCount": "{{count}} pairs"
+  },
+  "topPick": {
+    "model": "Model",
+    "badge": "Top Pick",
+    "highPotential": "High Potential",
+    "catalyst": "Catalyst",
+    "momentum": "Momentum",
+    "contractAddress": "Contract Address",
+    "copyToClipboard": "Copy to clipboard",
+    "copied": "✓ Copied",
+    "copy": "📋 Copy",
+    "tokenChart": "Token Chart",
+    "toolName": "High Volatility Analysis Tool",
+    "disclaimer": "This is NOT financial advice. Always conduct your own research before trading."
+  },
+  "tabs": {
+    "analysis": "Analysis"
+  },
+  "donation": {
+    "buyMeCoffee": "Buy me a coffee ☕"
+  },
+  "analysisSection": {
+    "title": "Analysis Settings",
+    "selectModelAlert": "Please select an LLM model",
+    "systemReady": "System Ready"
+  },
+  "exclusion": {
+    "title": "Excluded Tokens",
+    "subtitle": "Click to expand/collapse",
+    "description": "These tokens will be excluded from all future analysis results (all pairs containing these tokens)",
+    "loading": "Loading exclusions...",
+    "remove": "Remove from exclusion list",
+    "clearAll": "Clear All Exclusions",
+    "confirmClearAll": "Are you sure you want to clear all excluded tokens? This cannot be undone.",
+    "exclude": "Exclude",
+    "excluding": "Excluding...",
+    "excludeButton": "Exclude this token from future analysis",
+    "confirmExclude": "Exclude {{symbol}} from future analysis? All pairs containing this token will be hidden. You can remove it later from the exclusion list.",
+    "excludeSuccess": "{{symbol}} has been excluded from future analysis",
+    "excludeFailed": "Failed to exclude token. Please try again."
   }
 }

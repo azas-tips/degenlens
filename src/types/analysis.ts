@@ -2,6 +2,12 @@
 // Consolidated type definitions for token analysis results
 
 import type { Timeframe } from './dexscreener';
+import type { ScoringBreakdown } from '@/utils/risk-assessment';
+
+/**
+ * Risk level classification
+ */
+export type RiskLevel = 'safe' | 'caution' | 'warning' | 'danger' | 'critical';
 
 /**
  * Progress information during analysis
@@ -27,6 +33,8 @@ export interface AnalyzedPair {
   momentum?: number;
   catalyst?: string;
   moonshotPotential?: string;
+  riskLevel?: RiskLevel;
+  riskFactors?: string[];
 }
 
 /**
@@ -42,6 +50,9 @@ export interface TopPick {
   contractAddress?: string;
   chainId?: string;
   pairAddress?: string;
+  riskLevel?: RiskLevel;
+  riskFactors?: string[];
+  riskBreakdown?: ScoringBreakdown;
 }
 
 /**

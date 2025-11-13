@@ -15,13 +15,13 @@ const translations: Record<Language, typeof enTranslations> = {
 /**
  * Get nested translation value
  */
-function getNestedValue(obj: any, path: string): string | undefined {
+function getNestedValue(obj: Record<string, unknown>, path: string): string | undefined {
   const keys = path.split('.');
-  let current: any = obj;
+  let current: unknown = obj;
 
   for (const key of keys) {
     if (current && typeof current === 'object' && key in current) {
-      current = current[key];
+      current = (current as Record<string, unknown>)[key];
     } else {
       return undefined;
     }
@@ -65,7 +65,7 @@ export async function translate(
   params?: Record<string, string | number>
 ): Promise<string> {
   const lang = await getCurrentLanguage();
-  const translation = getNestedValue(translations[lang], key);
+  const translation = getNestedValue(translations[lang] as unknown as Record<string, unknown>, key);
 
   if (!translation) {
     console.warn(`[translate] Missing translation: ${key} (${lang})`);
@@ -83,7 +83,7 @@ export function translateSync(
   key: string,
   params?: Record<string, string | number>
 ): string {
-  const translation = getNestedValue(translations[lang], key);
+  const translation = getNestedValue(translations[lang] as unknown as Record<string, unknown>, key);
 
   if (!translation) {
     console.warn(`[translate] Missing translation: ${key} (${lang})`);

@@ -7,6 +7,7 @@ import { ModelSelector } from '@/components/ModelSelector';
 import { TopPickDisplay } from '@/components/TopPickDisplay';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { HistoryList } from '@/components/HistoryList';
+import { ExclusionListManager } from '@/components/ExclusionListManager';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { DEFAULT_ANALYSIS_PROMPT } from '@/background/utils/prompt-builder';
 import { encryptString } from '@/utils/crypto';
@@ -28,7 +29,7 @@ function App() {
       <div className="min-h-screen bg-dark text-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">😈</div>
-          <p className="text-gray-400">Loading...</p>
+          <p className="text-gray-400">{t('loading.initializing')}</p>
         </div>
       </div>
     );
@@ -123,7 +124,7 @@ function App() {
                       : 'text-gray-400 hover:text-white bg-cyber-card hover:shadow-neon-purple/50'
                   }`}
                 >
-                  <span>Analysis</span>
+                  <span>{t('tabs.analysis')}</span>
                 </button>
                 <button
                   role="tab"
@@ -164,7 +165,7 @@ function App() {
                   <div className="absolute inset-0.5 bg-neon-green/10 rotate-45 group-hover:bg-neon-green/20 transition-colors"></div>
                   <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-neon-green rounded-full -translate-x-1/2 -translate-y-1/2 group-hover:w-1.5 group-hover:h-1.5 transition-all animate-glow-pulse"></div>
                 </div>
-                <span>Buy me a coffee ☕</span>
+                <span>{t('donation.buyMeCoffee')}</span>
               </a>
             </div>
           </div>
@@ -187,17 +188,7 @@ function App() {
         <div className="container mx-auto max-w-6xl px-6 py-6">
           <div className="flex items-center justify-between text-xs mb-3">
             <p className="text-neon-pink/80 font-medium">{t('footer.warning')}</p>
-            <p className="text-gray-500 font-mono">
-              Shortcuts:{' '}
-              <kbd className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded shadow-neon-purple/20 text-neon-cyan">
-                ⌘/Ctrl+Enter
-              </kbd>{' '}
-              to analyze,{' '}
-              <kbd className="px-2 py-1 bg-cyber-darker border border-purple-500/30 rounded shadow-neon-purple/20 text-neon-cyan">
-                Esc
-              </kbd>{' '}
-              to cancel
-            </p>
+            <p className="text-gray-500 font-mono">{t('footer.shortcuts')}</p>
           </div>
           <div className="flex items-center justify-center space-x-3 text-xs border-t border-purple-500/10 pt-3">
             <a
@@ -206,7 +197,7 @@ function App() {
               rel="noopener noreferrer"
               className="text-neon-cyan/70 hover:text-neon-cyan transition-colors font-mono"
             >
-              Privacy Policy
+              {t('footer.privacyPolicy')}
             </a>
             <span className="text-gray-600">|</span>
             <a
@@ -215,7 +206,7 @@ function App() {
               rel="noopener noreferrer"
               className="text-neon-cyan/70 hover:text-neon-cyan transition-colors font-mono"
             >
-              Terms of Service
+              {t('footer.termsOfService')}
             </a>
             <span className="text-gray-600">|</span>
             <a
@@ -224,7 +215,7 @@ function App() {
               rel="noopener noreferrer"
               className="text-neon-cyan/70 hover:text-neon-cyan transition-colors font-mono"
             >
-              GitHub
+              {t('footer.github')}
             </a>
             <span className="text-gray-600">|</span>
             <a
@@ -233,7 +224,7 @@ function App() {
               rel="noopener noreferrer"
               className="text-neon-cyan/70 hover:text-neon-cyan transition-colors font-mono"
             >
-              Support
+              {t('footer.support')}
             </a>
           </div>
         </div>
@@ -256,6 +247,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const chain = useAppStore(state => state.chain);
   const model = useAppStore(state => state.model);
   const timeframe = useAppStore(state => state.timeframe);
+  const maxPairs = useAppStore(state => state.maxPairs);
   const analyzing = useAppStore(state => state.analyzing);
   const progress = useAppStore(state => state.progress);
   const results = useAppStore(state => state.results);
@@ -265,6 +257,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const setChain = useAppStore(state => state.setChain);
   const setModel = useAppStore(state => state.setModel);
   const setTimeframe = useAppStore(state => state.setTimeframe);
+  const setMaxPairs = useAppStore(state => state.setMaxPairs);
 
   // Debug: Subscribe to store changes directly
   useEffect(() => {
@@ -306,13 +299,13 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
     if (!canAnalyze) {
       console.log('[handleAnalyze] Cannot analyze - canAnalyze is false');
       if (!model) {
-        alert('Please select an LLM model');
+        alert(t('analysisSection.selectModelAlert'));
       }
       return;
     }
     console.log('[handleAnalyze] Calling analyze()');
     analyze();
-  }, [canAnalyze, model, analyze, chain]);
+  }, [canAnalyze, model, analyze, chain, t]);
 
   /**
    * Keyboard shortcuts
@@ -340,10 +333,12 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
     <div className="space-y-6 relative z-10">
       {/* Controls Section */}
       <div className="cyber-card p-6 rounded-xl shadow-cyber-card animate-fade-in">
-        <h2 className="text-xl font-bold mb-6 neon-text tracking-wide">Analysis Settings</h2>
+        <h2 className="text-xl font-bold mb-6 neon-text tracking-wide">
+          {t('analysisSection.title')}
+        </h2>
 
-        {/* Row 1: Chain + Timeframe */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Row 1: Chain + Timeframe + Max Pairs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Chain Selector */}
           <section>
             <label htmlFor="chain-select" className="block text-sm font-medium mb-2 text-neon-cyan">
@@ -388,6 +383,34 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
               ))}
             </select>
           </section>
+
+          {/* Max Pairs Selector */}
+          <section>
+            <label
+              htmlFor="maxpairs-select"
+              className="block text-sm font-medium mb-2 text-neon-cyan"
+            >
+              {t('form.maxPairsLabel')}
+            </label>
+            <select
+              id="maxpairs-select"
+              value={maxPairs}
+              onChange={e => setMaxPairs(Number(e.target.value))}
+              disabled={analyzing}
+              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+              <option value="60">60</option>
+              <option value="70">70</option>
+              <option value="80">80</option>
+              <option value="90">90</option>
+              <option value="100">100</option>
+            </select>
+          </section>
         </div>
 
         {/* Row 2: Model Selector (full width with cost estimate) */}
@@ -396,8 +419,15 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
           onChange={setModel}
           disabled={analyzing}
           onNavigateToSettings={onNavigateToSettings}
+          maxPairs={maxPairs}
         />
+      </div>
 
+      {/* Exclusion List Manager */}
+      <ExclusionListManager chainId={chain} />
+
+      {/* Analysis Controls Card */}
+      <div className="cyber-card p-6 rounded-xl border-2 border-purple-500/30 shadow-neon-purple">
         {/* Action Buttons */}
         <div className="flex space-x-3 mt-6">
           {analyzing ? (
@@ -535,7 +565,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
                 <div className="mt-6 flex items-center justify-center space-x-3">
                   <div className="w-2 h-2 rounded-full bg-neon-green animate-glow-pulse"></div>
                   <span className="text-xs text-gray-500 font-mono uppercase tracking-wider">
-                    System Ready
+                    {t('analysisSection.systemReady')}
                   </span>
                 </div>
               </div>

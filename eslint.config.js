@@ -37,6 +37,14 @@ export default [
         clearInterval: 'readonly',
         crypto: 'readonly',
         fetch: 'readonly',
+        // Web Crypto API
+        CryptoKey: 'readonly',
+        // Text encoding/decoding
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        // Base64 encoding/decoding
+        btoa: 'readonly',
+        atob: 'readonly',
         // Node globals (for build scripts)
         __dirname: 'readonly',
         __filename: 'readonly',
