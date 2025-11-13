@@ -136,13 +136,13 @@ export function ModelSelector({
    * Estimated with buffer: 300 prompt + 600 completion tokens per pair
    */
   const getEstimatedCost = (model: OpenRouterModel): string => {
-    const maxPairs = 10; // Fixed: analyze top 10 pairs
+    const maxPairs = 20; // Fixed: analyze top 20 pairs
 
     // Conservative estimates with safety margin
     // Prompt tokens include: system prompt + pair data formatting
-    const estimatedPromptTokens = 300 * maxPairs; // 3,000 tokens (actual: ~2,800)
+    const estimatedPromptTokens = 300 * maxPairs; // 6,000 tokens (actual: ~5,600)
     // Completion tokens include: LLM analysis output
-    const estimatedCompletionTokens = 600 * maxPairs; // 6,000 tokens (actual: ~5,000)
+    const estimatedCompletionTokens = 600 * maxPairs; // 12,000 tokens (actual: ~10,000)
 
     // Calculate cost separately for prompt and completion (different pricing)
     const promptCost = parseFloat(model.pricing.prompt) * estimatedPromptTokens;
@@ -362,7 +362,7 @@ export function ModelSelector({
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Estimated Cost (10 pairs):</span>
+            <span className="text-gray-400">Estimated Cost (20 pairs):</span>
             <span className="text-neon-green font-bold">{getEstimatedCost(selectedModel)}</span>
           </div>
         </div>

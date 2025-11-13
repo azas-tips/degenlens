@@ -41,7 +41,7 @@ export const DEFAULT_STORAGE: AppStorageV1 = {
   prefs: {
     chain: 'solana',
     model: '',
-    maxPairs: 10, // Fixed: Top 10 pairs to find THE ONE
+    maxPairs: 20, // Fixed: Top 20 pairs for comprehensive analysis
   },
   telemetry_enabled: false,
 };
