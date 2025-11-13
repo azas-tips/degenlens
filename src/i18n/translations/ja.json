@@ -8,6 +8,7 @@
     "model": "LLMモデル",
     "timeframe": "時間枠",
     "maxPairs": "分析するペア数: {{count}}",
+    "maxPairsLabel": "解析ペア数",
     "analyze": "分析開始",
     "analyzing": "分析中...",
     "cancel": "キャンセル"
@@ -77,10 +78,15 @@
     "dyor": "投資判断は必ず自己責任で行ってください。",
     "riskLevel": {
       "safe": "安全",
+      "safeDesc": "低リスク - 確立されたトークン、優れたファンダメンタルズ",
       "caution": "注意",
+      "cautionDesc": "中程度のリスク - 調査の上で進めてください",
       "warning": "警戒",
+      "warningDesc": "高リスク - 注意が必要です",
       "danger": "危険",
-      "critical": "重大"
+      "dangerDesc": "非常に高いリスク - 推奨しません",
+      "critical": "重大",
+      "criticalDesc": "極度のリスク - 回避してください"
     },
     "riskFactors": "リスク要因",
     "riskBreakdown": {
@@ -133,7 +139,56 @@
       "extreme": "極度の変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)",
       "high": "高変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)",
       "normal": "通常の変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)"
+    },
+    "factors": {
+      "age": {
+        "veryNew": "新規コントラクト（1日未満）",
+        "new": "新しいコントラクト（1週間未満）",
+        "relativelyNew": "比較的新しいコントラクト（1ヶ月未満）",
+        "unknown": "コントラクト年齢不明"
+      },
+      "liquidity": {
+        "veryLow": "流動性極小（$10k未満）",
+        "low": "流動性低（$50k未満）",
+        "moderate": "流動性中程度（$100k未満）",
+        "lowRatio": "L/MC比率低（2%未満）",
+        "highRatio": "異常に高いL/MC比率（50%超）"
+      },
+      "labels": {
+        "scam": "⛔ SCAM/HONEYPOTラベル検出",
+        "verified": "✓ 認証済み・トップトークン"
+      },
+      "volume": {
+        "veryLow": "24時間取引量極小（$1k未満）",
+        "low": "24時間取引量低（$10k未満）"
+      },
+      "volatility": {
+        "extreme": "極度の価格変動",
+        "high": "高い価格変動"
+      }
     }
+  },
+  "loading": {
+    "analyzing": "トークンペアを分析中...",
+    "findingBest": "最適な機会を探しています",
+    "initializing": "読み込み中..."
+  },
+  "modelSelector": {
+    "loadingModels": "モデルを読み込み中...",
+    "retry": "再試行",
+    "noModels": "⚠️ 利用可能なモデルがありません",
+    "configureApiKey": "AIモデルにアクセスするには、設定でOpenRouter APIキーを設定してください。",
+    "searchPlaceholder": "🔍 モデルを検索...",
+    "providers": "プロバイダー",
+    "providersSelected": "{{count}}個選択中",
+    "providersAll": "すべて",
+    "clearFilters": "フィルターをクリア",
+    "selectModel": "モデルを選択...",
+    "modelsShown": "{{total}}個中{{shown}}個のモデルを表示",
+    "contextLength": "コンテキスト長",
+    "estimatedCost": "推定コスト（20ペア）",
+    "estimatedCostPairs": "推定コスト（{{pairs}}ペア）",
+    "pleaseSelect": "続行するにはモデルを選択してください"
   },
   "empty": {
     "instructions": "チェーンとモデルを選択",
@@ -143,7 +198,12 @@
   },
   "footer": {
     "warning": "⚠️ 投資助言ではありません。DYOR（自己責任で調査）。",
-    "settings": "設定"
+    "settings": "設定",
+    "shortcuts": "ショートカット: ⌘/Ctrl+Enterで分析、Escでキャンセル",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約",
+    "github": "GitHub",
+    "support": "サポート"
   },
   "options": {
     "title": "設定",
@@ -192,6 +252,56 @@
     "confirmDelete": "この分析を履歴から削除しますか？",
     "confirmClearAll": "全ての分析履歴を削除しますか？この操作は取り消せません。",
     "clearAll": "全履歴を削除",
-    "delete": "削除"
+    "delete": "削除",
+    "loading": "履歴を読み込み中...",
+    "chain": "チェーン",
+    "model": "モデル",
+    "timeframe": "時間枠",
+    "analyzed": "分析日時",
+    "totalAnalyses": "総分析数",
+    "totalCost": "総コスト",
+    "allChains": "すべてのチェーン",
+    "searchPlaceholder": "検索...",
+    "pairsCount": "{{count}}ペア"
+  },
+  "topPick": {
+    "model": "モデル",
+    "badge": "トップピック",
+    "highPotential": "高ポテンシャル",
+    "catalyst": "触媒",
+    "momentum": "モメンタム",
+    "contractAddress": "コントラクトアドレス",
+    "copyToClipboard": "クリップボードにコピー",
+    "copied": "✓ コピー完了",
+    "copy": "📋 コピー",
+    "tokenChart": "トークンチャート",
+    "toolName": "高ボラティリティ分析ツール",
+    "disclaimer": "これは投資助言ではありません。取引前に必ずご自身で調査してください。"
+  },
+  "tabs": {
+    "analysis": "分析"
+  },
+  "donation": {
+    "buyMeCoffee": "コーヒーをおごる ☕"
+  },
+  "analysisSection": {
+    "title": "分析設定",
+    "selectModelAlert": "LLMモデルを選択してください",
+    "systemReady": "システム準備完了"
+  },
+  "exclusion": {
+    "title": "除外トークン",
+    "subtitle": "クリックで展開/折りたたみ",
+    "description": "これらのトークンは今後の分析結果から除外されます（このトークンを含む全ペアが非表示）",
+    "loading": "除外リストを読み込み中...",
+    "remove": "除外リストから削除",
+    "clearAll": "すべての除外を解除",
+    "confirmClearAll": "除外されたすべてのトークンを削除しますか？この操作は取り消せません。",
+    "exclude": "除外",
+    "excluding": "除外中...",
+    "excludeButton": "このトークンを今後の分析から除外",
+    "confirmExclude": "{{symbol}}を今後の分析から除外しますか？このトークンを含むすべてのペアが非表示になります。後で除外リストから削除できます。",
+    "excludeSuccess": "{{symbol}}を今後の分析から除外しました",
+    "excludeFailed": "トークンの除外に失敗しました。もう一度お試しください。"
   }
 }

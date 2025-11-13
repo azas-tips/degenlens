@@ -7,6 +7,7 @@ import { DEFAULT_TIMEFRAME } from '@/types/dexscreener';
 import { dexLimiter } from '@/background/utils/rate-limiter';
 import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
+import { getExcludedTokens } from '@/utils/exclusion';
 
 const DEX_API_BASE = 'https://api.dexscreener.com/latest/dex';
 
@@ -287,7 +288,21 @@ export async function fetchPairsByChain(
 
         const sorted = pairsWithScore.sort((a, b) => b.score - a.score).map(item => item.pair);
 
-        return sorted.slice(0, maxPairs);
+        // Filter out excluded tokens (checks baseToken.address)
+        const excludedTokens = await getExcludedTokens(apiChainId);
+        const excludedAddresses = new Set(excludedTokens.map(t => t.tokenAddress.toLowerCase()));
+
+        const filtered = sorted.filter(
+          pair => !excludedAddresses.has(pair.baseToken?.address?.toLowerCase() || '')
+        );
+
+        if (excludedAddresses.size > 0) {
+          console.log(
+            `[DEX API] Filtered out ${sorted.length - filtered.length} pairs with excluded tokens for ${apiChainId}`
+          );
+        }
+
+        return filtered.slice(0, maxPairs);
       }
     } catch (error) {
       console.warn(
@@ -364,8 +379,22 @@ export async function fetchPairsByChain(
     // Sort by momentum score (descending)
     const sorted = pairsWithScore.sort((a, b) => b.score - a.score).map(item => item.pair);
 
-    // Return top N pairs
-    return sorted.slice(0, maxPairs);
+    // Filter out excluded tokens (checks baseToken.address)
+    const excludedTokens = await getExcludedTokens(apiChainId);
+    const excludedAddresses = new Set(excludedTokens.map(t => t.tokenAddress.toLowerCase()));
+
+    const filtered = sorted.filter(
+      pair => !excludedAddresses.has(pair.baseToken?.address?.toLowerCase() || '')
+    );
+
+    if (excludedAddresses.size > 0) {
+      console.log(
+        `[DEX API] Filtered out ${sorted.length - filtered.length} pairs with excluded tokens for ${apiChainId}`
+      );
+    }
+
+    // Return top N pairs (after exclusion)
+    return filtered.slice(0, maxPairs);
   });
 }
 

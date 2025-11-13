@@ -7,6 +7,8 @@ import type { AnalysisResult } from '@/types/analysis';
 import { getRiskLevelInfo } from '@/utils/risk-assessment';
 import { RiskBreakdown } from './RiskBreakdown';
 import { RiskScoreGauge } from './RiskScoreGauge';
+import { addExcludedToken } from '@/utils/exclusion';
+import type { ExcludedToken } from '@/types/storage';
 
 interface TopPickDisplayProps {
   data: AnalysisResult;
@@ -15,6 +17,7 @@ interface TopPickDisplayProps {
 export function TopPickDisplay({ data }: TopPickDisplayProps) {
   const { topPick, pairs = [] } = data;
   const [copied, setCopied] = useState(false);
+  const [excluding, setExcluding] = useState(false);
   const { t } = useTranslation();
 
   /**
@@ -27,6 +30,44 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
+    }
+  };
+
+  /**
+   * Exclude this token from future analysis (excludes all pairs containing this token)
+   */
+  const handleExclude = async () => {
+    if (!topPick?.contractAddress || !topPick?.chainId) {
+      console.error('[TopPickDisplay] Missing required data for exclusion');
+      return;
+    }
+
+    // Extract token symbol (base token only, not the pair)
+    const tokenSymbol = topPick.symbol?.split('/')[0] || 'this token';
+
+    if (!window.confirm(t('exclusion.confirmExclude', { symbol: tokenSymbol }))) {
+      return;
+    }
+
+    try {
+      setExcluding(true);
+
+      const exclusionData: ExcludedToken = {
+        tokenAddress: topPick.contractAddress, // Base token address
+        symbol: tokenSymbol, // Token symbol only (e.g., "BONK", not "BONK/SOL")
+        chainId: topPick.chainId,
+        excludedAt: new Date().toISOString(),
+      };
+
+      await addExcludedToken(exclusionData);
+
+      // Show success message (no need to notify parent - results stay visible)
+      alert(t('exclusion.excludeSuccess', { symbol: tokenSymbol }));
+    } catch (error) {
+      console.error('[TopPickDisplay] Failed to exclude token:', error);
+      alert(t('exclusion.excludeFailed'));
+    } finally {
+      setExcluding(false);
     }
   };
 
@@ -48,7 +89,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             </div>
           </div>
         </div>
-        <p className="text-lg font-mono text-gray-400">No results found</p>
+        <p className="text-lg font-mono text-gray-400">{t('empty.noResults')}</p>
       </div>
     );
   }
@@ -104,7 +145,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
           </div>
           {data.metadata.model && (
             <div className="text-gray-400 text-center truncate" title={data.metadata.model}>
-              Model: {data.metadata.model}
+              {t('topPick.model')}: {data.metadata.model}
             </div>
           )}
           {(data.metadata.chain || data.metadata.timeframe) && (
@@ -130,7 +171,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
       {topPick && (
         <div className="relative cyber-card p-8 bg-gradient-to-br from-primary/20 via-cyber-card to-neon-purple/10 border-2 border-primary rounded-2xl shadow-neon-purple animate-slide-in">
           <div className="absolute top-4 right-4 text-sm font-bold text-neon-green uppercase tracking-widest animate-glow-pulse">
-            Top Pick
+            {t('topPick.badge')}
           </div>
 
           {/* Symbol */}
@@ -138,7 +179,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             <h2 className="text-4xl font-bold neon-text mb-3 tracking-wide">{topPick.symbol}</h2>
             <div className="flex items-center gap-3 mb-2">
               <div className={getMoonshotStyle(topPick.moonshotPotential)}>
-                {topPick.moonshotPotential || 'High Potential'}
+                {topPick.moonshotPotential || t('topPick.highPotential')}
               </div>
               {topPick.riskLevel &&
                 (() => {
@@ -146,10 +187,10 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
                   return (
                     <div
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${riskInfo.color} bg-cyber-darker/80 border-2 ${riskInfo.color.replace('text-', 'border-')}/50`}
-                      title={riskInfo.description}
+                      title={t(riskInfo.descriptionKey)}
                     >
                       <span className="text-2xl">{riskInfo.emoji}</span>
-                      <span>{riskInfo.label}</span>
+                      <span>{t(riskInfo.labelKey)}</span>
                     </div>
                   );
                 })()}
@@ -157,12 +198,12 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.riskFactors && topPick.riskFactors.length > 0 && (
               <div className="mt-3 p-3 bg-cyber-darker/50 border border-yellow-500/30 rounded-lg">
                 <div className="text-xs text-yellow-500 uppercase tracking-wide mb-2 font-bold">
-                  ⚠️ Risk Factors
+                  ⚠️ {t('results.riskFactors')}
                 </div>
                 <ul className="text-xs text-gray-300 space-y-1">
                   {topPick.riskFactors.map((factor, idx) => (
                     <li key={idx} className="font-mono">
-                      • {factor}
+                      • {factor.key ? t(factor.key, factor.params) : factor.fallback}
                     </li>
                   ))}
                 </ul>
@@ -193,7 +234,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.catalyst && (
               <div className="p-4 bg-cyber-darker/50 border border-purple-500/20 rounded-lg">
                 <div className="text-xs text-neon-cyan uppercase tracking-wide mb-2 font-bold">
-                  Catalyst
+                  {t('topPick.catalyst')}
                 </div>
                 <div className="text-sm text-gray-200 font-mono">{topPick.catalyst}</div>
               </div>
@@ -201,7 +242,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.momentum !== undefined && (
               <div className="p-4 bg-cyber-darker/50 border border-purple-500/20 rounded-lg">
                 <div className="text-xs text-neon-cyan uppercase tracking-wide mb-2 font-bold">
-                  Momentum
+                  {t('topPick.momentum')}
                 </div>
                 <div className="text-2xl font-bold text-neon-green neon-text">
                   {topPick.momentum}/10
@@ -243,7 +284,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
           {topPick.contractAddress && (
             <div className="p-5 bg-cyber-darker/80 rounded-xl border-2 border-neon-cyan/30 mb-6 hover:border-neon-cyan/50 transition-all">
               <div className="text-xs text-neon-cyan uppercase tracking-wide mb-2 font-bold">
-                Contract Address
+                {t('topPick.contractAddress')}
               </div>
               <div className="flex items-center gap-3">
                 <code className="text-xs text-gray-300 font-mono flex-1 overflow-x-auto bg-cyber-darker p-2 rounded border border-purple-500/20">
@@ -252,9 +293,17 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
                 <button
                   onClick={() => copyContractAddress(topPick.contractAddress!)}
                   className="neon-button px-4 py-2 bg-gradient-to-r from-neon-cyan/20 to-neon-blue/20 hover:from-neon-cyan/30 hover:to-neon-blue/30 border-2 border-neon-cyan/30 hover:border-neon-cyan/50 text-neon-cyan rounded-lg font-bold text-xs transition-all flex-shrink-0"
-                  title="Copy to clipboard"
+                  title={t('topPick.copyToClipboard')}
                 >
-                  {copied ? '✓ Copied' : '📋 Copy'}
+                  {copied ? t('topPick.copied') : t('topPick.copy')}
+                </button>
+                <button
+                  onClick={handleExclude}
+                  disabled={excluding}
+                  className="neon-button px-4 py-2 bg-gradient-to-r from-neon-pink/20 to-red-500/20 hover:from-neon-pink/30 hover:to-red-500/30 border-2 border-neon-pink/30 hover:border-neon-pink/50 text-neon-pink rounded-lg font-bold text-xs transition-all flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={t('exclusion.excludeButton')}
+                >
+                  {excluding ? t('exclusion.excluding') : '🚫 ' + t('exclusion.exclude')}
                 </button>
               </div>
             </div>
@@ -266,7 +315,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
               <iframe
                 src={`https://dexscreener.com/${topPick.chainId}/${topPick.pairAddress}?embed=1&theme=dark&info=0&interval=5`}
                 className="w-full h-[768px]"
-                title="Token Chart"
+                title={t('topPick.tokenChart')}
                 frameBorder="0"
                 allow="clipboard-write"
               />
@@ -277,10 +326,8 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
 
       {/* Footer */}
       <div className="pt-6 text-xs font-mono text-center border-t border-purple-500/30">
-        <p className="text-neon-pink font-bold mb-2">High Volatility Analysis Tool</p>
-        <p className="text-gray-500">
-          This is NOT financial advice. Always conduct your own research before trading.
-        </p>
+        <p className="text-neon-pink font-bold mb-2">{t('topPick.toolName')}</p>
+        <p className="text-gray-500">{t('topPick.disclaimer')}</p>
       </div>
     </div>
   );
