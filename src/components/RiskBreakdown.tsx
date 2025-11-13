@@ -1,6 +1,7 @@
 // Risk Breakdown Component
 // Displays detailed scoring breakdown for transparency
 
+import { useTranslation } from '@/i18n';
 import type { ScoringBreakdown } from '@/utils/risk-assessment';
 
 interface RiskBreakdownProps {
@@ -9,6 +10,8 @@ interface RiskBreakdownProps {
 }
 
 export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
+  const { t } = useTranslation();
+
   /**
    * Calculate percentage of max score
    */
@@ -45,31 +48,31 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
 
   const factors = [
     {
-      name: 'Contract Age',
+      name: t('results.riskBreakdown.factors.age'),
       score: breakdown.ageScore,
       max: breakdown.ageMax,
       reason: breakdown.ageReason,
     },
     {
-      name: 'Liquidity',
+      name: t('results.riskBreakdown.factors.liquidity'),
       score: breakdown.liquidityScore,
       max: breakdown.liquidityMax,
       reason: breakdown.liquidityReason,
     },
     {
-      name: 'Labels',
+      name: t('results.riskBreakdown.factors.labels'),
       score: breakdown.labelScore,
       max: breakdown.labelMax,
       reason: breakdown.labelReason,
     },
     {
-      name: 'Volume',
+      name: t('results.riskBreakdown.factors.volume'),
       score: breakdown.volumeScore,
       max: breakdown.volumeMax,
       reason: breakdown.volumeReason,
     },
     {
-      name: 'Volatility',
+      name: t('results.riskBreakdown.factors.volatility'),
       score: breakdown.volatilityScore,
       max: breakdown.volatilityMax,
       reason: breakdown.volatilityReason,
@@ -80,10 +83,10 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
     <div className="p-5 bg-cyber-darker/80 rounded-xl border-2 border-purple-500/30 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-neon-cyan uppercase tracking-wider">
-          🔍 Risk Analysis Breakdown
+          🔍 {t('results.riskBreakdown.title')}
         </h3>
         <div className="text-right">
-          <div className="text-xs text-gray-400">Total Risk Score</div>
+          <div className="text-xs text-gray-400">{t('results.riskBreakdown.totalScore')}</div>
           <div className="text-2xl font-bold text-neon-pink">{totalScore}/135</div>
         </div>
       </div>
@@ -119,7 +122,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
 
       <div className="mt-4 pt-3 border-t border-purple-500/20">
         <div className="text-xs text-gray-500 font-mono">
-          💡 Lower scores indicate lower risk. Each factor is weighted by importance.
+          💡 {t('results.riskBreakdown.helpText')}
         </div>
       </div>
     </div>

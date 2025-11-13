@@ -1,6 +1,7 @@
 // Risk Score Gauge Component
 // Visual gauge showing overall risk score
 
+import { useTranslation } from '@/i18n';
 import { getRiskLevelInfo } from '@/utils/risk-assessment';
 import type { RiskLevel } from '@/types/analysis';
 
@@ -10,6 +11,7 @@ interface RiskScoreGaugeProps {
 }
 
 export function RiskScoreGauge({ score, level }: RiskScoreGaugeProps) {
+  const { t } = useTranslation();
   const riskInfo = getRiskLevelInfo(level);
 
   // Calculate percentage (135 is max possible score)
@@ -162,11 +164,11 @@ export function RiskScoreGauge({ score, level }: RiskScoreGaugeProps) {
       {/* Score interpretation */}
       <div className="mt-4 p-3 bg-cyber-darker/50 rounded-lg border border-purple-500/20">
         <div className="text-xs text-gray-400 font-mono text-center">
-          {percentage < 20 && '✓ Excellent - Minimal risk factors detected'}
-          {percentage >= 20 && percentage < 40 && '⚠️ Moderate - Some risk factors present'}
-          {percentage >= 40 && percentage < 60 && '⚠️ Elevated - Multiple risk factors detected'}
-          {percentage >= 60 && percentage < 80 && '🚨 High - Significant risks identified'}
-          {percentage >= 80 && '⛔ Critical - Extreme caution advised'}
+          {percentage < 20 && `✓ ${t('results.riskGauge.excellent')}`}
+          {percentage >= 20 && percentage < 40 && `⚠️ ${t('results.riskGauge.moderate')}`}
+          {percentage >= 40 && percentage < 60 && `⚠️ ${t('results.riskGauge.elevated')}`}
+          {percentage >= 60 && percentage < 80 && `🚨 ${t('results.riskGauge.high')}`}
+          {percentage >= 80 && `⛔ ${t('results.riskGauge.critical')}`}
         </div>
       </div>
     </div>

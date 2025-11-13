@@ -82,7 +82,26 @@
       "danger": "Danger",
       "critical": "CRITICAL"
     },
-    "riskFactors": "Risk Factors"
+    "riskFactors": "Risk Factors",
+    "riskBreakdown": {
+      "title": "Risk Analysis Breakdown",
+      "totalScore": "Total Risk Score",
+      "helpText": "Lower scores indicate lower risk. Each factor is weighted by importance.",
+      "factors": {
+        "age": "Contract Age",
+        "liquidity": "Liquidity",
+        "labels": "Labels",
+        "volume": "Volume",
+        "volatility": "Volatility"
+      }
+    },
+    "riskGauge": {
+      "excellent": "Excellent - Minimal risk factors detected",
+      "moderate": "Moderate - Some risk factors present",
+      "elevated": "Elevated - Multiple risk factors detected",
+      "high": "High - Significant risks identified",
+      "critical": "Critical - Extreme caution advised"
+    }
   },
   "empty": {
     "instructions": "Select a chain and model",

@@ -82,7 +82,26 @@
       "danger": "危険",
       "critical": "重大"
     },
-    "riskFactors": "リスク要因"
+    "riskFactors": "リスク要因",
+    "riskBreakdown": {
+      "title": "リスク分析内訳",
+      "totalScore": "総合リスクスコア",
+      "helpText": "スコアが低いほどリスクが低くなります。各要因は重要度に応じて重み付けされています。",
+      "factors": {
+        "age": "コントラクト年齢",
+        "liquidity": "流動性",
+        "labels": "ラベル",
+        "volume": "取引量",
+        "volatility": "ボラティリティ"
+      }
+    },
+    "riskGauge": {
+      "excellent": "優良 - 最小限のリスク要因",
+      "moderate": "中程度 - いくつかのリスク要因あり",
+      "elevated": "上昇 - 複数のリスク要因を検出",
+      "high": "高 - 重大なリスクを確認",
+      "critical": "重大 - 極度の注意が必要"
+    }
   },
   "empty": {
     "instructions": "チェーンとモデルを選択",
