@@ -59,6 +59,9 @@ export interface AnalysisMetadata {
   tokensUsed?: number;
   estimatedCost?: number;
   analyzedAt?: string; // ISO 8601 timestamp
+  model?: string; // Model used for analysis
+  chain?: string; // Chain analyzed
+  timeframe?: Timeframe; // Timeframe used
 }
 
 /**

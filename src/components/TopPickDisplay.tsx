@@ -99,6 +99,20 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
               </span>
             )}
           </div>
+          {data.metadata.model && (
+            <div className="text-gray-400 text-center truncate" title={data.metadata.model}>
+              Model: {data.metadata.model}
+            </div>
+          )}
+          {(data.metadata.chain || data.metadata.timeframe) && (
+            <div className="text-gray-400 text-center">
+              {data.metadata.chain && <span className="uppercase">{data.metadata.chain}</span>}
+              {data.metadata.chain && data.metadata.timeframe && <span> • </span>}
+              {data.metadata.timeframe && (
+                <span className="uppercase">{data.metadata.timeframe}</span>
+              )}
+            </div>
+          )}
           {data.metadata.analyzedAt && (
             <div className="text-gray-400 text-center">
               {t('results.analyzedAt', {
