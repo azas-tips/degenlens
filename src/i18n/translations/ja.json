@@ -6,6 +6,8 @@
   "form": {
     "chain": "チェーン",
     "model": "LLMモデル",
+    "maxInputTokens": "最大入力トークン数",
+    "estimatedCost": "推定コスト（20ペア）",
     "timeframe": "時間枠",
     "maxPairs": "分析するペア数: {{count}}",
     "maxPairsLabel": "解析ペア数",

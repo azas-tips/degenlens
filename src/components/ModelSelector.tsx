@@ -2,6 +2,7 @@
 // Fetches and displays available OpenRouter models with pricing
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from '@/i18n';
 import type { OpenRouterModel } from '@/types/openrouter';
 
 interface ModelSelectorProps {
@@ -51,6 +52,7 @@ export function ModelSelector({
   disabled,
   onNavigateToSettings,
 }: ModelSelectorProps) {
+  const { t } = useTranslation();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -357,13 +359,17 @@ export function ModelSelector({
       {selectedModel && (
         <div className="text-sm font-mono space-y-2 bg-cyber-darker/50 border border-purple-500/20 rounded-lg p-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Context Length:</span>
+            <span className="text-gray-400">{t('form.maxInputTokens')}:</span>
             <span className="text-neon-cyan font-bold">
-              {selectedModel.context_length.toLocaleString()} tokens
+              {(
+                selectedModel.context_length -
+                (selectedModel.top_provider?.max_completion_tokens || 8192)
+              ).toLocaleString()}{' '}
+              tokens
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Estimated Cost (20 pairs):</span>
+            <span className="text-gray-400">{t('form.estimatedCost')}:</span>
             <span className="text-neon-green font-bold">{getEstimatedCost(selectedModel)}</span>
           </div>
         </div>

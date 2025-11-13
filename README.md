@@ -13,7 +13,9 @@ AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized 
 - 🔍 **Multi-Chain Support**: Solana, Ethereum, BSC, Polygon, Arbitrum, Optimism, Base
 - 🤖 **AI-Powered Analysis**: Leverage Claude, GPT, and other LLMs via OpenRouter
 - 📊 **Comprehensive Metrics**: Volume, liquidity, price changes, transaction patterns
-- ⚡ **Real-Time Model Fetching**: Live model list from OpenRouter API
+- ⚡ **Real-Time Model Fetching**: Live model list from OpenRouter API with max input token display
+- 🚫 **Token Exclusion**: Exclude unwanted tokens from future analysis
+- 🎯 **Risk Assessment**: Multi-factor risk scoring with visual gauge and detailed breakdown
 - 🌐 **Internationalization**: English and Japanese support
 - 🎨 **Cyber/Neon Theme**: Modern dark UI with animated effects
 - 💰 **Donation Support**: Built-in support for project contributions
@@ -84,8 +86,10 @@ OpenRouter provides access to multiple LLM providers with a single API key.
    - **GPT-5**: Strong alternative
    - **GPT-4o mini**: Budget-friendly option
    - *Models are fetched in real-time from OpenRouter*
-4. Click "Analyze" or press `Ctrl/Cmd+Enter`
-5. Wait for AI analysis (analyzes top 10 pairs automatically)
+   - *Max Input Tokens shown for each model (calculated as context_length - max_completion_tokens)*
+4. Adjust the number of pairs to analyze (1-100, default: 20)
+5. Click "Analyze" or press `Ctrl/Cmd+Enter`
+6. Wait for AI analysis
 
 ### Understanding Results
 
@@ -97,15 +101,45 @@ The AI selects the most promising token based on:
 - **Momentum Phase**: Current market cycle phase
 
 #### Risk Assessment
-- **Low**: Good liquidity, healthy volume, balanced patterns
-- **Medium**: Moderate concerns, requires careful evaluation
-- **High**: Low liquidity, suspicious patterns, or extreme volatility
+DegenLens provides multi-factor risk scoring (0-135 points):
+
+- **Safe (0-19)**: Low risk - established token with good fundamentals
+- **Caution (20-39)**: Moderate risk - proceed with research
+- **Warning (40-59)**: High risk - exercise caution
+- **Danger (60-79)**: Very high risk - not recommended
+- **Critical (80+)**: Extreme risk - AVOID
+
+**Risk Factors Analyzed:**
+- **Age** (0-30 points): Contract/pair creation date
+- **Liquidity** (0-30 points): Available liquidity and liquidity/market cap ratio
+- **Labels** (0-40 points): DEXscreener labels (scam detection, verification status)
+- **Volume** (0-20 points): 24-hour trading volume
+- **Volatility** (0-15 points): Short-term price volatility (5m, 1h changes)
+
+**Visual Indicators:**
+- Risk gauge with color-coded severity
+- Detailed breakdown showing contribution of each factor
+- Reason explanations for each risk component
 
 #### Metrics
 - **Price**: Current USD price
 - **24h Change**: Price volatility percentage
 - **Volume (6h)**: Recent trading activity
 - **Liquidity**: Available funds for trading
+
+### Token Exclusion
+
+Exclude tokens you're not interested in from future analysis:
+
+1. After analysis, find the "Exclude" button (🚫) next to the contract address
+2. Click "Exclude" and confirm
+3. The token will be filtered out from all future analyses across all chains
+4. Manage excluded tokens in Settings > Exclusion List
+
+**How it works:**
+- Exclusion is based on the base token address (not the pair)
+- Example: Excluding "BONK" will filter all BONK pairs (BONK/SOL, BONK/USDC, etc.)
+- Excluded tokens are stored locally and persist across sessions
 
 ### Keyboard Shortcuts
 
@@ -180,44 +214,45 @@ Before committing changes, ensure:
 
 ## API Costs
 
-DegenLens analyzes the **top 10 pairs** per request. Costs vary by model.
+DegenLens analyzes **1-100 pairs** per request (default: 20). Costs vary by model and number of pairs.
 
 📋 **<a href="https://openrouter.ai/models" target="_blank">View all models and pricing on OpenRouter →</a>**
 
 ### Latest Models (January 2025)
 
-| Model | Provider | Input (per 1M) | Output (per 1M) | Est. Cost (10 pairs) |
+| Model | Provider | Input (per 1M) | Output (per 1M) | Est. Cost (20 pairs) |
 |-------|----------|----------------|-----------------|----------------------|
-| **Claude Opus 4.1** | Anthropic | $15.00 | $75.00 | ~$0.50 |
-| **Claude Sonnet 4.5** | Anthropic | $3.00 | $15.00 | ~$0.10 |
-| **Claude Haiku 4.5** | Anthropic | $1.00 | $5.00 | ~$0.03 |
-| **GPT-5** | OpenAI | $1.25 | $10.00 | ~$0.06 |
-| **GPT-4o** | OpenAI | $5.00 | $20.00 | ~$0.14 |
+| **Claude Opus 4.1** | Anthropic | $15.00 | $75.00 | ~$1.00 |
+| **Claude Sonnet 4.5** | Anthropic | $3.00 | $15.00 | ~$0.20 |
+| **Claude Haiku 4.5** | Anthropic | $1.00 | $5.00 | ~$0.06 |
+| **GPT-5** | OpenAI | $1.25 | $10.00 | ~$0.12 |
+| **GPT-4o** | OpenAI | $5.00 | $20.00 | ~$0.28 |
 | **GPT-4o mini** | OpenAI | $0.15 | $0.60 | < $0.01 |
-| **Gemini 2.5 Pro** | Google | $1.25 | $10.00 | ~$0.06 |
+| **Gemini 2.5 Pro** | Google | $1.25 | $10.00 | ~$0.12 |
 | **Gemini 2.5 Flash** | Google | $0.10 | $0.40 | < $0.01 |
 
-*Costs are estimates with ~15% safety margin. Actual usage may vary based on token count.*
+*Costs are estimates with ~15% safety margin for 20 pairs. Actual usage may vary based on token count and number of pairs analyzed.*
 
 ### Recommended Models
 
 **🏆 Best Performance:**
-- **Claude Opus 4.1** - Most capable reasoning (~$0.50/analysis)
-- **GPT-5** - Strong general performance (~$0.06/analysis)
+- **Claude Opus 4.1** - Most capable reasoning (~$1.00 per 20 pairs)
+- **GPT-5** - Strong general performance (~$0.12 per 20 pairs)
 
 **⚡ Best Balance:**
-- **Claude Sonnet 4.5** - Excellent quality/cost ratio (~$0.10/analysis)
-- **Gemini 2.5 Pro** - Cost-effective alternative (~$0.06/analysis)
+- **Claude Sonnet 4.5** - Excellent quality/cost ratio (~$0.20 per 20 pairs)
+- **Gemini 2.5 Pro** - Cost-effective alternative (~$0.12 per 20 pairs)
 
 **💰 Best Economy:**
-- **Claude Haiku 4.5** - 2× speed, ~95% Sonnet performance (~$0.03/analysis)
-- **Gemini 2.5 Flash** - Ultra-low cost (< $0.01/analysis)
-- **GPT-4o mini** - Reliable budget option (< $0.01/analysis)
+- **Claude Haiku 4.5** - 2× speed, ~95% Sonnet performance (~$0.06 per 20 pairs)
+- **Gemini 2.5 Flash** - Ultra-low cost (< $0.01 per 20 pairs)
+- **GPT-4o mini** - Reliable budget option (< $0.01 per 20 pairs)
 
 **Cost Calculation:**
 - Prompt tokens: ~300 tokens per pair (includes system prompt + pair data)
 - Completion tokens: ~600 tokens per pair (LLM analysis output)
-- Total per request: ~3,000 prompt + ~6,000 completion tokens
+- Total for 20 pairs: ~6,000 prompt + ~12,000 completion tokens
+- Adjust proportionally for different pair counts (1-100 pairs)
 
 ## Privacy & Security
 
@@ -238,10 +273,10 @@ For details, see our [Privacy Policy](https://azas-tips.github.io/degenlens/priv
 ## Limitations
 
 - **Rate Limits**: API providers enforce rate limits. Monitor your usage.
-- **Cost**: LLM analysis incurs costs. Track your OpenRouter spending.
+- **Cost**: LLM analysis incurs costs. Track your OpenRouter spending (varies by pair count).
 - **Not Financial Advice**: DegenLens provides insights, not investment advice. Always DYOR (Do Your Own Research).
 - **API Dependency**: Requires active internet connection and API availability.
-- **Fixed Analysis**: Analyzes top 10 pairs per chain (not user-configurable).
+- **Token Limit Awareness**: Large pair counts may exceed model input limits. The extension shows max input tokens for each model.
 
 ## Troubleshooting
 
