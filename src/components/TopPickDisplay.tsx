@@ -89,7 +89,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             </div>
           </div>
         </div>
-        <p className="text-lg font-mono text-gray-400">{t('empty.noResults')}</p>
+        <p className="text-lg font-mono text-gray-400">No results found</p>
       </div>
     );
   }
@@ -145,7 +145,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
           </div>
           {data.metadata.model && (
             <div className="text-gray-400 text-center truncate" title={data.metadata.model}>
-              {t('topPick.model')}: {data.metadata.model}
+              Model: {data.metadata.model}
             </div>
           )}
           {(data.metadata.chain || data.metadata.timeframe) && (
@@ -171,7 +171,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
       {topPick && (
         <div className="relative cyber-card p-8 bg-gradient-to-br from-primary/20 via-cyber-card to-neon-purple/10 border-2 border-primary rounded-2xl shadow-neon-purple animate-slide-in">
           <div className="absolute top-4 right-4 text-sm font-bold text-neon-green uppercase tracking-widest animate-glow-pulse">
-            {t('topPick.badge')}
+            Top Pick
           </div>
 
           {/* Symbol */}
@@ -179,7 +179,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             <h2 className="text-4xl font-bold neon-text mb-3 tracking-wide">{topPick.symbol}</h2>
             <div className="flex items-center gap-3 mb-2">
               <div className={getMoonshotStyle(topPick.moonshotPotential)}>
-                {topPick.moonshotPotential || t('topPick.highPotential')}
+                {topPick.moonshotPotential || 'High Potential'}
               </div>
               {topPick.riskLevel &&
                 (() => {
@@ -187,10 +187,10 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
                   return (
                     <div
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${riskInfo.color} bg-cyber-darker/80 border-2 ${riskInfo.color.replace('text-', 'border-')}/50`}
-                      title={t(riskInfo.descriptionKey)}
+                      title={riskInfo.description}
                     >
                       <span className="text-2xl">{riskInfo.emoji}</span>
-                      <span>{t(riskInfo.labelKey)}</span>
+                      <span>{riskInfo.label}</span>
                     </div>
                   );
                 })()}
@@ -198,12 +198,12 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.riskFactors && topPick.riskFactors.length > 0 && (
               <div className="mt-3 p-3 bg-cyber-darker/50 border border-yellow-500/30 rounded-lg">
                 <div className="text-xs text-yellow-500 uppercase tracking-wide mb-2 font-bold">
-                  ⚠️ {t('results.riskFactors')}
+                  ⚠️ Risk Factors
                 </div>
                 <ul className="text-xs text-gray-300 space-y-1">
                   {topPick.riskFactors.map((factor, idx) => (
                     <li key={idx} className="font-mono">
-                      • {factor.key ? t(factor.key, factor.params) : factor.fallback}
+                      • {factor}
                     </li>
                   ))}
                 </ul>
@@ -234,7 +234,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.catalyst && (
               <div className="p-4 bg-cyber-darker/50 border border-purple-500/20 rounded-lg">
                 <div className="text-xs text-neon-cyan uppercase tracking-wide mb-2 font-bold">
-                  {t('topPick.catalyst')}
+                  Catalyst
                 </div>
                 <div className="text-sm text-gray-200 font-mono">{topPick.catalyst}</div>
               </div>
@@ -242,7 +242,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.momentum !== undefined && (
               <div className="p-4 bg-cyber-darker/50 border border-purple-500/20 rounded-lg">
                 <div className="text-xs text-neon-cyan uppercase tracking-wide mb-2 font-bold">
-                  {t('topPick.momentum')}
+                  Momentum
                 </div>
                 <div className="text-2xl font-bold text-neon-green neon-text">
                   {topPick.momentum}/10
@@ -284,7 +284,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
           {topPick.contractAddress && (
             <div className="p-5 bg-cyber-darker/80 rounded-xl border-2 border-neon-cyan/30 mb-6 hover:border-neon-cyan/50 transition-all">
               <div className="text-xs text-neon-cyan uppercase tracking-wide mb-2 font-bold">
-                {t('topPick.contractAddress')}
+                Contract Address
               </div>
               <div className="flex items-center gap-3">
                 <code className="text-xs text-gray-300 font-mono flex-1 overflow-x-auto bg-cyber-darker p-2 rounded border border-purple-500/20">
@@ -315,7 +315,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
               <iframe
                 src={`https://dexscreener.com/${topPick.chainId}/${topPick.pairAddress}?embed=1&theme=dark&info=0&interval=5`}
                 className="w-full h-[768px]"
-                title={t('topPick.tokenChart')}
+                title="Token Chart"
                 frameBorder="0"
                 allow="clipboard-write"
               />
@@ -326,8 +326,10 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
 
       {/* Footer */}
       <div className="pt-6 text-xs font-mono text-center border-t border-purple-500/30">
-        <p className="text-neon-pink font-bold mb-2">{t('topPick.toolName')}</p>
-        <p className="text-gray-500">{t('topPick.disclaimer')}</p>
+        <p className="text-neon-pink font-bold mb-2">High Volatility Analysis Tool</p>
+        <p className="text-gray-500">
+          This is NOT financial advice. Always conduct your own research before trading.
+        </p>
       </div>
     </div>
   );

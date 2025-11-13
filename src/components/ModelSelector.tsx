@@ -9,6 +9,7 @@ interface ModelSelectorProps {
   onChange: (modelId: string) => void;
   disabled?: boolean;
   onNavigateToSettings: () => void;
+  maxPairs?: number;
 }
 
 /**
