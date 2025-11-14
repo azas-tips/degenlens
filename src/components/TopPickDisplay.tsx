@@ -198,7 +198,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
             {topPick.riskFactors && topPick.riskFactors.length > 0 && (
               <div className="mt-3 p-3 bg-cyber-darker/50 border border-yellow-500/30 rounded-lg">
                 <div className="text-xs text-yellow-500 uppercase tracking-wide mb-2 font-bold">
-                  ⚠️ Risk Factors
+                  ⚠️ {t('results.riskFactors')}
                 </div>
                 <ul className="text-xs text-gray-300 space-y-1">
                   {topPick.riskFactors.map((factor, idx) => (
