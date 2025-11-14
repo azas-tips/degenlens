@@ -11,6 +11,7 @@ import { ExclusionListManager } from '@/components/ExclusionListManager';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { DEFAULT_ANALYSIS_PROMPT } from '@/background/utils/prompt-builder';
 import { encryptString } from '@/utils/crypto';
+import { getQuoteTokensForChain, getDefaultQuoteTokens } from '@/shared/quote-tokens';
 
 type Tab = 'analysis' | 'history' | 'settings';
 
@@ -248,6 +249,8 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const model = useAppStore(state => state.model);
   const timeframe = useAppStore(state => state.timeframe);
   const maxPairs = useAppStore(state => state.maxPairs);
+  const pairMaxAge = useAppStore(state => state.pairMaxAge);
+  const quoteTokens = useAppStore(state => state.quoteTokens);
   const analyzing = useAppStore(state => state.analyzing);
   const progress = useAppStore(state => state.progress);
   const results = useAppStore(state => state.results);
@@ -258,6 +261,29 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const setModel = useAppStore(state => state.setModel);
   const setTimeframe = useAppStore(state => state.setTimeframe);
   const setMaxPairs = useAppStore(state => state.setMaxPairs);
+  const setPairMaxAge = useAppStore(state => state.setPairMaxAge);
+  const setQuoteTokensForChain = useAppStore(state => state.setQuoteTokensForChain);
+
+  // Local state for custom pair age input
+  const [customPairAge, setCustomPairAge] = useState<string>('');
+  const showCustomInput =
+    pairMaxAge !== null &&
+    pairMaxAge !== 1 &&
+    pairMaxAge !== 6 &&
+    pairMaxAge !== 24 &&
+    pairMaxAge !== 168;
+
+  // Quote tokens for current chain
+  const availableQuoteTokens = getQuoteTokensForChain(chain);
+  const selectedQuoteTokens = quoteTokens[chain] || [];
+
+  // Initialize quote tokens with defaults when chain changes
+  useEffect(() => {
+    if (!quoteTokens[chain] || quoteTokens[chain].length === 0) {
+      const defaults = getDefaultQuoteTokens(chain);
+      setQuoteTokensForChain(chain, defaults);
+    }
+  }, [chain, quoteTokens, setQuoteTokensForChain]);
 
   // Debug: Subscribe to store changes directly
   useEffect(() => {
@@ -337,8 +363,8 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
           {t('analysisSection.title')}
         </h2>
 
-        {/* Row 1: Chain + Timeframe + Max Pairs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Row 1: Chain + Timeframe + Max Pairs + Pair Age */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           {/* Chain Selector */}
           <section>
             <label htmlFor="chain-select" className="block text-sm font-medium mb-2 text-neon-cyan">
@@ -411,9 +437,140 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
               <option value="100">100</option>
             </select>
           </section>
+
+          {/* Pair Age Selector */}
+          <section>
+            <label
+              htmlFor="pairage-select"
+              className="block text-sm font-medium mb-2 text-neon-cyan"
+            >
+              {t('form.pairAge')}
+            </label>
+            <select
+              id="pairage-select"
+              value={
+                pairMaxAge === null
+                  ? 'all'
+                  : pairMaxAge === 1
+                    ? '1'
+                    : pairMaxAge === 6
+                      ? '6'
+                      : pairMaxAge === 24
+                        ? '24'
+                        : pairMaxAge === 168
+                          ? '168'
+                          : 'custom'
+              }
+              onChange={e => {
+                const value = e.target.value;
+                if (value === 'all') {
+                  setPairMaxAge(null);
+                  setCustomPairAge('');
+                } else if (value === 'custom') {
+                  setCustomPairAge('');
+                  setPairMaxAge(24); // Set a default for custom
+                } else {
+                  setPairMaxAge(Number(value));
+                  setCustomPairAge('');
+                }
+              }}
+              disabled={analyzing}
+              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+            >
+              <option value="1">{t('form.pairAge1h')}</option>
+              <option value="6">{t('form.pairAge6h')}</option>
+              <option value="24">{t('form.pairAge24h')}</option>
+              <option value="168">{t('form.pairAge1w')}</option>
+              <option value="custom">{t('form.pairAgeCustom')}</option>
+              <option value="all">{t('form.pairAgeAll')}</option>
+            </select>
+          </section>
         </div>
 
-        {/* Row 2: Model Selector (full width with cost estimate) */}
+        {/* Row 2: Custom Pair Age Input (shown when "Custom" is selected) */}
+        {showCustomInput && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <section className="md:col-start-4">
+              <label
+                htmlFor="custom-pairage-input"
+                className="block text-sm font-medium mb-2 text-neon-cyan"
+              >
+                {t('form.pairAgeCustomHours')}
+              </label>
+              <input
+                id="custom-pairage-input"
+                type="number"
+                min="1"
+                value={customPairAge || (pairMaxAge ?? '')}
+                onChange={e => {
+                  const val = e.target.value;
+                  setCustomPairAge(val);
+                  if (val && Number(val) > 0) {
+                    setPairMaxAge(Number(val));
+                  }
+                }}
+                disabled={analyzing}
+                placeholder="24"
+                className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+              />
+            </section>
+          </div>
+        )}
+
+        {/* Row 3: Quote Token Filter */}
+        {availableQuoteTokens.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-3 text-neon-cyan">
+              {t('form.quoteTokens')}
+            </label>
+            <div className="p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg">
+              <p className="text-xs text-gray-400 mb-3">{t('form.quoteTokensDesc')}</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {availableQuoteTokens.map(token => {
+                  const isSelected = selectedQuoteTokens.includes(token.symbol);
+                  return (
+                    <label
+                      key={token.symbol}
+                      className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-primary/20 border-2 border-primary text-neon-cyan'
+                          : 'bg-cyber-card border-2 border-purple-500/20 hover:border-purple-500/40'
+                      } ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setQuoteTokensForChain(chain, [...selectedQuoteTokens, token.symbol]);
+                          } else {
+                            setQuoteTokensForChain(
+                              chain,
+                              selectedQuoteTokens.filter(s => s !== token.symbol)
+                            );
+                          }
+                        }}
+                        disabled={analyzing}
+                        className="w-4 h-4 accent-primary cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <div className="font-bold text-sm">{token.symbol}</div>
+                        <div className="text-xs text-gray-400">{token.name}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedQuoteTokens.length > 0 && (
+                <div className="mt-3 text-xs text-neon-green font-mono">
+                  ✓ {t('form.quoteTokensSelected', { count: selectedQuoteTokens.length })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Row 4: Model Selector (full width with cost estimate) */}
         <ModelSelector
           value={model}
           onChange={setModel}

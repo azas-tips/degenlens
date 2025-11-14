@@ -21,6 +21,8 @@ export interface AppStorageV1 {
     chain: string; // 'solana' | 'ethereum' | 'bsc', etc.
     model: string; // OpenRouter model ID
     maxPairs: number; // Number of pairs to analyze (1-100)
+    pairMaxAge: number | null; // Max pair age in hours (null = all pairs)
+    quoteTokens: Record<string, string[]>; // Selected quote tokens per chain { solana: ['SOL', 'USDC'], ethereum: ['ETH'] }
   };
   custom_prompt?: string; // Custom analysis prompt (optional)
   telemetry_enabled?: boolean; // Local error logging enabled (default: false)
@@ -43,6 +45,8 @@ export const DEFAULT_STORAGE: AppStorageV1 = {
     chain: 'solana',
     model: '',
     maxPairs: 20, // Fixed: Top 20 pairs for comprehensive analysis
+    pairMaxAge: 24, // Default: Show pairs created within 24 hours
+    quoteTokens: {}, // Empty by default - will use chain defaults when first selected
   },
   telemetry_enabled: false,
 };
