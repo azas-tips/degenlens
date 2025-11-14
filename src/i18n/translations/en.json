@@ -6,6 +6,12 @@
   "form": {
     "chain": "Chain",
     "model": "LLM Model",
+    "maxInputTokens": "Max Input Tokens",
+    "estimatedCost": "Estimated Cost ({{count}} pairs)",
+    "favorites": "⭐ Favorites",
+    "otherModels": "Other Models",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
     "timeframe": "Timeframe",
     "maxPairs": "Max Pairs to Analyze: {{count}}",
     "maxPairsLabel": "Max Pairs",
@@ -89,6 +95,23 @@
       "criticalDesc": "Extreme risk - AVOID"
     },
     "riskFactors": "Risk Factors",
+    "risk": {
+      "veryNewContract": "Very new contract (< 1 day)",
+      "newContract": "New contract (< 1 week)",
+      "relativelyNewContract": "Relatively new contract (< 1 month)",
+      "ageUnknown": "Contract age unknown",
+      "veryLowLiquidity": "Very low liquidity (< $10k)",
+      "lowLiquidity": "Low liquidity (< $50k)",
+      "moderateLiquidity": "Moderate liquidity (< $100k)",
+      "lowLiquidityRatio": "Low liquidity/mcap ratio (< 2%)",
+      "highLiquidityRatio": "Unusually high liquidity/mcap ratio (> 50%)",
+      "scamDetected": "⛔ SCAM/HONEYPOT LABEL DETECTED",
+      "verified": "✓ Verified or top token",
+      "veryLowVolume": "Very low 24h volume (< $1k)",
+      "lowVolume": "Low 24h volume (< $10k)",
+      "extremeVolatility": "Extreme price volatility",
+      "highVolatility": "High price volatility"
+    },
     "riskBreakdown": {
       "title": "Risk Analysis Breakdown",
       "totalScore": "Total Risk Score",

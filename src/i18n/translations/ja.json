@@ -6,6 +6,12 @@
   "form": {
     "chain": "チェーン",
     "model": "LLMモデル",
+    "maxInputTokens": "最大入力トークン数",
+    "estimatedCost": "推定コスト（{{count}}ペア）",
+    "favorites": "⭐ お気に入り",
+    "otherModels": "その他のモデル",
+    "addToFavorites": "お気に入りに追加",
+    "removeFromFavorites": "お気に入りから削除",
     "timeframe": "時間枠",
     "maxPairs": "分析するペア数: {{count}}",
     "maxPairsLabel": "解析ペア数",
@@ -89,6 +95,23 @@
       "criticalDesc": "極度のリスク - 回避してください"
     },
     "riskFactors": "リスク要因",
+    "risk": {
+      "veryNewContract": "非常に新しいコントラクト（< 1日）",
+      "newContract": "新しいコントラクト（< 1週間）",
+      "relativelyNewContract": "比較的新しいコントラクト（< 1ヶ月）",
+      "ageUnknown": "コントラクト年齢不明",
+      "veryLowLiquidity": "非常に低い流動性（< $10k）",
+      "lowLiquidity": "低い流動性（< $50k）",
+      "moderateLiquidity": "中程度の流動性（< $100k）",
+      "lowLiquidityRatio": "低い流動性/時価総額比率（< 2%）",
+      "highLiquidityRatio": "異常に高い流動性/時価総額比率（> 50%）",
+      "scamDetected": "⛔ SCAM/HONEYPOTラベル検出",
+      "verified": "✓ 認証済みまたはトップトークン",
+      "veryLowVolume": "非常に低い24h取引量（< $1k）",
+      "lowVolume": "低い24h取引量（< $10k）",
+      "extremeVolatility": "極端な価格変動",
+      "highVolatility": "高い価格変動"
+    },
     "riskBreakdown": {
       "title": "リスク分析内訳",
       "totalScore": "総合リスクスコア",

@@ -2,6 +2,7 @@
 // Fetches and displays available OpenRouter models with pricing
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from '@/i18n';
 import type { OpenRouterModel } from '@/types/openrouter';
 
 interface ModelSelectorProps {
@@ -50,12 +51,15 @@ export function ModelSelector({
   onChange,
   disabled,
   onNavigateToSettings,
+  maxPairs,
 }: ModelSelectorProps) {
+  const { t } = useTranslation();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
+  const [favoriteModels, setFavoriteModels] = useState<string[]>([]);
 
   const fetchModels = useCallback(async () => {
     try {
@@ -123,6 +127,33 @@ export function ModelSelector({
   }, [checkAndFetchModels]);
 
   /**
+   * Load favorite models from storage
+   */
+  useEffect(() => {
+    chrome.storage.local.get(['favoriteModels'], result => {
+      if (result.favoriteModels && Array.isArray(result.favoriteModels)) {
+        setFavoriteModels(result.favoriteModels);
+      }
+    });
+  }, []);
+
+  /**
+   * Toggle favorite status of a model
+   */
+  const toggleFavorite = (modelId: string) => {
+    setFavoriteModels(prev => {
+      const newFavorites = prev.includes(modelId)
+        ? prev.filter(id => id !== modelId)
+        : [...prev, modelId];
+
+      // Save to storage
+      chrome.storage.local.set({ favoriteModels: newFavorites });
+
+      return newFavorites;
+    });
+  };
+
+  /**
    * Format price for display (per 1M tokens)
    */
   const formatPrice = (pricePerToken: string): string => {
@@ -131,19 +162,27 @@ export function ModelSelector({
   };
 
   /**
+   * Calculate estimated prompt tokens based on pair count
+   * Conservative estimate with safety margin (~15% buffer over actual usage)
+   * Actual usage: ~280 prompt tokens per pair
+   * Estimated with buffer: 300 prompt tokens per pair
+   */
+  const calculateEstimatedPromptTokens = (pairCount: number): number => {
+    return 300 * pairCount;
+  };
+
+  /**
    * Calculate estimated cost for analysis
    * Conservative estimate with safety margin (~15% buffer over actual usage)
    * Actual usage: ~280 prompt + ~500 completion tokens per pair
    * Estimated with buffer: 300 prompt + 600 completion tokens per pair
    */
-  const getEstimatedCost = (model: OpenRouterModel): string => {
-    const maxPairs = 20; // Fixed: analyze top 20 pairs
-
+  const getEstimatedCost = (model: OpenRouterModel, pairCount: number = 20): string => {
     // Conservative estimates with safety margin
     // Prompt tokens include: system prompt + pair data formatting
-    const estimatedPromptTokens = 300 * maxPairs; // 6,000 tokens (actual: ~5,600)
+    const estimatedPromptTokens = calculateEstimatedPromptTokens(pairCount);
     // Completion tokens include: LLM analysis output
-    const estimatedCompletionTokens = 600 * maxPairs; // 12,000 tokens (actual: ~10,000)
+    const estimatedCompletionTokens = 600 * pairCount;
 
     // Calculate cost separately for prompt and completion (different pricing)
     const promptCost = parseFloat(model.pricing.prompt) * estimatedPromptTokens;
@@ -176,7 +215,7 @@ export function ModelSelector({
   };
 
   /**
-   * Filter models based on search query and selected providers
+   * Filter models based on search query, selected providers, and max input tokens
    */
   const filteredModels = useMemo(() => {
     let filtered = models;
@@ -194,8 +233,18 @@ export function ModelSelector({
       filtered = filtered.filter(model => selectedProviders.includes(extractProvider(model.id)));
     }
 
+    // Filter by max input tokens (based on pair count)
+    if (maxPairs && maxPairs > 0) {
+      const requiredTokens = calculateEstimatedPromptTokens(maxPairs);
+      filtered = filtered.filter(model => {
+        const maxInputTokens =
+          model.context_length - (model.top_provider?.max_completion_tokens || 8192);
+        return maxInputTokens >= requiredTokens;
+      });
+    }
+
     return filtered;
-  }, [models, searchQuery, selectedProviders]);
+  }, [models, searchQuery, selectedProviders, maxPairs]);
 
   const selectedModel = models.find(m => m.id === value);
 
@@ -329,6 +378,20 @@ export function ModelSelector({
         </div>
       )}
 
+      {/* Available Models Count */}
+      {maxPairs && maxPairs > 0 && (
+        <div className="text-xs text-gray-400 font-mono">
+          <span className="text-neon-cyan font-bold">{filteredModels.length}</span> /{' '}
+          {models.length} models available for {maxPairs} pair
+          {maxPairs !== 1 ? 's' : ''}
+          {filteredModels.length < models.length && (
+            <span className="text-yellow-500 ml-2">
+              ({models.length - filteredModels.length} filtered due to token limits)
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Model Select */}
       <select
         value={value}
@@ -338,12 +401,34 @@ export function ModelSelector({
         size={Math.min(filteredModels.length + 1, 6)}
       >
         <option value="">Select a model...</option>
-        {filteredModels.map(model => (
-          <option key={model.id} value={model.id}>
-            {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
-            {formatPrice(model.pricing.completion)}/1M
-          </option>
-        ))}
+
+        {/* Favorites Section */}
+        {filteredModels.filter(m => favoriteModels.includes(m.id)).length > 0 && (
+          <optgroup label={t('form.favorites')}>
+            {filteredModels
+              .filter(m => favoriteModels.includes(m.id))
+              .map(model => (
+                <option key={model.id} value={model.id}>
+                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
+                  {formatPrice(model.pricing.completion)}/1M
+                </option>
+              ))}
+          </optgroup>
+        )}
+
+        {/* Other Models Section */}
+        {filteredModels.filter(m => !favoriteModels.includes(m.id)).length > 0 && (
+          <optgroup label={t('form.otherModels')}>
+            {filteredModels
+              .filter(m => !favoriteModels.includes(m.id))
+              .map(model => (
+                <option key={model.id} value={model.id}>
+                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
+                  {formatPrice(model.pricing.completion)}/1M
+                </option>
+              ))}
+          </optgroup>
+        )}
       </select>
 
       {/* Show filtered count */}
@@ -357,14 +442,42 @@ export function ModelSelector({
       {selectedModel && (
         <div className="text-sm font-mono space-y-2 bg-cyber-darker/50 border border-purple-500/20 rounded-lg p-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Context Length:</span>
+            <span className="text-gray-400">{t('form.maxInputTokens')}:</span>
             <span className="text-neon-cyan font-bold">
-              {selectedModel.context_length.toLocaleString()} tokens
+              {(
+                selectedModel.context_length -
+                (selectedModel.top_provider?.max_completion_tokens || 8192)
+              ).toLocaleString()}{' '}
+              tokens
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Estimated Cost (20 pairs):</span>
-            <span className="text-neon-green font-bold">{getEstimatedCost(selectedModel)}</span>
+            <span className="text-gray-400">
+              {t('form.estimatedCost', { count: maxPairs || 20 })}:
+            </span>
+            <span className="text-neon-green font-bold">
+              {getEstimatedCost(selectedModel, maxPairs || 20)}
+            </span>
+          </div>
+          <div className="pt-2 border-t border-purple-500/20">
+            <button
+              onClick={() => toggleFavorite(selectedModel.id)}
+              className="w-full px-3 py-2 bg-cyber-darker border border-neon-cyan/30 hover:border-neon-cyan/50 text-neon-cyan rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2"
+              title={
+                favoriteModels.includes(selectedModel.id)
+                  ? t('form.removeFromFavorites')
+                  : t('form.addToFavorites')
+              }
+            >
+              <span className="text-lg">
+                {favoriteModels.includes(selectedModel.id) ? '⭐' : '☆'}
+              </span>
+              <span>
+                {favoriteModels.includes(selectedModel.id)
+                  ? t('form.removeFromFavorites')
+                  : t('form.addToFavorites')}
+              </span>
+            </button>
           </div>
         </div>
       )}

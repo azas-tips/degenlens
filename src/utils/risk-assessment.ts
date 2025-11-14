@@ -2,7 +2,7 @@
 // Calculates risk levels and factors for token pairs
 
 import type { DexPair } from '@/types/dexscreener';
-import type { RiskLevel } from '@/types/analysis';
+import type { RiskLevel, RiskFactor } from '@/types/analysis';
 
 /**
  * Scoring breakdown for transparency
@@ -44,11 +44,11 @@ export interface ScoringBreakdown {
  */
 export function calculateRiskLevel(pair: DexPair): {
   level: RiskLevel;
-  factors: string[];
+  factors: RiskFactor[];
   score: number; // 0-100 (0 = safest, 100 = most risky)
   breakdown: ScoringBreakdown;
 } {
-  const factors: string[] = [];
+  const factors: RiskFactor[] = [];
   let riskScore = 0;
 
   // Initialize breakdown
@@ -92,21 +92,33 @@ export function calculateRiskLevel(pair: DexPair): {
       breakdown.ageReasonKey = 'risk.age.veryNew';
       breakdown.ageReasonParams = { hours: ageHours.toFixed(1) };
       riskScore += 30;
-      factors.push('Very new contract (< 1 day)');
+      factors.push({
+        key: 'results.risk.veryNewContract',
+        params: {},
+        fallback: 'Very new contract (< 1 day)',
+      });
     } else if (ageDays < 7) {
       breakdown.ageScore = 20;
       breakdown.ageReason = `New (${ageDays.toFixed(1)} days old)`;
       breakdown.ageReasonKey = 'risk.age.new';
       breakdown.ageReasonParams = { days: ageDays.toFixed(1) };
       riskScore += 20;
-      factors.push('New contract (< 1 week)');
+      factors.push({
+        key: 'results.risk.newContract',
+        params: {},
+        fallback: 'New contract (< 1 week)',
+      });
     } else if (ageDays < 30) {
       breakdown.ageScore = 10;
       breakdown.ageReason = `Relatively new (${ageDays.toFixed(0)} days old)`;
       breakdown.ageReasonKey = 'risk.age.relativelyNew';
       breakdown.ageReasonParams = { days: ageDays.toFixed(0) };
       riskScore += 10;
-      factors.push('Relatively new contract (< 1 month)');
+      factors.push({
+        key: 'results.risk.relativelyNewContract',
+        params: {},
+        fallback: 'Relatively new contract (< 1 month)',
+      });
     } else {
       breakdown.ageReason = `Established (${ageDays.toFixed(0)} days old)`;
       breakdown.ageReasonKey = 'risk.age.established';
@@ -118,7 +130,11 @@ export function calculateRiskLevel(pair: DexPair): {
     breakdown.ageReasonKey = 'risk.age.unknown';
     breakdown.ageReasonParams = {};
     riskScore += 15;
-    factors.push('Contract age unknown');
+    factors.push({
+      key: 'results.risk.ageUnknown',
+      params: {},
+      fallback: 'Contract age unknown',
+    });
   }
 
   // Factor 2: Liquidity (0-30 points)
@@ -131,21 +147,33 @@ export function calculateRiskLevel(pair: DexPair): {
     breakdown.liquidityReasonKey = 'risk.liquidity.veryLow';
     breakdown.liquidityReasonParams = { amount: (liquidity / 1000).toFixed(1) };
     riskScore += 30;
-    factors.push('Very low liquidity (< $10k)');
+    factors.push({
+      key: 'results.risk.veryLowLiquidity',
+      params: {},
+      fallback: 'Very low liquidity (< $10k)',
+    });
   } else if (liquidity < 50000) {
     breakdown.liquidityScore += 20;
     breakdown.liquidityReason = `Low liquidity ($${(liquidity / 1000).toFixed(1)}k)`;
     breakdown.liquidityReasonKey = 'risk.liquidity.low';
     breakdown.liquidityReasonParams = { amount: (liquidity / 1000).toFixed(1) };
     riskScore += 20;
-    factors.push('Low liquidity (< $50k)');
+    factors.push({
+      key: 'results.risk.lowLiquidity',
+      params: {},
+      fallback: 'Low liquidity (< $50k)',
+    });
   } else if (liquidity < 100000) {
     breakdown.liquidityScore += 10;
     breakdown.liquidityReason = `Moderate liquidity ($${(liquidity / 1000).toFixed(1)}k)`;
     breakdown.liquidityReasonKey = 'risk.liquidity.moderate';
     breakdown.liquidityReasonParams = { amount: (liquidity / 1000).toFixed(1) };
     riskScore += 10;
-    factors.push('Moderate liquidity (< $100k)');
+    factors.push({
+      key: 'results.risk.moderateLiquidity',
+      params: {},
+      fallback: 'Moderate liquidity (< $100k)',
+    });
   } else {
     breakdown.liquidityReason = `Good liquidity ($${(liquidity / 1000).toFixed(0)}k)`;
     breakdown.liquidityReasonKey = 'risk.liquidity.good';
@@ -164,7 +192,11 @@ export function calculateRiskLevel(pair: DexPair): {
         ratio: (ratio * 100).toFixed(1),
       };
       riskScore += 15;
-      factors.push('Low liquidity/mcap ratio (< 2%)');
+      factors.push({
+        key: 'results.risk.lowLiquidityRatio',
+        params: {},
+        fallback: 'Low liquidity/mcap ratio (< 2%)',
+      });
     } else if (ratio > 0.5) {
       breakdown.liquidityScore += 10;
       breakdown.liquidityReason += ` | High L/MC ratio (${(ratio * 100).toFixed(0)}%)`;
@@ -174,7 +206,11 @@ export function calculateRiskLevel(pair: DexPair): {
         ratio: (ratio * 100).toFixed(0),
       };
       riskScore += 10;
-      factors.push('Unusually high liquidity/mcap ratio (> 50%)');
+      factors.push({
+        key: 'results.risk.highLiquidityRatio',
+        params: {},
+        fallback: 'Unusually high liquidity/mcap ratio (> 50%)',
+      });
     }
   }
 
@@ -187,7 +223,11 @@ export function calculateRiskLevel(pair: DexPair): {
     breakdown.labelReasonKey = 'risk.labels.scam';
     breakdown.labelReasonParams = {};
     riskScore = 100; // Instant critical
-    factors.push('⛔ SCAM/HONEYPOT LABEL DETECTED');
+    factors.push({
+      key: 'results.risk.scamDetected',
+      params: {},
+      fallback: '⛔ SCAM/HONEYPOT LABEL DETECTED',
+    });
   } else {
     // Positive labels reduce risk
     if (labels.some(l => l.includes('top') || l.includes('verified'))) {
@@ -196,7 +236,11 @@ export function calculateRiskLevel(pair: DexPair): {
       breakdown.labelReasonKey = 'risk.labels.verified';
       breakdown.labelReasonParams = {};
       riskScore = Math.max(0, riskScore - 15);
-      factors.push('✓ Verified or top token');
+      factors.push({
+        key: 'results.risk.verified',
+        params: {},
+        fallback: '✓ Verified or top token',
+      });
     } else {
       breakdown.labelReason = 'No special labels';
       breakdown.labelReasonKey = 'risk.labels.none';
@@ -213,14 +257,22 @@ export function calculateRiskLevel(pair: DexPair): {
     breakdown.volumeReasonKey = 'risk.volume.veryLow';
     breakdown.volumeReasonParams = { amount: volume24h.toFixed(0) };
     riskScore += 20;
-    factors.push('Very low 24h volume (< $1k)');
+    factors.push({
+      key: 'results.risk.veryLowVolume',
+      params: {},
+      fallback: 'Very low 24h volume (< $1k)',
+    });
   } else if (volume24h < 10000) {
     breakdown.volumeScore = 10;
     breakdown.volumeReason = `Low volume ($${(volume24h / 1000).toFixed(1)}k/24h)`;
     breakdown.volumeReasonKey = 'risk.volume.low';
     breakdown.volumeReasonParams = { amount: (volume24h / 1000).toFixed(1) };
     riskScore += 10;
-    factors.push('Low 24h volume (< $10k)');
+    factors.push({
+      key: 'results.risk.lowVolume',
+      params: {},
+      fallback: 'Low 24h volume (< $10k)',
+    });
   } else {
     breakdown.volumeReason = `Good volume ($${(volume24h / 1000).toFixed(0)}k/24h)`;
     breakdown.volumeReasonKey = 'risk.volume.good';
@@ -240,7 +292,11 @@ export function calculateRiskLevel(pair: DexPair): {
       change1h: priceChange1h.toFixed(1),
     };
     riskScore += 15;
-    factors.push('Extreme price volatility');
+    factors.push({
+      key: 'results.risk.extremeVolatility',
+      params: {},
+      fallback: 'Extreme price volatility',
+    });
   } else if (priceChange5m > 20 || priceChange1h > 50) {
     breakdown.volatilityScore = 10;
     breakdown.volatilityReason = `High volatility (5m: ${priceChange5m.toFixed(1)}%, 1h: ${priceChange1h.toFixed(1)}%)`;
@@ -250,7 +306,11 @@ export function calculateRiskLevel(pair: DexPair): {
       change1h: priceChange1h.toFixed(1),
     };
     riskScore += 10;
-    factors.push('High price volatility');
+    factors.push({
+      key: 'results.risk.highVolatility',
+      params: {},
+      fallback: 'High price volatility',
+    });
   } else {
     breakdown.volatilityReason = `Normal volatility (5m: ${priceChange5m.toFixed(1)}%, 1h: ${priceChange1h.toFixed(1)}%)`;
     breakdown.volatilityReasonKey = 'risk.volatility.normal';

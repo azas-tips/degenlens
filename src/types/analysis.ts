@@ -10,6 +10,15 @@ import type { ScoringBreakdown } from '@/utils/risk-assessment';
 export type RiskLevel = 'safe' | 'caution' | 'warning' | 'danger' | 'critical';
 
 /**
+ * Risk factor with i18n support
+ */
+export interface RiskFactor {
+  key: string; // Translation key (e.g., "results.risk.newContract")
+  params?: Record<string, string | number>; // Parameters for interpolation
+  fallback: string; // Fallback text if translation is missing
+}
+
+/**
  * Progress information during analysis
  */
 export interface AnalysisProgress {
@@ -34,7 +43,7 @@ export interface AnalyzedPair {
   catalyst?: string;
   moonshotPotential?: string;
   riskLevel?: RiskLevel;
-  riskFactors?: string[];
+  riskFactors?: RiskFactor[];
 }
 
 /**
@@ -51,7 +60,7 @@ export interface TopPick {
   chainId?: string;
   pairAddress?: string;
   riskLevel?: RiskLevel;
-  riskFactors?: string[];
+  riskFactors?: RiskFactor[];
   riskBreakdown?: ScoringBreakdown;
 }
 
