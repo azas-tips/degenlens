@@ -24,6 +24,7 @@ export interface AppStorageV1 {
   };
   custom_prompt?: string; // Custom analysis prompt (optional)
   telemetry_enabled?: boolean; // Local error logging enabled (default: false)
+  favoriteModels?: string[]; // Favorite OpenRouter model IDs
 }
 
 // Future versions go here
@@ -68,4 +69,5 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'language',
   ANALYSIS_HISTORY: 'analysis_history',
   EXCLUDED_TOKENS: 'excluded_tokens',
+  FAVORITE_MODELS: 'favoriteModels',
 } as const;

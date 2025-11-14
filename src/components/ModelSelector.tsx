@@ -59,6 +59,7 @@ export function ModelSelector({
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
+  const [favoriteModels, setFavoriteModels] = useState<string[]>([]);
 
   const fetchModels = useCallback(async () => {
     try {
@@ -124,6 +125,33 @@ export function ModelSelector({
   useEffect(() => {
     checkAndFetchModels();
   }, [checkAndFetchModels]);
+
+  /**
+   * Load favorite models from storage
+   */
+  useEffect(() => {
+    chrome.storage.local.get(['favoriteModels'], result => {
+      if (result.favoriteModels && Array.isArray(result.favoriteModels)) {
+        setFavoriteModels(result.favoriteModels);
+      }
+    });
+  }, []);
+
+  /**
+   * Toggle favorite status of a model
+   */
+  const toggleFavorite = (modelId: string) => {
+    setFavoriteModels(prev => {
+      const newFavorites = prev.includes(modelId)
+        ? prev.filter(id => id !== modelId)
+        : [...prev, modelId];
+
+      // Save to storage
+      chrome.storage.local.set({ favoriteModels: newFavorites });
+
+      return newFavorites;
+    });
+  };
 
   /**
    * Format price for display (per 1M tokens)
@@ -373,12 +401,34 @@ export function ModelSelector({
         size={Math.min(filteredModels.length + 1, 6)}
       >
         <option value="">Select a model...</option>
-        {filteredModels.map(model => (
-          <option key={model.id} value={model.id}>
-            {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
-            {formatPrice(model.pricing.completion)}/1M
-          </option>
-        ))}
+
+        {/* Favorites Section */}
+        {filteredModels.filter(m => favoriteModels.includes(m.id)).length > 0 && (
+          <optgroup label={t('form.favorites')}>
+            {filteredModels
+              .filter(m => favoriteModels.includes(m.id))
+              .map(model => (
+                <option key={model.id} value={model.id}>
+                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
+                  {formatPrice(model.pricing.completion)}/1M
+                </option>
+              ))}
+          </optgroup>
+        )}
+
+        {/* Other Models Section */}
+        {filteredModels.filter(m => !favoriteModels.includes(m.id)).length > 0 && (
+          <optgroup label={t('form.otherModels')}>
+            {filteredModels
+              .filter(m => !favoriteModels.includes(m.id))
+              .map(model => (
+                <option key={model.id} value={model.id}>
+                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
+                  {formatPrice(model.pricing.completion)}/1M
+                </option>
+              ))}
+          </optgroup>
+        )}
       </select>
 
       {/* Show filtered count */}
@@ -408,6 +458,26 @@ export function ModelSelector({
             <span className="text-neon-green font-bold">
               {getEstimatedCost(selectedModel, maxPairs || 20)}
             </span>
+          </div>
+          <div className="pt-2 border-t border-purple-500/20">
+            <button
+              onClick={() => toggleFavorite(selectedModel.id)}
+              className="w-full px-3 py-2 bg-cyber-darker border border-neon-cyan/30 hover:border-neon-cyan/50 text-neon-cyan rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2"
+              title={
+                favoriteModels.includes(selectedModel.id)
+                  ? t('form.removeFromFavorites')
+                  : t('form.addToFavorites')
+              }
+            >
+              <span className="text-lg">
+                {favoriteModels.includes(selectedModel.id) ? '⭐' : '☆'}
+              </span>
+              <span>
+                {favoriteModels.includes(selectedModel.id)
+                  ? t('form.removeFromFavorites')
+                  : t('form.addToFavorites')}
+              </span>
+            </button>
           </div>
         </div>
       )}
