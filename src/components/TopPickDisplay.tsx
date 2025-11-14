@@ -203,7 +203,7 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
                 <ul className="text-xs text-gray-300 space-y-1">
                   {topPick.riskFactors.map((factor, idx) => (
                     <li key={idx} className="font-mono">
-                      • {factor}
+                      • {factor.key ? t(factor.key, factor.params) : factor.fallback}
                     </li>
                   ))}
                 </ul>
