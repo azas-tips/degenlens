@@ -17,6 +17,8 @@ export function useAnalyze() {
   const model = useAppStore(state => state.model);
   const maxPairs = useAppStore(state => state.maxPairs);
   const timeframe = useAppStore(state => state.timeframe);
+  const pairMaxAge = useAppStore(state => state.pairMaxAge);
+  const quoteTokens = useAppStore(state => state.quoteTokens);
 
   // Store port reference for cancellation
   const portRef = useRef<chrome.runtime.Port | null>(null);
@@ -105,7 +107,7 @@ export function useAnalyze() {
             setResults(result);
 
             // Save to history
-            saveToHistory(result, chain, model, timeframe, maxPairs).catch(error => {
+            saveToHistory(result, chain, model, timeframe, maxPairs, pairMaxAge).catch(error => {
               console.error('[useAnalyze] Failed to save to history:', error);
             });
           }
@@ -133,6 +135,8 @@ export function useAnalyze() {
         model,
         maxPairs,
         timeframe,
+        pairMaxAge,
+        quoteTokens: quoteTokens[chain] || [],
       };
 
       console.log('[useAnalyze] Sending analyze request:', request);
@@ -143,7 +147,7 @@ export function useAnalyze() {
       setError('Failed to start analysis. Please try again.');
       setAnalyzing(false);
     }
-  }, [chain, model, maxPairs, timeframe]);
+  }, [chain, model, maxPairs, timeframe, pairMaxAge, quoteTokens]);
 
   /**
    * Cancel ongoing analysis

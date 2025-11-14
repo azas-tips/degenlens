@@ -210,6 +210,60 @@ const CHAIN_POPULAR_QUERIES: Record<string, string[]> = {
 };
 
 /**
+ * Filter pairs by age
+ * @param pairs - Array of pairs to filter
+ * @param maxAgeHours - Maximum age in hours (null = no filtering)
+ * @returns Filtered array of pairs
+ */
+function filterPairsByAge(pairs: DexPair[], maxAgeHours: number | null): DexPair[] {
+  if (maxAgeHours === null) {
+    return pairs; // No age filtering
+  }
+
+  const now = Date.now();
+  const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
+
+  const filtered = pairs.filter(pair => {
+    if (!pair.pairCreatedAt) {
+      return false; // Exclude pairs without creation timestamp
+    }
+    const ageMs = now - pair.pairCreatedAt;
+    return ageMs <= maxAgeMs;
+  });
+
+  console.log(
+    `[DEX API] Filtered pairs by age (max ${maxAgeHours}h): ${pairs.length} → ${filtered.length}`
+  );
+
+  return filtered;
+}
+
+/**
+ * Filter pairs by quote token
+ * @param pairs - Array of pairs to filter
+ * @param quoteTokens - Array of allowed quote token symbols (empty = all pairs)
+ * @returns Filtered array of pairs
+ */
+function filterPairsByQuoteToken(pairs: DexPair[], quoteTokens: string[]): DexPair[] {
+  if (!quoteTokens || quoteTokens.length === 0) {
+    return pairs; // No filtering
+  }
+
+  const allowedSymbols = new Set(quoteTokens.map(s => s.toUpperCase()));
+
+  const filtered = pairs.filter(pair => {
+    const quoteSymbol = pair.quoteToken?.symbol?.toUpperCase();
+    return quoteSymbol && allowedSymbols.has(quoteSymbol);
+  });
+
+  console.log(
+    `[DEX API] Filtered pairs by quote tokens (${quoteTokens.join(', ')}): ${pairs.length} → ${filtered.length}`
+  );
+
+  return filtered;
+}
+
+/**
  * Fetch boosted tokens (tokens with active boosts)
  * These are typically trending/promoted tokens
  *
@@ -253,12 +307,16 @@ async function fetchBoostedTokens(chain: string): Promise<string[]> {
  * @param chain - Chain name (e.g., 'solana', 'ethereum', 'bsc')
  * @param maxPairs - Maximum number of pairs to return (default: 20)
  * @param timeframe - Timeframe for scoring pairs (default: DEFAULT_TIMEFRAME)
+ * @param pairMaxAge - Max pair age in hours (null = all pairs)
+ * @param quoteTokens - Array of allowed quote token symbols (empty = all pairs)
  * @returns Array of token pairs
  */
 export async function fetchPairsByChain(
   chain: string,
   maxPairs: number = 20,
-  timeframe: Timeframe = DEFAULT_TIMEFRAME
+  timeframe: Timeframe = DEFAULT_TIMEFRAME,
+  pairMaxAge: number | null = null,
+  quoteTokens: string[] = []
 ): Promise<DexPair[]> {
   return dexLimiter.execute(async () => {
     // Map chain name to DEXscreener API chain ID
@@ -288,11 +346,17 @@ export async function fetchPairsByChain(
 
         const sorted = pairsWithScore.sort((a, b) => b.score - a.score).map(item => item.pair);
 
+        // Filter by pair age (if specified)
+        const ageFiltered = filterPairsByAge(sorted, pairMaxAge);
+
+        // Filter by quote token (if specified)
+        const quoteFiltered = filterPairsByQuoteToken(ageFiltered, quoteTokens);
+
         // Filter out excluded tokens (checks baseToken.address)
         const excludedTokens = await getExcludedTokens(apiChainId);
         const excludedAddresses = new Set(excludedTokens.map(t => t.tokenAddress.toLowerCase()));
 
-        const filtered = sorted.filter(
+        const filtered = quoteFiltered.filter(
           pair => !excludedAddresses.has(pair.baseToken?.address?.toLowerCase() || '')
         );
 
@@ -379,11 +443,17 @@ export async function fetchPairsByChain(
     // Sort by momentum score (descending)
     const sorted = pairsWithScore.sort((a, b) => b.score - a.score).map(item => item.pair);
 
+    // Filter by pair age (if specified)
+    const ageFiltered = filterPairsByAge(sorted, pairMaxAge);
+
+    // Filter by quote token (if specified)
+    const quoteFiltered = filterPairsByQuoteToken(ageFiltered, quoteTokens);
+
     // Filter out excluded tokens (checks baseToken.address)
     const excludedTokens = await getExcludedTokens(apiChainId);
     const excludedAddresses = new Set(excludedTokens.map(t => t.tokenAddress.toLowerCase()));
 
-    const filtered = sorted.filter(
+    const filtered = quoteFiltered.filter(
       pair => !excludedAddresses.has(pair.baseToken?.address?.toLowerCase() || '')
     );
 

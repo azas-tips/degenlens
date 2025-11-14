@@ -105,6 +105,7 @@ export interface HistoryEntry {
   model: string; // 'anthropic/claude-3.5-sonnet'
   timeframe: Timeframe; // 'h6', 'm5', etc.
   maxPairs: number; // Number of pairs analyzed
+  pairMaxAge?: number | null; // Max pair age filter in hours (null = all pairs)
   result: AnalysisResult; // Full analysis result
   topPickSymbol?: string; // For quick search/display
 }

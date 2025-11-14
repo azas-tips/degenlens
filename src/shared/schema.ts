@@ -18,6 +18,8 @@ export const AnalyzeReqSchema = z.object({
   model: z.string().min(1),
   maxPairs: z.number().min(1).max(100).optional().default(20), // Cost control: fixed to 20 pairs
   timeframe: z.enum(['m5', 'h1', 'h6', 'h24']).optional().default(DEFAULT_TIMEFRAME),
+  pairMaxAge: z.number().nullable().optional().default(24), // Max pair age in hours (null = all pairs)
+  quoteTokens: z.array(z.string()).optional().default([]), // Quote token filter (empty = all)
 });
 
 export type AnalyzeReq = z.infer<typeof AnalyzeReqSchema>;

@@ -25,7 +25,7 @@ export async function handleAnalyzeRequest(
   safePost: SafePost,
   aborted: boolean
 ): Promise<void> {
-  const { id, chain, model, maxPairs, timeframe } = msg;
+  const { id, chain, model, maxPairs, timeframe, pairMaxAge, quoteTokens } = msg;
 
   try {
     console.log(`[Analyze] Starting analysis for ${chain} with ${model}`);
@@ -40,7 +40,7 @@ export async function handleAnalyzeRequest(
 
     if (aborted) return;
 
-    const pairs = await fetchPairsByChain(chain, maxPairs, timeframe);
+    const pairs = await fetchPairsByChain(chain, maxPairs, timeframe, pairMaxAge, quoteTokens);
 
     if (pairs.length === 0) {
       safePost({

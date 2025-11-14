@@ -16,13 +16,15 @@ const MAX_HISTORY_ENTRIES = 50;
  * @param model - Model ID
  * @param timeframe - Timeframe used
  * @param maxPairs - Number of pairs analyzed
+ * @param pairMaxAge - Max pair age filter in hours
  */
 export async function saveToHistory(
   result: AnalysisResult,
   chain: string,
   model: string,
   timeframe: Timeframe,
-  maxPairs: number
+  maxPairs: number,
+  pairMaxAge?: number | null
 ): Promise<void> {
   try {
     // Create history entry
@@ -33,6 +35,7 @@ export async function saveToHistory(
       model,
       timeframe,
       maxPairs,
+      pairMaxAge,
       result,
       topPickSymbol: result.topPick?.symbol,
     };
