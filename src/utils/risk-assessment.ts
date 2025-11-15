@@ -81,17 +81,33 @@ export function calculateRiskLevel(pair: DexPair): {
   };
 
   // Factor 1: Contract Age (0-30 points)
+  let ageHours = 0;
+  let ageDays = 0;
+
   if (pair.pairCreatedAt) {
     const ageMs = Date.now() - pair.pairCreatedAt;
-    const ageHours = ageMs / (1000 * 60 * 60);
-    const ageDays = ageHours / 24;
+    ageHours = ageMs / (1000 * 60 * 60);
+    ageDays = ageHours / 24;
 
-    if (ageDays < 1) {
+    if (ageHours < 1) {
+      // < 1 hour: maximum penalty (unchanged)
       breakdown.ageScore = 30;
       breakdown.ageReason = `Very new (${ageHours.toFixed(1)}h old)`;
       breakdown.ageReasonKey = 'risk.age.veryNew';
       breakdown.ageReasonParams = { hours: ageHours.toFixed(1) };
       riskScore += 30;
+      factors.push({
+        key: 'results.risk.veryNewContract',
+        params: {},
+        fallback: 'Very new contract (< 1 hour)',
+      });
+    } else if (ageDays < 1) {
+      // < 24 hours: reduced penalty (30 -> 20)
+      breakdown.ageScore = 20;
+      breakdown.ageReason = `Very new (${ageHours.toFixed(1)}h old)`;
+      breakdown.ageReasonKey = 'risk.age.veryNew';
+      breakdown.ageReasonParams = { hours: ageHours.toFixed(1) };
+      riskScore += 20;
       factors.push({
         key: 'results.risk.veryNewContract',
         params: {},
@@ -214,12 +230,14 @@ export function calculateRiskLevel(pair: DexPair): {
     }
   }
 
-  // Factor 3: Labels (0-40 points - most critical)
+  // Factor 3: Labels (0-100 points - most critical)
   const labels = (pair.labels || []).map(l => l.toLowerCase());
 
-  if (labels.some(l => l.includes('scam') || l.includes('honeypot'))) {
+  // CRITICAL labels - instant 100 score (scam, honeypot, rugpull, exploit)
+  const criticalLabels = ['scam', 'honeypot', 'rugpull', 'exploit'];
+  if (labels.some(l => criticalLabels.some(bad => l.includes(bad)))) {
     breakdown.labelScore = 100; // Override everything
-    breakdown.labelReason = '⛔ SCAM/HONEYPOT detected';
+    breakdown.labelReason = '⛔ SCAM/HONEYPOT/RUGPULL detected';
     breakdown.labelReasonKey = 'risk.labels.scam';
     breakdown.labelReasonParams = {};
     riskScore = 100; // Instant critical
@@ -229,10 +247,40 @@ export function calculateRiskLevel(pair: DexPair): {
       fallback: '⛔ SCAM/HONEYPOT LABEL DETECTED',
     });
   } else {
+    // WARNING labels - high risk (frozen, blacklist, paused)
+    const warningLabels = ['frozen', 'blacklist', 'paused'];
+    if (labels.some(l => warningLabels.some(warn => l.includes(warn)))) {
+      breakdown.labelScore = 30;
+      breakdown.labelReason = '⚠️ Warning label detected (frozen/blacklist/paused)';
+      breakdown.labelReasonKey = 'risk.labels.warning';
+      breakdown.labelReasonParams = {};
+      riskScore += 30;
+      factors.push({
+        key: 'results.risk.warningLabel',
+        params: {},
+        fallback: '⚠️ Warning label detected',
+      });
+    }
+
+    // SUSPICIOUS labels - moderate risk (abandoned)
+    const suspiciousLabels = ['abandoned'];
+    if (labels.some(l => suspiciousLabels.some(sus => l.includes(sus)))) {
+      breakdown.labelScore += 20;
+      breakdown.labelReason = '⚠️ Suspicious label detected (abandoned)';
+      breakdown.labelReasonKey = 'risk.labels.suspicious';
+      breakdown.labelReasonParams = {};
+      riskScore += 20;
+      factors.push({
+        key: 'results.risk.suspiciousLabel',
+        params: {},
+        fallback: '⚠️ Suspicious label detected',
+      });
+    }
+
     // Positive labels reduce risk
     if (labels.some(l => l.includes('top') || l.includes('verified'))) {
-      breakdown.labelScore = -15; // Negative score = risk reduction
-      breakdown.labelReason = '✓ Verified or top token';
+      breakdown.labelScore = Math.max(-15, breakdown.labelScore - 15);
+      breakdown.labelReason = breakdown.labelReason || '✓ Verified or top token';
       breakdown.labelReasonKey = 'risk.labels.verified';
       breakdown.labelReasonParams = {};
       riskScore = Math.max(0, riskScore - 15);
@@ -241,7 +289,9 @@ export function calculateRiskLevel(pair: DexPair): {
         params: {},
         fallback: '✓ Verified or top token',
       });
-    } else {
+    }
+
+    if (breakdown.labelReason === '') {
       breakdown.labelReason = 'No special labels';
       breakdown.labelReasonKey = 'risk.labels.none';
       breakdown.labelReasonParams = {};
@@ -279,7 +329,70 @@ export function calculateRiskLevel(pair: DexPair): {
     breakdown.volumeReasonParams = { amount: (volume24h / 1000).toFixed(0) };
   }
 
-  // Factor 5: Price Volatility (0-15 points)
+  // Factor 5: Buy/Sell Imbalance Detection (0-25 points - honeypot indicator)
+  const txns = pair.txns?.m5;
+  if (txns && txns.buys > 0) {
+    if (txns.sells === 0) {
+      // Can buy but no one selling = possible honeypot
+      riskScore += 25;
+      factors.push({
+        key: 'results.risk.noSellActivity',
+        params: {},
+        fallback: 'No sell activity detected (possible honeypot)',
+      });
+    } else {
+      const totalTxns = txns.buys + txns.sells;
+      const sellRatio = txns.sells / totalTxns;
+      if (sellRatio < 0.05 && txns.buys > 20) {
+        // >95% buys with significant volume = pump indicator
+        riskScore += 20;
+        factors.push({
+          key: 'results.risk.suspiciousBuyPressure',
+          params: {},
+          fallback: 'Suspicious buy pressure (>95% buys)',
+        });
+      }
+    }
+  }
+
+  // Factor 6: Volume/Liquidity Ratio (0-20 points - wash trading indicator)
+  if (liquidity > 0 && volume24h > 0) {
+    const volumeToLiquidityRatio = volume24h / liquidity;
+    if (volumeToLiquidityRatio > 10) {
+      // Example: $100k volume on $10k liquidity = wash trading risk
+      riskScore += 20;
+      factors.push({
+        key: 'results.risk.suspiciousVolumeRatio',
+        params: {},
+        fallback: 'Suspicious volume/liquidity ratio (wash trading)',
+      });
+    }
+  }
+
+  // Factor 7: Social Presence Validation (-10 to +15 points)
+  const hasNoSocials = !pair.info?.socials || pair.info.socials.length === 0;
+  const hasNoWebsite = !pair.info?.websites || pair.info.websites.length === 0;
+  const hasSocialPresence = !hasNoSocials || !hasNoWebsite;
+
+  if (hasNoSocials && hasNoWebsite && ageHours < 168) {
+    // New token (< 7 days) with no social presence = high risk
+    riskScore += 15;
+    factors.push({
+      key: 'results.risk.noSocialPresence',
+      params: {},
+      fallback: 'No social presence (new token)',
+    });
+  } else if (hasSocialPresence && ageHours < 168) {
+    // New token (< 7 days) with social presence = risk reduction
+    riskScore = Math.max(0, riskScore - 10);
+    factors.push({
+      key: 'results.risk.hasSocialPresence',
+      params: {},
+      fallback: '✓ Has social presence (verified project)',
+    });
+  }
+
+  // Factor 8: Price Volatility (0-15 points)
   const priceChange5m = Math.abs(pair.priceChange?.m5 || 0);
   const priceChange1h = Math.abs(pair.priceChange?.h1 || 0);
 
@@ -318,6 +431,17 @@ export function calculateRiskLevel(pair: DexPair): {
       change5m: priceChange5m.toFixed(1),
       change1h: priceChange1h.toFixed(1),
     };
+  }
+
+  // Factor 9: Pump-and-Dump Pattern Detection (0-15 points)
+  if (priceChange5m > 100 && priceChange1h < 10) {
+    // Massive 5m spike but low 1h change = possible dump incoming
+    riskScore += 15;
+    factors.push({
+      key: 'results.risk.pumpPattern',
+      params: {},
+      fallback: 'Pump-and-dump pattern detected',
+    });
   }
 
   // Determine risk level based on total score

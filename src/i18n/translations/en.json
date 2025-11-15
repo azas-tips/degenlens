@@ -118,11 +118,19 @@
       "lowLiquidityRatio": "Low liquidity/mcap ratio (< 2%)",
       "highLiquidityRatio": "Unusually high liquidity/mcap ratio (> 50%)",
       "scamDetected": "⛔ SCAM/HONEYPOT LABEL DETECTED",
+      "warningLabel": "⚠️ Warning label detected (frozen/blacklist/paused)",
+      "suspiciousLabel": "⚠️ Suspicious label detected (abandoned)",
       "verified": "✓ Verified or top token",
       "veryLowVolume": "Very low 24h volume (< $1k)",
       "lowVolume": "Low 24h volume (< $10k)",
       "extremeVolatility": "Extreme price volatility",
-      "highVolatility": "High price volatility"
+      "highVolatility": "High price volatility",
+      "noSellActivity": "⛔ No sell activity detected (possible honeypot)",
+      "suspiciousBuyPressure": "⚠️ Suspicious buy pressure (>95% buys)",
+      "suspiciousVolumeRatio": "⚠️ Suspicious volume/liquidity ratio (wash trading)",
+      "noSocialPresence": "⚠️ No social presence (new token)",
+      "hasSocialPresence": "✓ Has social presence (verified project)",
+      "pumpPattern": "⚠️ Pump-and-dump pattern detected"
     },
     "riskBreakdown": {
       "title": "Risk Analysis Breakdown",

@@ -118,11 +118,19 @@
       "lowLiquidityRatio": "低い流動性/時価総額比率（< 2%）",
       "highLiquidityRatio": "異常に高い流動性/時価総額比率（> 50%）",
       "scamDetected": "⛔ SCAM/HONEYPOTラベル検出",
+      "warningLabel": "⚠️ 警告ラベル検出（frozen/blacklist/paused）",
+      "suspiciousLabel": "⚠️ 疑わしいラベル検出（abandoned）",
       "verified": "✓ 認証済みまたはトップトークン",
       "veryLowVolume": "非常に低い24h取引量（< $1k）",
       "lowVolume": "低い24h取引量（< $10k）",
       "extremeVolatility": "極端な価格変動",
-      "highVolatility": "高い価格変動"
+      "highVolatility": "高い価格変動",
+      "noSellActivity": "⛔ 売り取引なし（Honeypotの可能性）",
+      "suspiciousBuyPressure": "⚠️ 疑わしい買い圧力（95%以上が買い注文）",
+      "suspiciousVolumeRatio": "⚠️ 疑わしい取引量/流動性比率（Wash tradingの可能性）",
+      "noSocialPresence": "⚠️ ソーシャルプレゼンスなし（新規トークン）",
+      "hasSocialPresence": "✓ ソーシャルプレゼンスあり（検証済みプロジェクト）",
+      "pumpPattern": "⚠️ Pump-and-dumpパターン検出"
     },
     "riskBreakdown": {
       "title": "リスク分析内訳",
