@@ -12,7 +12,20 @@ import type {
  * @returns true if available, false otherwise
  */
 export function isGeminiNanoSupported(): boolean {
-  return typeof window !== 'undefined' && 'ai' in window && !!window.ai?.languageModel;
+  if (typeof window === 'undefined') {
+    console.log('[Gemini Nano] window is undefined (running in non-browser context)');
+    return false;
+  }
+  if (!('ai' in window)) {
+    console.log('[Gemini Nano] window.ai is not available (Chrome 127+ required)');
+    return false;
+  }
+  if (!window.ai?.languageModel) {
+    console.log('[Gemini Nano] window.ai.languageModel is not available');
+    return false;
+  }
+  console.log('[Gemini Nano] Browser supports Gemini Nano API');
+  return true;
 }
 
 /**
