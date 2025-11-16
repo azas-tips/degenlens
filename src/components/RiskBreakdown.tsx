@@ -98,7 +98,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
   ];
 
   return (
-    <div className="p-5 bg-cyber-darker/80 rounded-xl border-2 border-purple-500/30 backdrop-blur-sm">
+    <div className="p-4 bg-cyber-darker/80 rounded-xl border-2 border-purple-500/30 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-neon-cyan uppercase tracking-wider">
           🔍 {t('results.riskBreakdown.title')}
@@ -109,7 +109,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {factors.map((factor, idx) => (
           <div key={idx} className="space-y-1">
             <div className="flex justify-between items-center text-xs">
@@ -121,7 +121,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
             </div>
 
             {/* Progress bar */}
-            <div className="w-full h-2 bg-cyber-darker rounded-full overflow-hidden border border-purple-500/20">
+            <div className="w-full h-1.5 bg-cyber-darker rounded-full overflow-hidden border border-purple-500/20">
               <div
                 className={`h-full ${getBarColor(factor.score, factor.max)} transition-all duration-500`}
                 style={{
@@ -132,7 +132,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
 
             {/* Reason */}
             {factor.reason && (
-              <div className="text-xs text-gray-400 font-mono pl-2">{factor.reason}</div>
+              <div className="text-[11px] text-gray-400 font-mono pl-2">{factor.reason}</div>
             )}
           </div>
         ))}
