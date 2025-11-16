@@ -542,11 +542,11 @@ export function ModelSelector({
               <div className="pt-2 border-t border-purple-500/20">
                 <div className="text-xs text-gray-400 mb-2">System Requirements:</div>
                 <ul className="text-xs text-gray-300 space-y-1">
-                  <li>• Chrome 127+ required</li>
-                  <li>• RAM: 8GB minimum (12GB+ recommended)</li>
-                  <li>• Storage: 4GB minimum (10GB+ recommended)</li>
-                  <li>• 64-bit processor required</li>
-                  <li>• GPU: Integrated GPU minimum (Dedicated GPU recommended)</li>
+                  <li>• Chrome 140+ required</li>
+                  <li>• 22GB+ free storage space</li>
+                  <li>• GPU: 4GB+ VRAM or CPU: 16GB+ RAM with 4+ cores</li>
+                  <li>• Unlimited or non-metered network connection</li>
+                  <li>• Not supported on mobile devices</li>
                 </ul>
               </div>
 
@@ -565,9 +565,8 @@ export function ModelSelector({
                     ⚠️ Gemini Nano is not available on this browser
                   </p>
                   <p className="text-xs text-gray-300">
-                    Gemini Nano requires Chrome 127+ and may not be available in all regions or
-                    device configurations. Please use an OpenRouter model instead, or update your
-                    browser to the latest version.
+                    Gemini Nano requires Chrome 140+ and is not supported on mobile devices. Please
+                    use an OpenRouter model instead, or update your browser to Chrome 140 or later.
                   </p>
                 </div>
               )}

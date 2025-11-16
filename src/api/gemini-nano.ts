@@ -17,7 +17,7 @@ export function isGeminiNanoSupported(): boolean {
     return false;
   }
   if (!('ai' in window)) {
-    console.log('[Gemini Nano] window.ai is not available (Chrome 127+ required)');
+    console.log('[Gemini Nano] window.ai is not available (Chrome 140+ required)');
     return false;
   }
   if (!window.ai?.languageModel) {
