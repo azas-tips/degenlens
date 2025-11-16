@@ -87,6 +87,14 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
         ? t(breakdown.volatilityReasonKey, breakdown.volatilityReasonParams)
         : breakdown.volatilityReason,
     },
+    {
+      name: t('results.riskBreakdown.factors.activity'),
+      score: breakdown.activityScore,
+      max: breakdown.activityMax,
+      reason: breakdown.activityReasonKey
+        ? t(breakdown.activityReasonKey, breakdown.activityReasonParams)
+        : breakdown.activityReason,
+    },
   ];
 
   return (
@@ -97,7 +105,7 @@ export function RiskBreakdown({ breakdown, totalScore }: RiskBreakdownProps) {
         </h3>
         <div className="text-right">
           <div className="text-xs text-gray-400">{t('results.riskBreakdown.totalScore')}</div>
-          <div className="text-2xl font-bold text-neon-pink">{totalScore}/135</div>
+          <div className="text-2xl font-bold text-neon-pink">{totalScore}/155</div>
         </div>
       </div>
 
