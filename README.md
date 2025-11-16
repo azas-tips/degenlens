@@ -12,10 +12,12 @@ AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized 
 
 - 🔍 **Multi-Chain Support**: Solana, Ethereum, BSC, Polygon, Arbitrum, Optimism, Base
 - 🤖 **AI-Powered Analysis**: Leverage Claude, GPT, and other LLMs via OpenRouter
+- 🆓 **Free Local AI Option**: Chrome Built-in AI (Gemini Nano) - no API key required (Chrome 140+)
 - 📊 **Comprehensive Metrics**: Volume, liquidity, price changes, transaction patterns
 - ⚡ **Real-Time Model Fetching**: Live model list from OpenRouter API with max input token display
 - 🚫 **Token Exclusion**: Exclude unwanted tokens from future analysis
-- 🎯 **Risk Assessment**: Multi-factor risk scoring with visual gauge and detailed breakdown
+- 🎯 **Risk Assessment**: Multi-factor risk scoring (age, liquidity, labels, volume, volatility, activity) with visual gauge and detailed breakdown
+- 📱 **Flexible Layout**: Switch between single-column and split-view layouts
 - 🌐 **Internationalization**: English and Japanese support
 - 🎨 **Cyber/Neon Theme**: Modern dark UI with animated effects
 - 💰 **Donation Support**: Built-in support for project contributions
@@ -54,10 +56,27 @@ AI-powered DEX scanner for smart degens. Analyze token pairs from decentralized 
 
 ## Setup
 
-### 1. Get API Keys
+### Choose Your AI Model
 
-#### OpenRouter (Required)
-OpenRouter provides access to multiple LLM providers with a single API key.
+DegenLens offers two options for AI analysis:
+
+#### Option 1: Chrome Built-in AI (Gemini Nano) - FREE
+**No setup required!** If you have Chrome 140+, Gemini Nano is available for free local analysis.
+
+**System Requirements:**
+- Chrome 140+
+- 22GB+ free storage space
+- GPU: 4GB+ VRAM or CPU: 16GB+ RAM with 4+ cores
+- Unlimited or non-metered network connection
+- Not supported on mobile devices
+
+**How to use:**
+1. Simply select "Gemini Nano (Built-in, Free)" from the model dropdown
+2. If available, it will show "✓ Ready" status
+3. If not downloaded yet, Chrome will prompt you to download the model
+
+#### Option 2: OpenRouter (Recommended for Advanced Features)
+OpenRouter provides access to multiple powerful LLM providers with a single API key.
 
 1. Visit <a href="https://openrouter.ai" target="_blank">OpenRouter</a>
 2. Sign up and navigate to <a href="https://openrouter.ai/keys" target="_blank">Keys</a>
@@ -80,12 +99,13 @@ OpenRouter provides access to multiple LLM providers with a single API key.
 1. Click the DegenLens icon to open the dashboard
 2. Select a blockchain network (e.g., Solana, Base, Ethereum)
 3. Choose an LLM model from the dropdown:
-   - **Claude Opus 4.1**: Flagship performance
-   - **Claude Sonnet 4.5**: Best balance
-   - **Claude Haiku 4.5**: Fast and economical
-   - **GPT-5**: Strong alternative
-   - **GPT-4o mini**: Budget-friendly option
-   - *Models are fetched in real-time from OpenRouter*
+   - **Gemini Nano (Built-in, Free)**: Chrome's local AI - no API key required (Chrome 140+)
+   - **Claude Opus 4.1**: Flagship performance (OpenRouter)
+   - **Claude Sonnet 4.5**: Best balance (OpenRouter)
+   - **Claude Haiku 4.5**: Fast and economical (OpenRouter)
+   - **GPT-5**: Strong alternative (OpenRouter)
+   - **GPT-4o mini**: Budget-friendly option (OpenRouter)
+   - *OpenRouter models are fetched in real-time*
    - *Max Input Tokens shown for each model (calculated as context_length - max_completion_tokens)*
 4. Adjust the number of pairs to analyze (1-100, default: 20)
 5. Click "Analyze" or press `Ctrl/Cmd+Enter`
@@ -99,6 +119,7 @@ The AI selects the most promising token based on:
 - **Catalyst**: Key factors driving price action
 - **Moonshot Potential**: Upside potential assessment
 - **Momentum Phase**: Current market cycle phase
+- **Social Links**: Direct access to project's website and social media (Twitter, Telegram, Discord)
 
 #### Risk Assessment
 DegenLens provides multi-factor risk scoring (0-135 points):
@@ -115,6 +136,7 @@ DegenLens provides multi-factor risk scoring (0-135 points):
 - **Labels** (0-40 points): DEXscreener labels (scam detection, verification status)
 - **Volume** (0-20 points): 24-hour trading volume
 - **Volatility** (0-15 points): Short-term price volatility (5m, 1h changes)
+- **Activity** (0-20 points): Trading activity (5-minute and 24-hour transaction counts)
 
 **Visual Indicators:**
 - Risk gauge with color-coded severity
@@ -216,9 +238,14 @@ Before committing changes, ensure:
 
 DegenLens analyzes **1-100 pairs** per request (default: 20). Costs vary by model and number of pairs.
 
+### Free Option
+- **Gemini Nano (Chrome Built-in AI)**: Completely FREE - runs locally on your device (Chrome 140+ required)
+
+### Paid Options (OpenRouter)
+
 📋 **<a href="https://openrouter.ai/models" target="_blank">View all models and pricing on OpenRouter →</a>**
 
-### Latest Models (January 2025)
+#### Latest Models (November 2025)
 
 | Model | Provider | Input (per 1M) | Output (per 1M) | Est. Cost (20 pairs) |
 |-------|----------|----------------|-----------------|----------------------|
@@ -273,9 +300,10 @@ For details, see our [Privacy Policy](https://azas-tips.github.io/degenlens/priv
 ## Limitations
 
 - **Rate Limits**: API providers enforce rate limits. Monitor your usage.
-- **Cost**: LLM analysis incurs costs. Track your OpenRouter spending (varies by pair count).
+- **Cost**: OpenRouter LLM analysis incurs costs. Track your OpenRouter spending (varies by pair count). Gemini Nano is free but requires Chrome 140+ and significant storage/RAM.
+- **Gemini Nano Requirements**: Requires Chrome 140+, 22GB+ storage, 4GB+ VRAM or 16GB+ RAM. Not available on mobile devices.
 - **Not Financial Advice**: DegenLens provides insights, not investment advice. Always DYOR (Do Your Own Research).
-- **API Dependency**: Requires active internet connection and API availability.
+- **API Dependency**: OpenRouter models require active internet connection. Gemini Nano runs locally after initial download.
 - **Token Limit Awareness**: Large pair counts may exceed model input limits. The extension shows max input tokens for each model.
 
 ## Troubleshooting
@@ -304,6 +332,18 @@ For details, see our [Privacy Policy](https://azas-tips.github.io/degenlens/priv
 - Ensure you've completed the build process: `npm run build`
 - Check the browser console for errors (F12)
 - Try reloading the extension in `chrome://extensions/`
+
+### Gemini Nano not available
+- Ensure you're using Chrome 140 or later (`chrome://version`)
+- Check system requirements: 22GB+ storage, 4GB+ VRAM or 16GB+ RAM
+- Gemini Nano is not supported on mobile devices
+- Try using an OpenRouter model instead
+
+### Gemini Nano shows "Download Required"
+- Click the model and Chrome will prompt to download Gemini Nano
+- Ensure you have 22GB+ free storage space
+- Download requires unlimited or non-metered network connection
+- Download may take some time depending on your connection speed
 
 ## Support
 
