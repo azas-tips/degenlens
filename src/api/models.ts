@@ -56,7 +56,7 @@ export async function fetchAvailableModels(): Promise<AvailableModel[]> {
     console.log('[Models API] Checking Gemini Nano availability');
     const capabilities = await getGeminiNanoCapabilities();
 
-    if (capabilities && capabilities.available !== 'no') {
+    if (capabilities.available !== 'no') {
       const geminiNanoModel: AvailableModel = {
         id: GEMINI_NANO_MODEL_ID,
         name: 'Gemini Nano (Built-in, Free)',

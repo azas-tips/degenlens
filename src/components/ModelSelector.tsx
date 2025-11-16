@@ -530,10 +530,14 @@ export function ModelSelector({
               )}
 
               {geminiNanoCapabilities.available === 'no' && (
-                <div className="p-3 bg-neon-pink/10 border border-neon-pink/30 rounded-lg">
-                  <p className="text-xs text-neon-pink font-mono">
-                    ⚠️ Gemini Nano is not available on this device. Please check system requirements
-                    or use an OpenRouter model instead.
+                <div className="p-3 bg-neon-pink/10 border border-neon-pink/30 rounded-lg space-y-2">
+                  <p className="text-xs text-neon-pink font-mono font-bold">
+                    ⚠️ Gemini Nano is not available on this browser
+                  </p>
+                  <p className="text-xs text-gray-300">
+                    Gemini Nano requires Chrome 127+ and may not be available in all regions or
+                    device configurations. Please use an OpenRouter model instead, or update your
+                    browser to the latest version.
                   </p>
                 </div>
               )}

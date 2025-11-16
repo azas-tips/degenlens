@@ -17,11 +17,12 @@ export function isGeminiNanoSupported(): boolean {
 
 /**
  * Get Gemini Nano capabilities
- * @returns Capabilities object or null if not supported
+ * @returns Capabilities object (never null - returns 'no' for unsupported browsers)
  */
-export async function getGeminiNanoCapabilities(): Promise<GeminiNanoCapabilities | null> {
+export async function getGeminiNanoCapabilities(): Promise<GeminiNanoCapabilities> {
   if (!isGeminiNanoSupported()) {
-    return null;
+    console.log('[Gemini Nano] Not supported in this browser');
+    return { available: 'no' };
   }
 
   try {
@@ -30,7 +31,7 @@ export async function getGeminiNanoCapabilities(): Promise<GeminiNanoCapabilitie
     return capabilities;
   } catch (error) {
     console.error('[Gemini Nano] Failed to get capabilities:', error);
-    return null;
+    return { available: 'no' };
   }
 }
 
