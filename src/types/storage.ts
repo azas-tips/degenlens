@@ -48,7 +48,7 @@ export const DEFAULT_STORAGE: AppStorageV1 = {
     maxPairs: 20, // Fixed: Top 20 pairs for comprehensive analysis
     pairMaxAge: 24, // Default: Show pairs created within 24 hours
     quoteTokens: {}, // Empty by default - will use chain defaults when first selected
-    layoutMode: 'single-column', // Default: Single column layout
+    layoutMode: 'two-column', // Default: Two-column layout for PC
   },
   telemetry_enabled: false,
 };

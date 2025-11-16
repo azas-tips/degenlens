@@ -83,7 +83,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   timeframe: DEFAULT_TIMEFRAME,
   pairMaxAge: 24, // Default: Show pairs created within 24 hours
   quoteTokens: {}, // Empty by default
-  layoutMode: 'single-column', // Default: Single column layout
+  layoutMode: 'two-column', // Default: Two-column layout for PC
 
   // Default temporary state
   analyzing: false,
@@ -217,7 +217,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           timeframe: prefs.timeframe || DEFAULT_TIMEFRAME,
           pairMaxAge: prefs.pairMaxAge !== undefined ? prefs.pairMaxAge : 24,
           quoteTokens: prefs.quoteTokens || {},
-          layoutMode: prefs.layoutMode || 'single-column',
+          layoutMode: prefs.layoutMode || 'two-column',
         });
       }
     } catch (error) {
