@@ -1,9 +1,9 @@
 // Model Selector Component
-// Fetches and displays available OpenRouter models with pricing
+// Fetches and displays available models (OpenRouter + Gemini Nano)
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from '@/i18n';
-import type { OpenRouterModel } from '@/types/openrouter';
+import type { AvailableModel } from '@/api/models';
 
 interface ModelSelectorProps {
   value: string;
@@ -42,8 +42,8 @@ function extractProvider(modelId: string): string {
 /**
  * Get unique providers from models list
  */
-function getUniqueProviders(models: OpenRouterModel[]): string[] {
-  const providers = new Set(models.map(m => extractProvider(m.id)));
+function getUniqueProviders(models: AvailableModel[]): string[] {
+  const providers = new Set(models.map(m => (m.isBuiltIn ? 'Built-in' : extractProvider(m.id))));
   return Array.from(providers).sort();
 }
 
@@ -56,7 +56,7 @@ export function ModelSelector({
   layoutMode = 'single-column',
 }: ModelSelectorProps) {
   const { t } = useTranslation();
-  const [models, setModels] = useState<OpenRouterModel[]>([]);
+  const [models, setModels] = useState<AvailableModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,7 +74,7 @@ export function ModelSelector({
         id: string;
         type: string;
         error?: string;
-        data?: OpenRouterModel[];
+        data?: AvailableModel[];
       }
 
       port.onMessage.addListener((message: ModelsResultMessage) => {
@@ -179,7 +179,12 @@ export function ModelSelector({
    * Actual usage: ~280 prompt + ~500 completion tokens per pair
    * Estimated with buffer: 300 prompt + 600 completion tokens per pair
    */
-  const getEstimatedCost = (model: OpenRouterModel, pairCount: number = 20): string => {
+  const getEstimatedCost = (model: AvailableModel, pairCount: number = 20): string => {
+    // Gemini Nano is free
+    if (model.isBuiltIn) {
+      return 'Free';
+    }
+
     // Conservative estimates with safety margin
     // Prompt tokens include: system prompt + pair data formatting
     const estimatedPromptTokens = calculateEstimatedPromptTokens(pairCount);
@@ -187,8 +192,8 @@ export function ModelSelector({
     const estimatedCompletionTokens = 600 * pairCount;
 
     // Calculate cost separately for prompt and completion (different pricing)
-    const promptCost = parseFloat(model.pricing.prompt) * estimatedPromptTokens;
-    const completionCost = parseFloat(model.pricing.completion) * estimatedCompletionTokens;
+    const promptCost = parseFloat(model.pricing?.prompt || '0') * estimatedPromptTokens;
+    const completionCost = parseFloat(model.pricing?.completion || '0') * estimatedCompletionTokens;
     const totalCost = promptCost + completionCost;
 
     return totalCost < 0.01 ? '< $0.01' : `~$${totalCost.toFixed(2)}`;
@@ -232,15 +237,18 @@ export function ModelSelector({
 
     // Filter by selected providers
     if (selectedProviders.length > 0) {
-      filtered = filtered.filter(model => selectedProviders.includes(extractProvider(model.id)));
+      filtered = filtered.filter(model =>
+        selectedProviders.includes(model.isBuiltIn ? 'Built-in' : extractProvider(model.id))
+      );
     }
 
     // Filter by max input tokens (based on pair count)
     if (maxPairs && maxPairs > 0) {
       const requiredTokens = calculateEstimatedPromptTokens(maxPairs);
       filtered = filtered.filter(model => {
-        const maxInputTokens =
-          model.context_length - (model.top_provider?.max_completion_tokens || 8192);
+        const contextLength = model.context_length || 4096;
+        const maxCompletionTokens = model.top_provider?.max_completion_tokens || 8192;
+        const maxInputTokens = contextLength - maxCompletionTokens;
         return maxInputTokens >= requiredTokens;
       });
     }
@@ -413,8 +421,10 @@ export function ModelSelector({
               .filter(m => favoriteModels.includes(m.id))
               .map(model => (
                 <option key={model.id} value={model.id}>
-                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
-                  {formatPrice(model.pricing.completion)}/1M
+                  {model.name}
+                  {model.isBuiltIn
+                    ? ' - Free (Built-in)'
+                    : ` - In: ${formatPrice(model.pricing?.prompt || '0')}/1M | Out: ${formatPrice(model.pricing?.completion || '0')}/1M`}
                 </option>
               ))}
           </optgroup>
@@ -427,8 +437,10 @@ export function ModelSelector({
               .filter(m => !favoriteModels.includes(m.id))
               .map(model => (
                 <option key={model.id} value={model.id}>
-                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
-                  {formatPrice(model.pricing.completion)}/1M
+                  {model.name}
+                  {model.isBuiltIn
+                    ? ' - Free (Built-in)'
+                    : ` - In: ${formatPrice(model.pricing?.prompt || '0')}/1M | Out: ${formatPrice(model.pricing?.completion || '0')}/1M`}
                 </option>
               ))}
           </optgroup>
@@ -455,7 +467,7 @@ export function ModelSelector({
             <span className="text-gray-400">{t('form.maxInputTokens')}:</span>
             <span className="text-neon-cyan font-bold">
               {(
-                selectedModel.context_length -
+                (selectedModel.context_length || 4096) -
                 (selectedModel.top_provider?.max_completion_tokens || 8192)
               ).toLocaleString()}{' '}
               tokens

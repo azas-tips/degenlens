@@ -4,10 +4,10 @@
 import type { AnalyzeReq } from '@/shared/schema';
 import { handleApiError } from '@/shared/errors';
 import { fetchPairsByChain } from '@/api/dexscreener';
-import { chatCompletion, fetchModels } from '@/api/openrouter';
+import { callLLM } from '@/api/llm-client';
+import { fetchAvailableModels, type AvailableModel } from '@/api/models';
 import { buildAnalysisPrompt } from '../utils/prompt-builder';
 import { STORAGE_KEYS } from '@/types/storage';
-import type { OpenRouterModel } from '@/types/openrouter';
 import type { AnalysisResult } from '@/types/analysis';
 import { calculateRiskLevel } from '@/utils/risk-assessment';
 
@@ -64,9 +64,9 @@ export async function handleAnalyzeRequest(
     if (aborted) return;
 
     // Fetch model information for accurate cost calculation
-    let modelInfo: OpenRouterModel | undefined;
+    let modelInfo: AvailableModel | undefined;
     try {
-      const models = await fetchModels();
+      const models = await fetchAvailableModels();
       modelInfo = models.find(m => m.id === model);
     } catch (error) {
       console.warn('[Analyze] Failed to fetch model info for cost calculation:', error);
@@ -108,16 +108,7 @@ export async function handleAnalyzeRequest(
     }, 20000); // Every 20 seconds
 
     try {
-      const llmResponse = await chatCompletion({
-        model,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.3, // Lower temperature for more consistent analysis
-      });
+      const llmResponse = await callLLM(model, prompt, 0.3);
 
       clearInterval(keepAliveInterval);
 
@@ -141,7 +132,7 @@ export async function handleAnalyzeRequest(
       if (aborted) return;
 
       // Extract LLM response
-      const llmContent = llmResponse.choices?.[0]?.message?.content || '';
+      const llmContent = llmResponse.content || '';
 
       console.log(`[Analyze] LLM response received (${llmContent.length} chars)`);
 
@@ -277,12 +268,17 @@ export async function handleAnalyzeRequest(
 function calculateActualCost(
   promptTokens: number,
   completionTokens: number,
-  modelInfo: OpenRouterModel | undefined
+  modelInfo: AvailableModel | undefined
 ): number {
-  if (!modelInfo) {
+  if (!modelInfo || !modelInfo.pricing) {
     // Fallback to rough estimate if model info not available
     const totalTokens = promptTokens + completionTokens;
     return (totalTokens / 1_000_000) * 3.0; // Default $3 per 1M tokens
+  }
+
+  // Built-in models (Gemini Nano) are free
+  if (modelInfo.isBuiltIn) {
+    return 0;
   }
 
   // OpenRouter pricing is per token (not per 1M)
