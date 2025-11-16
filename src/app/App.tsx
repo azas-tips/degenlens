@@ -52,7 +52,7 @@ function App() {
       ></div>
 
       {/* Header with Navigation */}
-      <header className="bg-cyber-card/50 backdrop-blur-md border-b border-purple-500/30 sticky top-0 z-50 shadow-neon-purple">
+      <header className="fixed top-0 left-0 right-0 bg-cyber-card/50 backdrop-blur-md border-b border-purple-500/30 z-50 shadow-neon-purple">
         <div className="container mx-auto max-w-6xl px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Title */}
@@ -174,7 +174,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto max-w-6xl px-6 py-8">
+      <main className="container mx-auto max-w-6xl px-6 py-8 pt-24">
         {tab === 'analysis' ? (
           <AnalysisSection onNavigateToSettings={() => setTab('settings')} />
         ) : tab === 'history' ? (
