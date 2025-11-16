@@ -445,6 +445,12 @@ export function ModelSelector({
       {/* Selected Model Info */}
       {selectedModel && (
         <div className="text-sm font-mono space-y-2 bg-cyber-darker/50 border border-purple-500/20 rounded-lg p-4">
+          {/* Selected Model Name */}
+          <div className="pb-2 border-b border-purple-500/20">
+            <div className="text-xs text-gray-400 mb-1">Selected Model:</div>
+            <div className="text-neon-cyan font-bold break-words">{selectedModel.name}</div>
+          </div>
+
           <div className="flex justify-between items-center">
             <span className="text-gray-400">{t('form.maxInputTokens')}:</span>
             <span className="text-neon-cyan font-bold">
