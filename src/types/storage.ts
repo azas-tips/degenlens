@@ -23,6 +23,7 @@ export interface AppStorageV1 {
     maxPairs: number; // Number of pairs to analyze (1-100)
     pairMaxAge: number | null; // Max pair age in hours (null = all pairs)
     quoteTokens: Record<string, string[]>; // Selected quote tokens per chain { solana: ['SOL', 'USDC'], ethereum: ['ETH'] }
+    layoutMode: 'single-column' | 'two-column'; // Layout mode for analysis UI
   };
   custom_prompt?: string; // Custom analysis prompt (optional)
   telemetry_enabled?: boolean; // Local error logging enabled (default: false)
@@ -47,6 +48,7 @@ export const DEFAULT_STORAGE: AppStorageV1 = {
     maxPairs: 20, // Fixed: Top 20 pairs for comprehensive analysis
     pairMaxAge: 24, // Default: Show pairs created within 24 hours
     quoteTokens: {}, // Empty by default - will use chain defaults when first selected
+    layoutMode: 'single-column', // Default: Single column layout
   },
   telemetry_enabled: false,
 };

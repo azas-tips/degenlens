@@ -251,6 +251,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const maxPairs = useAppStore(state => state.maxPairs);
   const pairMaxAge = useAppStore(state => state.pairMaxAge);
   const quoteTokens = useAppStore(state => state.quoteTokens);
+  const layoutMode = useAppStore(state => state.layoutMode);
   const analyzing = useAppStore(state => state.analyzing);
   const progress = useAppStore(state => state.progress);
   const results = useAppStore(state => state.results);
@@ -263,6 +264,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
   const setMaxPairs = useAppStore(state => state.setMaxPairs);
   const setPairMaxAge = useAppStore(state => state.setPairMaxAge);
   const setQuoteTokensForChain = useAppStore(state => state.setQuoteTokensForChain);
+  const setLayoutMode = useAppStore(state => state.setLayoutMode);
 
   // Local state for custom pair age input
   const [customPairAge, setCustomPairAge] = useState<string>('');
@@ -357,379 +359,441 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
 
   return (
     <div className="space-y-6 relative z-10">
-      {/* Controls Section */}
-      <div className="cyber-card p-6 rounded-xl shadow-cyber-card animate-fade-in">
-        <h2 className="text-xl font-bold mb-6 neon-text tracking-wide">
-          {t('analysisSection.title')}
-        </h2>
+      {/* Layout Toggle - Only visible on xl screens (1280px+) */}
+      <div className="hidden xl:flex items-center justify-between mb-6 cyber-card p-4 rounded-xl shadow-cyber-card animate-fade-in">
+        <h2 className="text-xl font-bold neon-text tracking-wide">{t('analysisSection.title')}</h2>
 
-        {/* Row 1: Chain + Timeframe + Max Pairs + Pair Age */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          {/* Chain Selector */}
-          <section>
-            <label htmlFor="chain-select" className="block text-sm font-medium mb-2 text-neon-cyan">
-              {t('form.chain')}
-            </label>
-            <select
-              id="chain-select"
-              value={chain}
-              onChange={e => setChain(e.target.value)}
-              disabled={analyzing}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
-            >
-              <option value="solana">Solana</option>
-              <option value="ethereum">Ethereum</option>
-              <option value="bsc">BSC</option>
-              <option value="polygonzkevm">Polygon zkEVM</option>
-              <option value="arbitrum">Arbitrum</option>
-              <option value="optimism">Optimism</option>
-              <option value="base">Base</option>
-            </select>
-          </section>
-
-          {/* Timeframe Selector */}
-          <section>
-            <label
-              htmlFor="timeframe-select"
-              className="block text-sm font-medium mb-2 text-neon-cyan"
-            >
-              {t('form.timeframe')}
-            </label>
-            <select
-              id="timeframe-select"
-              value={timeframe}
-              onChange={e => setTimeframe(e.target.value as Timeframe)}
-              disabled={analyzing}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
-            >
-              {Object.entries(TIMEFRAMES).map(([key, { labelKey }]) => (
-                <option key={key} value={key}>
-                  {t(labelKey)}
-                </option>
-              ))}
-            </select>
-          </section>
-
-          {/* Max Pairs Selector */}
-          <section>
-            <label
-              htmlFor="maxpairs-select"
-              className="block text-sm font-medium mb-2 text-neon-cyan"
-            >
-              {t('form.maxPairsLabel')}
-            </label>
-            <select
-              id="maxpairs-select"
-              value={maxPairs}
-              onChange={e => setMaxPairs(Number(e.target.value))}
-              disabled={analyzing}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
-            >
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="40">40</option>
-              <option value="50">50</option>
-              <option value="60">60</option>
-              <option value="70">70</option>
-              <option value="80">80</option>
-              <option value="90">90</option>
-              <option value="100">100</option>
-            </select>
-          </section>
-
-          {/* Pair Age Selector */}
-          <section>
-            <label
-              htmlFor="pairage-select"
-              className="block text-sm font-medium mb-2 text-neon-cyan"
-            >
-              {t('form.pairAge')}
-            </label>
-            <select
-              id="pairage-select"
-              value={
-                pairMaxAge === null
-                  ? 'all'
-                  : pairMaxAge === 1
-                    ? '1'
-                    : pairMaxAge === 6
-                      ? '6'
-                      : pairMaxAge === 24
-                        ? '24'
-                        : pairMaxAge === 168
-                          ? '168'
-                          : 'custom'
-              }
-              onChange={e => {
-                const value = e.target.value;
-                if (value === 'all') {
-                  setPairMaxAge(null);
-                  setCustomPairAge('');
-                } else if (value === 'custom') {
-                  setCustomPairAge('');
-                  setPairMaxAge(24); // Set a default for custom
-                } else {
-                  setPairMaxAge(Number(value));
-                  setCustomPairAge('');
-                }
-              }}
-              disabled={analyzing}
-              className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
-            >
-              <option value="1">{t('form.pairAge1h')}</option>
-              <option value="6">{t('form.pairAge6h')}</option>
-              <option value="24">{t('form.pairAge24h')}</option>
-              <option value="168">{t('form.pairAge1w')}</option>
-              <option value="custom">{t('form.pairAgeCustom')}</option>
-              <option value="all">{t('form.pairAgeAll')}</option>
-            </select>
-          </section>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 font-mono">Layout:</span>
+          <button
+            onClick={() => setLayoutMode('single-column')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              layoutMode === 'single-column'
+                ? 'bg-primary shadow-neon-purple text-white'
+                : 'text-gray-400 bg-cyber-darker hover:shadow-neon-purple/50'
+            }`}
+            title={t('analysisSection.layoutSingle')}
+          >
+            <span>📄 Single</span>
+          </button>
+          <button
+            onClick={() => setLayoutMode('two-column')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              layoutMode === 'two-column'
+                ? 'bg-primary shadow-neon-purple text-white'
+                : 'text-gray-400 bg-cyber-darker hover:shadow-neon-purple/50'
+            }`}
+            title={t('analysisSection.layoutSplit')}
+          >
+            <span>📊 Split</span>
+          </button>
         </div>
+      </div>
 
-        {/* Row 2: Custom Pair Age Input (shown when "Custom" is selected) */}
-        {showCustomInput && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <section className="md:col-start-4">
-              <label
-                htmlFor="custom-pairage-input"
-                className="block text-sm font-medium mb-2 text-neon-cyan"
-              >
-                {t('form.pairAgeCustomHours')}
-              </label>
-              <input
-                id="custom-pairage-input"
-                type="number"
-                min="1"
-                value={customPairAge || (pairMaxAge ?? '')}
-                onChange={e => {
-                  const val = e.target.value;
-                  setCustomPairAge(val);
-                  if (val && Number(val) > 0) {
-                    setPairMaxAge(Number(val));
+      {/* Conditional Grid Layout */}
+      <div
+        className={`grid gap-6 ${
+          layoutMode === 'two-column' ? 'xl:grid-cols-[20%_80%]' : 'grid-cols-1'
+        }`}
+      >
+        {/* Left Column: Controls (sticky in 2-column mode) */}
+        <div
+          className={`space-y-6 ${
+            layoutMode === 'two-column' ? 'xl:sticky xl:top-20 xl:self-start' : ''
+          }`}
+        >
+          {/* Controls Section */}
+          <div className="cyber-card p-6 rounded-xl shadow-cyber-card animate-fade-in">
+            {/* Title for smaller screens */}
+            <h2 className="xl:hidden text-xl font-bold mb-6 neon-text tracking-wide">
+              {t('analysisSection.title')}
+            </h2>
+
+            {/* Row 1: Chain + Timeframe + Max Pairs + Pair Age */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              {/* Chain Selector */}
+              <section>
+                <label
+                  htmlFor="chain-select"
+                  className="block text-sm font-medium mb-2 text-neon-cyan"
+                >
+                  {t('form.chain')}
+                </label>
+                <select
+                  id="chain-select"
+                  value={chain}
+                  onChange={e => setChain(e.target.value)}
+                  disabled={analyzing}
+                  className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+                >
+                  <option value="solana">Solana</option>
+                  <option value="ethereum">Ethereum</option>
+                  <option value="bsc">BSC</option>
+                  <option value="polygonzkevm">Polygon zkEVM</option>
+                  <option value="arbitrum">Arbitrum</option>
+                  <option value="optimism">Optimism</option>
+                  <option value="base">Base</option>
+                </select>
+              </section>
+
+              {/* Timeframe Selector */}
+              <section>
+                <label
+                  htmlFor="timeframe-select"
+                  className="block text-sm font-medium mb-2 text-neon-cyan"
+                >
+                  {t('form.timeframe')}
+                </label>
+                <select
+                  id="timeframe-select"
+                  value={timeframe}
+                  onChange={e => setTimeframe(e.target.value as Timeframe)}
+                  disabled={analyzing}
+                  className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+                >
+                  {Object.entries(TIMEFRAMES).map(([key, { labelKey }]) => (
+                    <option key={key} value={key}>
+                      {t(labelKey)}
+                    </option>
+                  ))}
+                </select>
+              </section>
+
+              {/* Max Pairs Selector */}
+              <section>
+                <label
+                  htmlFor="maxpairs-select"
+                  className="block text-sm font-medium mb-2 text-neon-cyan"
+                >
+                  {t('form.maxPairsLabel')}
+                </label>
+                <select
+                  id="maxpairs-select"
+                  value={maxPairs}
+                  onChange={e => setMaxPairs(Number(e.target.value))}
+                  disabled={analyzing}
+                  className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="30">30</option>
+                  <option value="40">40</option>
+                  <option value="50">50</option>
+                  <option value="60">60</option>
+                  <option value="70">70</option>
+                  <option value="80">80</option>
+                  <option value="90">90</option>
+                  <option value="100">100</option>
+                </select>
+              </section>
+
+              {/* Pair Age Selector */}
+              <section>
+                <label
+                  htmlFor="pairage-select"
+                  className="block text-sm font-medium mb-2 text-neon-cyan"
+                >
+                  {t('form.pairAge')}
+                </label>
+                <select
+                  id="pairage-select"
+                  value={
+                    pairMaxAge === null
+                      ? 'all'
+                      : pairMaxAge === 1
+                        ? '1'
+                        : pairMaxAge === 6
+                          ? '6'
+                          : pairMaxAge === 24
+                            ? '24'
+                            : pairMaxAge === 168
+                              ? '168'
+                              : 'custom'
                   }
-                }}
-                disabled={analyzing}
-                placeholder="24"
-                className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
-              />
-            </section>
-          </div>
-        )}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value === 'all') {
+                      setPairMaxAge(null);
+                      setCustomPairAge('');
+                    } else if (value === 'custom') {
+                      setCustomPairAge('');
+                      setPairMaxAge(24); // Set a default for custom
+                    } else {
+                      setPairMaxAge(Number(value));
+                      setCustomPairAge('');
+                    }
+                  }}
+                  disabled={analyzing}
+                  className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+                >
+                  <option value="1">{t('form.pairAge1h')}</option>
+                  <option value="6">{t('form.pairAge6h')}</option>
+                  <option value="24">{t('form.pairAge24h')}</option>
+                  <option value="168">{t('form.pairAge1w')}</option>
+                  <option value="custom">{t('form.pairAgeCustom')}</option>
+                  <option value="all">{t('form.pairAgeAll')}</option>
+                </select>
+              </section>
+            </div>
 
-        {/* Row 3: Quote Token Filter */}
-        {availableQuoteTokens.length > 0 && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-3 text-neon-cyan">
-              {t('form.quoteTokens')}
-            </label>
-            <div className="p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg">
-              <p className="text-xs text-gray-400 mb-3">{t('form.quoteTokensDesc')}</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {availableQuoteTokens.map(token => {
-                  const isSelected = selectedQuoteTokens.includes(token.symbol);
-                  return (
-                    <label
-                      key={token.symbol}
-                      className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-primary/20 border-2 border-primary text-neon-cyan'
-                          : 'bg-cyber-card border-2 border-purple-500/20 hover:border-purple-500/40'
-                      } ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            setQuoteTokensForChain(chain, [...selectedQuoteTokens, token.symbol]);
-                          } else {
-                            setQuoteTokensForChain(
-                              chain,
-                              selectedQuoteTokens.filter(s => s !== token.symbol)
-                            );
-                          }
-                        }}
-                        disabled={analyzing}
-                        className="w-4 h-4 accent-primary cursor-pointer"
-                      />
-                      <div className="flex-1">
-                        <div className="font-bold text-sm">{token.symbol}</div>
-                        <div className="text-xs text-gray-400">{token.name}</div>
-                      </div>
-                    </label>
-                  );
-                })}
+            {/* Row 2: Custom Pair Age Input (shown when "Custom" is selected) */}
+            {showCustomInput && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <section className="md:col-start-4">
+                  <label
+                    htmlFor="custom-pairage-input"
+                    className="block text-sm font-medium mb-2 text-neon-cyan"
+                  >
+                    {t('form.pairAgeCustomHours')}
+                  </label>
+                  <input
+                    id="custom-pairage-input"
+                    type="number"
+                    min="1"
+                    value={customPairAge || (pairMaxAge ?? '')}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setCustomPairAge(val);
+                      if (val && Number(val) > 0) {
+                        setPairMaxAge(Number(val));
+                      }
+                    }}
+                    disabled={analyzing}
+                    placeholder="24"
+                    className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 transition-all font-mono text-base hover:border-purple-500/50"
+                  />
+                </section>
               </div>
-              {selectedQuoteTokens.length > 0 && (
-                <div className="mt-3 text-xs text-neon-green font-mono">
-                  ✓ {t('form.quoteTokensSelected', { count: selectedQuoteTokens.length })}
+            )}
+
+            {/* Row 3: Quote Token Filter */}
+            {availableQuoteTokens.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-3 text-neon-cyan">
+                  {t('form.quoteTokens')}
+                </label>
+                <div className="p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg">
+                  <p className="text-xs text-gray-400 mb-3">{t('form.quoteTokensDesc')}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableQuoteTokens.map(token => {
+                      const isSelected = selectedQuoteTokens.includes(token.symbol);
+                      return (
+                        <label
+                          key={token.symbol}
+                          className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-primary/20 border-2 border-primary text-neon-cyan'
+                              : 'bg-cyber-card border-2 border-purple-500/20 hover:border-purple-500/40'
+                          } ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setQuoteTokensForChain(chain, [
+                                  ...selectedQuoteTokens,
+                                  token.symbol,
+                                ]);
+                              } else {
+                                setQuoteTokensForChain(
+                                  chain,
+                                  selectedQuoteTokens.filter(s => s !== token.symbol)
+                                );
+                              }
+                            }}
+                            disabled={analyzing}
+                            className="w-4 h-4 accent-primary cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <div className="font-bold text-sm">{token.symbol}</div>
+                            <div className="text-xs text-gray-400">{token.name}</div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {selectedQuoteTokens.length > 0 && (
+                    <div className="mt-3 text-xs text-neon-green font-mono">
+                      ✓ {t('form.quoteTokensSelected', { count: selectedQuoteTokens.length })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Row 4: Model Selector (full width with cost estimate) */}
+            <ModelSelector
+              value={model}
+              onChange={setModel}
+              disabled={analyzing}
+              onNavigateToSettings={onNavigateToSettings}
+              maxPairs={maxPairs}
+            />
+          </div>
+
+          {/* Exclusion List Manager */}
+          <ExclusionListManager chainId={chain} />
+
+          {/* Analysis Controls Card */}
+          <div className="cyber-card p-6 rounded-xl border-2 border-purple-500/30 shadow-neon-purple">
+            {/* Action Buttons */}
+            <div className="flex space-x-3 mt-6">
+              {analyzing ? (
+                <button
+                  onClick={cancel}
+                  className="neon-button flex-1 px-6 py-3 rounded-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 shadow-neon-pink transition-all text-lg"
+                >
+                  <span>🛑 {t('form.cancel')}</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={!canAnalyze}
+                    className={`neon-button flex-1 px-6 py-3 rounded-lg font-bold transition-all text-lg ${
+                      canAnalyze
+                        ? 'bg-gradient-to-r from-primary to-neon-purple hover:from-primary-light hover:to-neon-pink shadow-neon-purple hover:shadow-neon-pink hover:scale-[1.02]'
+                        : 'bg-gray-700 cursor-not-allowed opacity-50'
+                    }`}
+                  >
+                    <span>{t('form.analyze')}</span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Progress Display */}
+            {(() => {
+              console.log('[AnalysisSection] Checking progress display - analyzing:', analyzing);
+              if (analyzing) {
+                console.log('[AnalysisSection] -> Showing progress bar');
+                return (
+                  <div className="space-y-3 mt-6">
+                    <div className="flex justify-between text-sm font-mono">
+                      <span className="text-neon-cyan font-semibold">
+                        {progress.step ? t(`progress.${progress.step}`) : t('form.analyzing')}
+                      </span>
+                      <span className="text-neon-green">{progress.progress}%</span>
+                    </div>
+                    <div className="w-full bg-cyber-darker rounded-full h-3 border border-purple-500/30 overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-300 relative"
+                        style={{
+                          width: `${progress.progress}%`,
+                          background: 'linear-gradient(90deg, #8B5CF6, #BD00FF, #FF006E)',
+                          boxShadow: '0 0 20px rgba(139, 92, 246, 0.6)',
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-gradient-shift"></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              console.log('[AnalysisSection] -> No progress bar');
+              return null;
+            })()}
+          </div>
+        </div>
+        {/* End of Left Column (Controls) */}
+
+        {/* Right Column: Results */}
+        <div className="space-y-6">
+          {/* Error Display */}
+          {error && (
+            <div className="cyber-card p-5 border-2 border-neon-pink/50 rounded-xl shadow-neon-pink animate-slide-in">
+              <div>
+                <p className="font-bold text-neon-pink text-lg mb-2">{t('error.title')}</p>
+                <p className="text-gray-200">{error}</p>
+              </div>
+              {retryAfterMs > 0 && (
+                <div className="text-sm text-neon-cyan mt-3 font-mono">
+                  ⏱️ {t('error.retryWait', { seconds: Math.ceil(retryAfterMs / 1000) })}
+                </div>
+              )}
+              {errorSuggestions.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-neon-cyan mb-2">
+                    💡 {t('error.suggestions')}
+                  </p>
+                  <ul className="space-y-1 text-sm text-gray-300">
+                    {errorSuggestions.map((suggestion, i) => (
+                      <li key={i} className="flex items-start">
+                        <span className="text-neon-green mr-2">→</span>
+                        <span>{suggestion}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Row 4: Model Selector (full width with cost estimate) */}
-        <ModelSelector
-          value={model}
-          onChange={setModel}
-          disabled={analyzing}
-          onNavigateToSettings={onNavigateToSettings}
-          maxPairs={maxPairs}
-        />
-      </div>
-
-      {/* Exclusion List Manager */}
-      <ExclusionListManager chainId={chain} />
-
-      {/* Analysis Controls Card */}
-      <div className="cyber-card p-6 rounded-xl border-2 border-purple-500/30 shadow-neon-purple">
-        {/* Action Buttons */}
-        <div className="flex space-x-3 mt-6">
-          {analyzing ? (
-            <button
-              onClick={cancel}
-              className="neon-button flex-1 px-6 py-3 rounded-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 shadow-neon-pink transition-all text-lg"
-            >
-              <span>🛑 {t('form.cancel')}</span>
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={handleAnalyze}
-                disabled={!canAnalyze}
-                className={`neon-button flex-1 px-6 py-3 rounded-lg font-bold transition-all text-lg ${
-                  canAnalyze
-                    ? 'bg-gradient-to-r from-primary to-neon-purple hover:from-primary-light hover:to-neon-pink shadow-neon-purple hover:shadow-neon-pink hover:scale-[1.02]'
-                    : 'bg-gray-700 cursor-not-allowed opacity-50'
-                }`}
-              >
-                <span>{t('form.analyze')}</span>
-              </button>
-            </>
           )}
-        </div>
 
-        {/* Progress Display */}
-        {(() => {
-          console.log('[AnalysisSection] Checking progress display - analyzing:', analyzing);
-          if (analyzing) {
-            console.log('[AnalysisSection] -> Showing progress bar');
-            return (
-              <div className="space-y-3 mt-6">
-                <div className="flex justify-between text-sm font-mono">
-                  <span className="text-neon-cyan font-semibold">
-                    {progress.step ? t(`progress.${progress.step}`) : t('form.analyzing')}
-                  </span>
-                  <span className="text-neon-green">{progress.progress}%</span>
-                </div>
-                <div className="w-full bg-cyber-darker rounded-full h-3 border border-purple-500/30 overflow-hidden relative">
-                  <div
-                    className="h-full rounded-full transition-all duration-300 relative"
-                    style={{
-                      width: `${progress.progress}%`,
-                      background: 'linear-gradient(90deg, #8B5CF6, #BD00FF, #FF006E)',
-                      boxShadow: '0 0 20px rgba(139, 92, 246, 0.6)',
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-gradient-shift"></div>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-          console.log('[AnalysisSection] -> No progress bar');
-          return null;
-        })()}
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="cyber-card p-5 border-2 border-neon-pink/50 rounded-xl shadow-neon-pink animate-slide-in">
+          {/* Results Section */}
           <div>
-            <p className="font-bold text-neon-pink text-lg mb-2">{t('error.title')}</p>
-            <p className="text-gray-200">{error}</p>
-          </div>
-          {retryAfterMs > 0 && (
-            <div className="text-sm text-neon-cyan mt-3 font-mono">
-              ⏱️ {t('error.retryWait', { seconds: Math.ceil(retryAfterMs / 1000) })}
-            </div>
-          )}
-          {errorSuggestions.length > 0 && (
-            <div className="mt-4">
-              <p className="text-sm font-semibold text-neon-cyan mb-2">
-                💡 {t('error.suggestions')}
-              </p>
-              <ul className="space-y-1 text-sm text-gray-300">
-                {errorSuggestions.map((suggestion, i) => (
-                  <li key={i} className="flex items-start">
-                    <span className="text-neon-green mr-2">→</span>
-                    <span>{suggestion}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Results Section */}
-      <div>
-        {(() => {
-          console.log(
-            '[AnalysisSection] Rendering results section - results:',
-            !!results,
-            'analyzing:',
-            analyzing
-          );
-          if (results) {
-            console.log('[AnalysisSection] -> Showing TopPickDisplay');
-            return <TopPickDisplay data={results} />;
-          } else if (analyzing) {
-            console.log('[AnalysisSection] -> Showing LoadingSkeleton');
-            return <LoadingSkeleton />;
-          } else {
-            console.log('[AnalysisSection] -> Showing empty state');
-            return (
-              <div className="gradient-border rounded-2xl p-12 text-center animate-fade-in scanline">
-                <div className="mb-8 flex items-center justify-center">
-                  <div className="relative w-24 h-24">
-                    {/* Rotating outer ring */}
-                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-neon-purple border-r-neon-cyan animate-spin"></div>
-                    {/* Inner hexagon */}
-                    <div
-                      className="absolute inset-4 bg-gradient-to-br from-primary/20 to-neon-purple/20 backdrop-blur-sm"
-                      style={{
-                        clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                      }}
-                    >
-                      <div
-                        className="absolute inset-0 border-2 border-purple-500/50"
-                        style={{
-                          clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                        }}
-                      ></div>
+            {(() => {
+              console.log(
+                '[AnalysisSection] Rendering results section - results:',
+                !!results,
+                'analyzing:',
+                analyzing
+              );
+              if (results) {
+                console.log('[AnalysisSection] -> Showing TopPickDisplay');
+                return <TopPickDisplay data={results} />;
+              } else if (analyzing) {
+                console.log('[AnalysisSection] -> Showing LoadingSkeleton');
+                return <LoadingSkeleton />;
+              } else {
+                console.log('[AnalysisSection] -> Showing empty state');
+                return (
+                  <div className="gradient-border rounded-2xl p-12 text-center animate-fade-in scanline">
+                    <div className="mb-8 flex items-center justify-center">
+                      <div className="relative w-24 h-24">
+                        {/* Rotating outer ring */}
+                        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-neon-purple border-r-neon-cyan animate-spin"></div>
+                        {/* Inner hexagon */}
+                        <div
+                          className="absolute inset-4 bg-gradient-to-br from-primary/20 to-neon-purple/20 backdrop-blur-sm"
+                          style={{
+                            clipPath:
+                              'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                          }}
+                        >
+                          <div
+                            className="absolute inset-0 border-2 border-purple-500/50"
+                            style={{
+                              clipPath:
+                                'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                            }}
+                          ></div>
+                        </div>
+                        {/* Center dot */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-neon-green animate-glow-pulse"></div>
+                        </div>
+                      </div>
                     </div>
-                    {/* Center dot */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-3 h-3 rounded-full bg-neon-green animate-glow-pulse"></div>
+                    <p className="text-lg font-mono text-neon-cyan mb-2">
+                      {t('empty.instructions')}
+                    </p>
+                    <p className="text-sm font-mono text-gray-400">{t('empty.thenAnalyze')}</p>
+                    <div className="mt-6 flex items-center justify-center space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-neon-green animate-glow-pulse"></div>
+                      <span className="text-xs text-gray-500 font-mono uppercase tracking-wider">
+                        {t('analysisSection.systemReady')}
+                      </span>
                     </div>
                   </div>
-                </div>
-                <p className="text-lg font-mono text-neon-cyan mb-2">{t('empty.instructions')}</p>
-                <p className="text-sm font-mono text-gray-400">{t('empty.thenAnalyze')}</p>
-                <div className="mt-6 flex items-center justify-center space-x-3">
-                  <div className="w-2 h-2 rounded-full bg-neon-green animate-glow-pulse"></div>
-                  <span className="text-xs text-gray-500 font-mono uppercase tracking-wider">
-                    {t('analysisSection.systemReady')}
-                  </span>
-                </div>
-              </div>
-            );
-          }
-        })()}
+                );
+              }
+            })()}
+          </div>
+        </div>
+        {/* End of Right Column (Results) */}
       </div>
+      {/* End of Conditional Grid Layout */}
     </div>
   );
 }
