@@ -82,17 +82,47 @@ export function ModelSelector({
         data?: AvailableModel[];
       }
 
-      port.onMessage.addListener((message: ModelsResultMessage) => {
+      port.onMessage.addListener(async (message: ModelsResultMessage) => {
         if (message.id !== requestId) return;
 
         if (message.type === 'models-result') {
+          let allModels: AvailableModel[] = [];
+
           if (message.error) {
-            // Silent error handling - don't log to console
+            console.error('[ModelSelector] Error fetching models:', message.error);
             setError(message.error);
-            setModels([]);
           } else {
-            setModels(message.data || []);
+            console.log('[ModelSelector] Received OpenRouter models:', message.data?.length || 0);
+            allModels = message.data || [];
           }
+
+          // Check Gemini Nano availability on UI side (Service Worker doesn't have window.ai)
+          try {
+            const capabilities = await getGeminiNanoCapabilities();
+            if (capabilities.available !== 'no') {
+              const geminiNanoModel: AvailableModel = {
+                id: GEMINI_NANO_MODEL_ID,
+                name: 'Gemini Nano (Built-in, Free)',
+                context_length: 4096,
+                pricing: {
+                  prompt: '0',
+                  completion: '0',
+                },
+                isBuiltIn: true,
+                description:
+                  'Chrome built-in AI model. Runs locally on your device. No API key required. ' +
+                  (capabilities.available === 'after-download'
+                    ? 'Model needs to be downloaded first.'
+                    : 'Ready to use.'),
+              };
+              allModels.push(geminiNanoModel);
+              console.log('[ModelSelector] Added Gemini Nano to models list');
+            }
+          } catch (error) {
+            console.error('[ModelSelector] Failed to check Gemini Nano:', error);
+          }
+
+          setModels(allModels);
           setLoading(false);
           port.disconnect();
         }
