@@ -410,7 +410,11 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
             </h2>
 
             {/* Row 1: Chain + Timeframe + Max Pairs + Pair Age */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div
+              className={`grid grid-cols-1 gap-6 mb-6 ${
+                layoutMode === 'single-column' ? 'md:grid-cols-4' : ''
+              }`}
+            >
               {/* Chain Selector */}
               <section>
                 <label
@@ -538,8 +542,12 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
 
             {/* Row 2: Custom Pair Age Input (shown when "Custom" is selected) */}
             {showCustomInput && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <section className="md:col-start-4">
+              <div
+                className={`grid grid-cols-1 gap-6 mb-6 ${
+                  layoutMode === 'single-column' ? 'md:grid-cols-4' : ''
+                }`}
+              >
+                <section className={layoutMode === 'single-column' ? 'md:col-start-4' : ''}>
                   <label
                     htmlFor="custom-pairage-input"
                     className="block text-sm font-medium mb-2 text-neon-cyan"
@@ -574,7 +582,11 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
                 </label>
                 <div className="p-4 bg-cyber-darker border-2 border-purple-500/30 rounded-lg">
                   <p className="text-xs text-gray-400 mb-3">{t('form.quoteTokensDesc')}</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div
+                    className={`grid gap-3 ${
+                      layoutMode === 'single-column' ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'
+                    }`}
+                  >
                     {availableQuoteTokens.map(token => {
                       const isSelected = selectedQuoteTokens.includes(token.symbol);
                       return (
