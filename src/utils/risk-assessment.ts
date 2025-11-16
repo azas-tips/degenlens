@@ -33,6 +33,11 @@ export interface ScoringBreakdown {
   volatilityReason: string;
   volatilityReasonKey: string;
   volatilityReasonParams: Record<string, string | number>;
+  activityScore: number;
+  activityMax: number;
+  activityReason: string;
+  activityReasonKey: string;
+  activityReasonParams: Record<string, string | number>;
 }
 
 /**
@@ -78,6 +83,11 @@ export function calculateRiskLevel(pair: DexPair): {
     volatilityReason: '',
     volatilityReasonKey: '',
     volatilityReasonParams: {},
+    activityScore: 0,
+    activityMax: 20,
+    activityReason: '',
+    activityReasonKey: '',
+    activityReasonParams: {},
   };
 
   // Factor 1: Contract Age (0-30 points)
@@ -442,6 +452,56 @@ export function calculateRiskLevel(pair: DexPair): {
       params: {},
       fallback: 'Pump-and-dump pattern detected',
     });
+  }
+
+  // Factor 10: Trading Activity (0-20 points)
+  const txns5m = pair.txns?.m5;
+  const txns24h = pair.txns?.h24;
+
+  // Calculate total transaction counts
+  const totalTxns5m = txns5m ? (txns5m.buys || 0) + (txns5m.sells || 0) : 0;
+  const totalTxns24h = txns24h ? (txns24h.buys || 0) + (txns24h.sells || 0) : 0;
+
+  // Check 5-minute activity (5 transactions or less = warning)
+  if (totalTxns5m <= 5 && totalTxns5m >= 0) {
+    breakdown.activityScore += 10;
+    breakdown.activityReason = `Low 5min activity (${totalTxns5m} txns)`;
+    breakdown.activityReasonKey = 'risk.activity.low5m';
+    breakdown.activityReasonParams = { count: totalTxns5m };
+    riskScore += 10;
+    factors.push({
+      key: 'results.risk.lowActivity5m',
+      params: {},
+      fallback: '⚠️ Very low recent activity (< 5 txns/5min)',
+    });
+  }
+
+  // Check 24-hour activity (10 transactions or less = warning)
+  if (totalTxns24h <= 10 && totalTxns24h >= 0) {
+    breakdown.activityScore += 10;
+    if (breakdown.activityReason) {
+      breakdown.activityReason += ` | Low 24h activity (${totalTxns24h} txns)`;
+    } else {
+      breakdown.activityReason = `Low 24h activity (${totalTxns24h} txns)`;
+    }
+    breakdown.activityReasonKey = 'risk.activity.low24h';
+    breakdown.activityReasonParams = {
+      ...breakdown.activityReasonParams,
+      count24h: totalTxns24h,
+    };
+    riskScore += 10;
+    factors.push({
+      key: 'results.risk.lowActivity24h',
+      params: {},
+      fallback: '⚠️ Very low 24h activity (< 10 txns/day)',
+    });
+  }
+
+  // Set default reason if no issues detected
+  if (breakdown.activityReason === '') {
+    breakdown.activityReason = `Active trading (5m: ${totalTxns5m} txns, 24h: ${totalTxns24h} txns)`;
+    breakdown.activityReasonKey = 'risk.activity.good';
+    breakdown.activityReasonParams = { count5m: totalTxns5m, count24h: totalTxns24h };
   }
 
   // Determine risk level based on total score

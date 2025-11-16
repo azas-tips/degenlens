@@ -130,7 +130,9 @@
       "suspiciousVolumeRatio": "⚠️ Suspicious volume/liquidity ratio (wash trading)",
       "noSocialPresence": "⚠️ No social presence (new token)",
       "hasSocialPresence": "✓ Has social presence (verified project)",
-      "pumpPattern": "⚠️ Pump-and-dump pattern detected"
+      "pumpPattern": "⚠️ Pump-and-dump pattern detected",
+      "lowActivity5m": "⚠️ Very low recent activity (< 5 txns/5min)",
+      "lowActivity24h": "⚠️ Very low 24h activity (< 10 txns/day)"
     },
     "riskBreakdown": {
       "title": "Risk Analysis Breakdown",
@@ -141,7 +143,8 @@
         "liquidity": "Liquidity",
         "labels": "Labels",
         "volume": "Volume",
-        "volatility": "Volatility"
+        "volatility": "Volatility",
+        "activity": "Trading Activity"
       }
     },
     "riskGauge": {
@@ -182,6 +185,11 @@
       "extreme": "Extreme volatility (5m: {{change5m}}%, 1h: {{change1h}}%)",
       "high": "High volatility (5m: {{change5m}}%, 1h: {{change1h}}%)",
       "normal": "Normal volatility (5m: {{change5m}}%, 1h: {{change1h}}%)"
+    },
+    "activity": {
+      "low5m": "Low 5min activity ({{count}} txns)",
+      "low24h": "Low 24h activity ({{count24h}} txns)",
+      "good": "Active trading (5m: {{count5m}} txns, 24h: {{count24h}} txns)"
     },
     "factors": {
       "age": {

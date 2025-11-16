@@ -130,7 +130,9 @@
       "suspiciousVolumeRatio": "⚠️ 疑わしい取引量/流動性比率（Wash tradingの可能性）",
       "noSocialPresence": "⚠️ ソーシャルプレゼンスなし（新規トークン）",
       "hasSocialPresence": "✓ ソーシャルプレゼンスあり（検証済みプロジェクト）",
-      "pumpPattern": "⚠️ Pump-and-dumpパターン検出"
+      "pumpPattern": "⚠️ Pump-and-dumpパターン検出",
+      "lowActivity5m": "⚠️ 直近の取引が極めて少ない（5分間で5件未満）",
+      "lowActivity24h": "⚠️ 24時間の取引が極めて少ない（10件未満）"
     },
     "riskBreakdown": {
       "title": "リスク分析内訳",
@@ -141,7 +143,8 @@
         "liquidity": "流動性",
         "labels": "ラベル",
         "volume": "取引量",
-        "volatility": "ボラティリティ"
+        "volatility": "ボラティリティ",
+        "activity": "取引活発度"
       }
     },
     "riskGauge": {
@@ -182,6 +185,11 @@
       "extreme": "極度の変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)",
       "high": "高変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)",
       "normal": "通常の変動 (5分: {{change5m}}%, 1時間: {{change1h}}%)"
+    },
+    "activity": {
+      "low5m": "5分間の取引が少ない ({{count}}件)",
+      "low24h": "24時間の取引が少ない ({{count24h}}件)",
+      "good": "活発に取引されている (5分: {{count5m}}件, 24時間: {{count24h}}件)"
     },
     "factors": {
       "age": {

@@ -221,6 +221,8 @@ export async function handleAnalyzeRequest(
                 riskLevel: riskAssessment?.level,
                 riskFactors: riskAssessment?.factors,
                 riskBreakdown: riskAssessment?.breakdown,
+                socials: matchedPair?.info?.socials,
+                websites: matchedPair?.info?.websites,
               };
             })()
           : undefined,
