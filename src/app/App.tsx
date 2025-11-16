@@ -641,6 +641,7 @@ function AnalysisSection({ onNavigateToSettings }: AnalysisSectionProps) {
               disabled={analyzing}
               onNavigateToSettings={onNavigateToSettings}
               maxPairs={maxPairs}
+              layoutMode={layoutMode}
             />
           </div>
 
