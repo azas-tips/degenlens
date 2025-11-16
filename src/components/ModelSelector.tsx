@@ -114,15 +114,9 @@ export function ModelSelector({
     setLoading(true);
     setError('');
 
-    // Check if API key exists first
-    const storage = await chrome.storage.local.get('openrouter_api_key');
-    if (!storage.openrouter_api_key) {
-      setLoading(false);
-      setError('API key not found');
-      setModels([]);
-      return;
-    }
-
+    // Always fetch models (fetchAvailableModels handles API key logic)
+    // If no OpenRouter API key: returns only Gemini Nano (if available)
+    // If OpenRouter API key exists: returns OpenRouter models + Gemini Nano
     fetchModels();
   }, [fetchModels]);
 
@@ -519,9 +513,10 @@ export function ModelSelector({
                 <div className="text-xs text-gray-400 mb-2">System Requirements:</div>
                 <ul className="text-xs text-gray-300 space-y-1">
                   <li>• Chrome 127+ required</li>
-                  <li>• 22GB free storage space</li>
-                  <li>• 4GB+ VRAM or 16GB+ RAM</li>
-                  <li>• Windows 10+, macOS 13+, Linux, or ChromeOS</li>
+                  <li>• RAM: 8GB minimum (12GB+ recommended)</li>
+                  <li>• Storage: 4GB minimum (10GB+ recommended)</li>
+                  <li>• 64-bit processor required</li>
+                  <li>• GPU: Integrated GPU minimum (Dedicated GPU recommended)</li>
                 </ul>
               </div>
 
