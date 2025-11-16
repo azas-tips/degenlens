@@ -5,7 +5,7 @@ import { migrateStorage } from '@/shared/storage-migration';
 import { MessageSchema } from '@/shared/schema';
 import { handleApiError } from '@/shared/errors';
 import { handleAnalyzeRequest } from './handlers/analyze';
-import { fetchModels } from '@/api/openrouter';
+import { fetchAvailableModels } from '@/api/models';
 
 console.log('DegenLens background service worker loaded');
 
@@ -102,7 +102,7 @@ async function handleFetchModelsRequest(
   const { id } = msg;
 
   try {
-    const models = await fetchModels();
+    const models = await fetchAvailableModels();
 
     safePost({
       type: 'models-result',

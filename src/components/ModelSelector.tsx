@@ -1,9 +1,12 @@
 // Model Selector Component
-// Fetches and displays available OpenRouter models with pricing
+// Fetches and displays available models (OpenRouter + Gemini Nano)
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from '@/i18n';
-import type { OpenRouterModel } from '@/types/openrouter';
+import type { AvailableModel } from '@/api/models';
+import { getGeminiNanoCapabilities } from '@/api/gemini-nano';
+import type { GeminiNanoCapabilities } from '@/types/gemini-nano';
+import { GEMINI_NANO_MODEL_ID } from '@/types/gemini-nano';
 
 interface ModelSelectorProps {
   value: string;
@@ -42,8 +45,8 @@ function extractProvider(modelId: string): string {
 /**
  * Get unique providers from models list
  */
-function getUniqueProviders(models: OpenRouterModel[]): string[] {
-  const providers = new Set(models.map(m => extractProvider(m.id)));
+function getUniqueProviders(models: AvailableModel[]): string[] {
+  const providers = new Set(models.map(m => (m.isBuiltIn ? 'Built-in' : extractProvider(m.id))));
   return Array.from(providers).sort();
 }
 
@@ -56,12 +59,14 @@ export function ModelSelector({
   layoutMode = 'single-column',
 }: ModelSelectorProps) {
   const { t } = useTranslation();
-  const [models, setModels] = useState<OpenRouterModel[]>([]);
+  const [models, setModels] = useState<AvailableModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
   const [favoriteModels, setFavoriteModels] = useState<string[]>([]);
+  const [geminiNanoCapabilities, setGeminiNanoCapabilities] =
+    useState<GeminiNanoCapabilities | null>(null);
 
   const fetchModels = useCallback(async () => {
     try {
@@ -74,20 +79,50 @@ export function ModelSelector({
         id: string;
         type: string;
         error?: string;
-        data?: OpenRouterModel[];
+        data?: AvailableModel[];
       }
 
-      port.onMessage.addListener((message: ModelsResultMessage) => {
+      port.onMessage.addListener(async (message: ModelsResultMessage) => {
         if (message.id !== requestId) return;
 
         if (message.type === 'models-result') {
+          let allModels: AvailableModel[] = [];
+
           if (message.error) {
-            // Silent error handling - don't log to console
+            console.error('[ModelSelector] Error fetching models:', message.error);
             setError(message.error);
-            setModels([]);
           } else {
-            setModels(message.data || []);
+            console.log('[ModelSelector] Received OpenRouter models:', message.data?.length || 0);
+            allModels = message.data || [];
           }
+
+          // Check Gemini Nano availability on UI side (Service Worker doesn't have window.ai)
+          try {
+            const capabilities = await getGeminiNanoCapabilities();
+            if (capabilities.available !== 'no') {
+              const geminiNanoModel: AvailableModel = {
+                id: GEMINI_NANO_MODEL_ID,
+                name: 'Gemini Nano (Built-in, Free)',
+                context_length: 4096,
+                pricing: {
+                  prompt: '0',
+                  completion: '0',
+                },
+                isBuiltIn: true,
+                description:
+                  'Chrome built-in AI model. Runs locally on your device. No API key required. ' +
+                  (capabilities.available === 'after-download'
+                    ? 'Model needs to be downloaded first.'
+                    : 'Ready to use.'),
+              };
+              allModels.push(geminiNanoModel);
+              console.log('[ModelSelector] Added Gemini Nano to models list');
+            }
+          } catch (error) {
+            console.error('[ModelSelector] Failed to check Gemini Nano:', error);
+          }
+
+          setModels(allModels);
           setLoading(false);
           port.disconnect();
         }
@@ -109,15 +144,9 @@ export function ModelSelector({
     setLoading(true);
     setError('');
 
-    // Check if API key exists first
-    const storage = await chrome.storage.local.get('openrouter_api_key');
-    if (!storage.openrouter_api_key) {
-      setLoading(false);
-      setError('API key not found');
-      setModels([]);
-      return;
-    }
-
+    // Always fetch models (fetchAvailableModels handles API key logic)
+    // If no OpenRouter API key: returns only Gemini Nano (if available)
+    // If OpenRouter API key exists: returns OpenRouter models + Gemini Nano
     fetchModels();
   }, [fetchModels]);
 
@@ -138,6 +167,19 @@ export function ModelSelector({
       }
     });
   }, []);
+
+  /**
+   * Check Gemini Nano capabilities when selected
+   */
+  useEffect(() => {
+    if (value === GEMINI_NANO_MODEL_ID) {
+      getGeminiNanoCapabilities().then(capabilities => {
+        setGeminiNanoCapabilities(capabilities);
+      });
+    } else {
+      setGeminiNanoCapabilities(null);
+    }
+  }, [value]);
 
   /**
    * Toggle favorite status of a model
@@ -179,7 +221,12 @@ export function ModelSelector({
    * Actual usage: ~280 prompt + ~500 completion tokens per pair
    * Estimated with buffer: 300 prompt + 600 completion tokens per pair
    */
-  const getEstimatedCost = (model: OpenRouterModel, pairCount: number = 20): string => {
+  const getEstimatedCost = (model: AvailableModel, pairCount: number = 20): string => {
+    // Gemini Nano is free
+    if (model.isBuiltIn) {
+      return 'Free';
+    }
+
     // Conservative estimates with safety margin
     // Prompt tokens include: system prompt + pair data formatting
     const estimatedPromptTokens = calculateEstimatedPromptTokens(pairCount);
@@ -187,8 +234,8 @@ export function ModelSelector({
     const estimatedCompletionTokens = 600 * pairCount;
 
     // Calculate cost separately for prompt and completion (different pricing)
-    const promptCost = parseFloat(model.pricing.prompt) * estimatedPromptTokens;
-    const completionCost = parseFloat(model.pricing.completion) * estimatedCompletionTokens;
+    const promptCost = parseFloat(model.pricing?.prompt || '0') * estimatedPromptTokens;
+    const completionCost = parseFloat(model.pricing?.completion || '0') * estimatedCompletionTokens;
     const totalCost = promptCost + completionCost;
 
     return totalCost < 0.01 ? '< $0.01' : `~$${totalCost.toFixed(2)}`;
@@ -232,15 +279,18 @@ export function ModelSelector({
 
     // Filter by selected providers
     if (selectedProviders.length > 0) {
-      filtered = filtered.filter(model => selectedProviders.includes(extractProvider(model.id)));
+      filtered = filtered.filter(model =>
+        selectedProviders.includes(model.isBuiltIn ? 'Built-in' : extractProvider(model.id))
+      );
     }
 
     // Filter by max input tokens (based on pair count)
     if (maxPairs && maxPairs > 0) {
       const requiredTokens = calculateEstimatedPromptTokens(maxPairs);
       filtered = filtered.filter(model => {
-        const maxInputTokens =
-          model.context_length - (model.top_provider?.max_completion_tokens || 8192);
+        const contextLength = model.context_length || 4096;
+        const maxCompletionTokens = model.top_provider?.max_completion_tokens || 8192;
+        const maxInputTokens = contextLength - maxCompletionTokens;
         return maxInputTokens >= requiredTokens;
       });
     }
@@ -413,8 +463,10 @@ export function ModelSelector({
               .filter(m => favoriteModels.includes(m.id))
               .map(model => (
                 <option key={model.id} value={model.id}>
-                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
-                  {formatPrice(model.pricing.completion)}/1M
+                  {model.name}
+                  {model.isBuiltIn
+                    ? ' - Free (Built-in)'
+                    : ` - In: ${formatPrice(model.pricing?.prompt || '0')}/1M | Out: ${formatPrice(model.pricing?.completion || '0')}/1M`}
                 </option>
               ))}
           </optgroup>
@@ -427,8 +479,10 @@ export function ModelSelector({
               .filter(m => !favoriteModels.includes(m.id))
               .map(model => (
                 <option key={model.id} value={model.id}>
-                  {model.name} - In: {formatPrice(model.pricing.prompt)}/1M | Out:{' '}
-                  {formatPrice(model.pricing.completion)}/1M
+                  {model.name}
+                  {model.isBuiltIn
+                    ? ' - Free (Built-in)'
+                    : ` - In: ${formatPrice(model.pricing?.prompt || '0')}/1M | Out: ${formatPrice(model.pricing?.completion || '0')}/1M`}
                 </option>
               ))}
           </optgroup>
@@ -455,12 +509,70 @@ export function ModelSelector({
             <span className="text-gray-400">{t('form.maxInputTokens')}:</span>
             <span className="text-neon-cyan font-bold">
               {(
-                selectedModel.context_length -
+                (selectedModel.context_length || 4096) -
                 (selectedModel.top_provider?.max_completion_tokens || 8192)
               ).toLocaleString()}{' '}
               tokens
             </span>
           </div>
+
+          {/* Gemini Nano specific info */}
+          {selectedModel.isBuiltIn && geminiNanoCapabilities && (
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Status:</span>
+                <span
+                  className={`font-bold ${
+                    geminiNanoCapabilities.available === 'readily'
+                      ? 'text-neon-green'
+                      : geminiNanoCapabilities.available === 'after-download'
+                        ? 'text-yellow-500'
+                        : 'text-neon-pink'
+                  }`}
+                >
+                  {geminiNanoCapabilities.available === 'readily'
+                    ? '✓ Ready'
+                    : geminiNanoCapabilities.available === 'after-download'
+                      ? '⬇ Download Required'
+                      : '✗ Not Available'}
+                </span>
+              </div>
+
+              {/* System Requirements Info */}
+              <div className="pt-2 border-t border-purple-500/20">
+                <div className="text-xs text-gray-400 mb-2">System Requirements:</div>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• Chrome 140+ required</li>
+                  <li>• 22GB+ free storage space</li>
+                  <li>• GPU: 4GB+ VRAM or CPU: 16GB+ RAM with 4+ cores</li>
+                  <li>• Unlimited or non-metered network connection</li>
+                  <li>• Not supported on mobile devices</li>
+                </ul>
+              </div>
+
+              {geminiNanoCapabilities.available === 'after-download' && (
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-xs text-yellow-500 font-mono">
+                    ⚠️ Model needs to be downloaded first. This may take some time depending on your
+                    connection.
+                  </p>
+                </div>
+              )}
+
+              {geminiNanoCapabilities.available === 'no' && (
+                <div className="p-3 bg-neon-pink/10 border border-neon-pink/30 rounded-lg space-y-2">
+                  <p className="text-xs text-neon-pink font-mono font-bold">
+                    ⚠️ Gemini Nano is not available on this browser
+                  </p>
+                  <p className="text-xs text-gray-300">
+                    Gemini Nano requires Chrome 140+ and is not supported on mobile devices. Please
+                    use an OpenRouter model instead, or update your browser to Chrome 140 or later.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+
           <div className="flex justify-between items-center">
             <span className="text-gray-400">
               {t('form.estimatedCost', { count: maxPairs || 20 })}:
