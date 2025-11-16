@@ -4,6 +4,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from '@/i18n';
 import type { AvailableModel } from '@/api/models';
+import { getGeminiNanoCapabilities } from '@/api/gemini-nano';
+import type { GeminiNanoCapabilities } from '@/types/gemini-nano';
+import { GEMINI_NANO_MODEL_ID } from '@/types/gemini-nano';
 
 interface ModelSelectorProps {
   value: string;
@@ -62,6 +65,8 @@ export function ModelSelector({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
   const [favoriteModels, setFavoriteModels] = useState<string[]>([]);
+  const [geminiNanoCapabilities, setGeminiNanoCapabilities] =
+    useState<GeminiNanoCapabilities | null>(null);
 
   const fetchModels = useCallback(async () => {
     try {
@@ -138,6 +143,19 @@ export function ModelSelector({
       }
     });
   }, []);
+
+  /**
+   * Check Gemini Nano capabilities when selected
+   */
+  useEffect(() => {
+    if (value === GEMINI_NANO_MODEL_ID) {
+      getGeminiNanoCapabilities().then(capabilities => {
+        setGeminiNanoCapabilities(capabilities);
+      });
+    } else {
+      setGeminiNanoCapabilities(null);
+    }
+  }, [value]);
 
   /**
    * Toggle favorite status of a model
@@ -473,6 +491,60 @@ export function ModelSelector({
               tokens
             </span>
           </div>
+
+          {/* Gemini Nano specific info */}
+          {selectedModel.isBuiltIn && geminiNanoCapabilities && (
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Status:</span>
+                <span
+                  className={`font-bold ${
+                    geminiNanoCapabilities.available === 'readily'
+                      ? 'text-neon-green'
+                      : geminiNanoCapabilities.available === 'after-download'
+                        ? 'text-yellow-500'
+                        : 'text-neon-pink'
+                  }`}
+                >
+                  {geminiNanoCapabilities.available === 'readily'
+                    ? '✓ Ready'
+                    : geminiNanoCapabilities.available === 'after-download'
+                      ? '⬇ Download Required'
+                      : '✗ Not Available'}
+                </span>
+              </div>
+
+              {/* System Requirements Info */}
+              <div className="pt-2 border-t border-purple-500/20">
+                <div className="text-xs text-gray-400 mb-2">System Requirements:</div>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• Chrome 127+ required</li>
+                  <li>• 22GB free storage space</li>
+                  <li>• 4GB+ VRAM or 16GB+ RAM</li>
+                  <li>• Windows 10+, macOS 13+, Linux, or ChromeOS</li>
+                </ul>
+              </div>
+
+              {geminiNanoCapabilities.available === 'after-download' && (
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-xs text-yellow-500 font-mono">
+                    ⚠️ Model needs to be downloaded first. This may take some time depending on your
+                    connection.
+                  </p>
+                </div>
+              )}
+
+              {geminiNanoCapabilities.available === 'no' && (
+                <div className="p-3 bg-neon-pink/10 border border-neon-pink/30 rounded-lg">
+                  <p className="text-xs text-neon-pink font-mono">
+                    ⚠️ Gemini Nano is not available on this device. Please check system requirements
+                    or use an OpenRouter model instead.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+
           <div className="flex justify-between items-center">
             <span className="text-gray-400">
               {t('form.estimatedCost', { count: maxPairs || 20 })}:
