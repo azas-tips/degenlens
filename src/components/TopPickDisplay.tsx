@@ -1,7 +1,7 @@
 // Top Pick Display Component
 // Displays THE TOP PICK prominently for degen trading
 
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useTranslation } from '@/i18n';
 import type { AnalysisResult } from '@/types/analysis';
 import { getRiskLevelInfo } from '@/utils/risk-assessment';
@@ -9,6 +9,8 @@ import { RiskBreakdown } from './RiskBreakdown';
 import { RiskScoreGauge } from './RiskScoreGauge';
 import { addExcludedToken } from '@/utils/exclusion';
 import type { ExcludedToken } from '@/types/storage';
+import { FaXTwitter } from 'react-icons/fa6';
+import { FaTelegramPlane, FaDiscord, FaGlobe } from 'react-icons/fa';
 
 interface TopPickDisplayProps {
   data: AnalysisResult;
@@ -177,6 +179,59 @@ export function TopPickDisplay({ data }: TopPickDisplayProps) {
           {/* Symbol */}
           <div className="mb-6">
             <h2 className="text-4xl font-bold neon-text mb-3 tracking-wide">{topPick.symbol}</h2>
+
+            {/* Social Links */}
+            {(topPick.socials && topPick.socials.length > 0) ||
+            (topPick.websites && topPick.websites.length > 0) ? (
+              <div className="flex items-center gap-3 mb-3">
+                {topPick.socials?.map((social, idx) => {
+                  let icon: ReactElement | null = null;
+                  let url = '';
+
+                  if (social.platform === 'twitter') {
+                    icon = <FaXTwitter className="w-5 h-5" />;
+                    url = `https://twitter.com/${social.handle.replace(/^@/, '')}`;
+                  } else if (social.platform === 'telegram') {
+                    icon = <FaTelegramPlane className="w-5 h-5" />;
+                    url = `https://t.me/${social.handle.replace(/^@/, '')}`;
+                  } else if (social.platform === 'discord') {
+                    icon = <FaDiscord className="w-5 h-5" />;
+                    url = social.handle.startsWith('http')
+                      ? social.handle
+                      : `https://discord.gg/${social.handle}`;
+                  }
+
+                  if (!icon) return null;
+
+                  return (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-neon-cyan transition-colors duration-200"
+                      title={`${social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}`}
+                    >
+                      {icon}
+                    </a>
+                  );
+                })}
+
+                {topPick.websites?.map((website, idx) => (
+                  <a
+                    key={`web-${idx}`}
+                    href={website.url.startsWith('http') ? website.url : `https://${website.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-neon-cyan transition-colors duration-200"
+                    title="Website"
+                  >
+                    <FaGlobe className="w-5 h-5" />
+                  </a>
+                ))}
+              </div>
+            ) : null}
+
             <div className="flex items-center gap-3 mb-2">
               <div className={getMoonshotStyle(topPick.moonshotPotential)}>
                 {topPick.moonshotPotential || 'High Potential'}

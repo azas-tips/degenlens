@@ -1,7 +1,7 @@
 // Analysis Types
 // Consolidated type definitions for token analysis results
 
-import type { Timeframe } from './dexscreener';
+import type { Timeframe, DexScreenerSocial, DexScreenerWebsite } from './dexscreener';
 import type { ScoringBreakdown } from '@/utils/risk-assessment';
 
 /**
@@ -62,6 +62,8 @@ export interface TopPick {
   riskLevel?: RiskLevel;
   riskFactors?: RiskFactor[];
   riskBreakdown?: ScoringBreakdown;
+  socials?: DexScreenerSocial[];
+  websites?: DexScreenerWebsite[];
 }
 
 /**
