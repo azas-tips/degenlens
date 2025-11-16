@@ -330,7 +330,9 @@
   "analysisSection": {
     "title": "分析設定",
     "selectModelAlert": "LLMモデルを選択してください",
-    "systemReady": "システム準備完了"
+    "systemReady": "システム準備完了",
+    "layoutSingle": "1列表示",
+    "layoutSplit": "2列表示"
   },
   "exclusion": {
     "title": "除外トークン",

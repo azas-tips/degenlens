@@ -22,6 +22,7 @@ export interface PersistedPrefs {
   timeframe: Timeframe;
   pairMaxAge: number | null; // Max pair age in hours (null = all pairs)
   quoteTokens: Record<string, string[]>; // Selected quote tokens per chain
+  layoutMode: 'single-column' | 'two-column'; // Layout mode for analysis UI
 }
 
 /**
@@ -48,6 +49,7 @@ export interface AppState extends PersistedPrefs, TemporaryState {
   setTimeframe: (timeframe: Timeframe) => void;
   setPairMaxAge: (pairMaxAge: number | null) => void;
   setQuoteTokensForChain: (chain: string, tokens: string[]) => void;
+  setLayoutMode: (layoutMode: 'single-column' | 'two-column') => void;
 
   // Actions for analysis state
   setAnalyzing: (analyzing: boolean) => void;
@@ -81,6 +83,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   timeframe: DEFAULT_TIMEFRAME,
   pairMaxAge: 24, // Default: Show pairs created within 24 hours
   quoteTokens: {}, // Empty by default
+  layoutMode: 'two-column', // Default: Two-column layout for PC
 
   // Default temporary state
   analyzing: false,
@@ -121,6 +124,11 @@ export const useAppStore = create<AppState>()((set, get) => ({
     const quoteTokens = { ...get().quoteTokens };
     quoteTokens[chain] = tokens;
     set({ quoteTokens });
+    get().savePreferences();
+  },
+
+  setLayoutMode: layoutMode => {
+    set({ layoutMode });
     get().savePreferences();
   },
 
@@ -209,6 +217,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           timeframe: prefs.timeframe || DEFAULT_TIMEFRAME,
           pairMaxAge: prefs.pairMaxAge !== undefined ? prefs.pairMaxAge : 24,
           quoteTokens: prefs.quoteTokens || {},
+          layoutMode: prefs.layoutMode || 'two-column',
         });
       }
     } catch (error) {
@@ -221,7 +230,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
    */
   savePreferences: async () => {
     try {
-      const { chain, model, maxPairs, timeframe, pairMaxAge, quoteTokens } = get();
+      const { chain, model, maxPairs, timeframe, pairMaxAge, quoteTokens, layoutMode } = get();
 
       await chrome.storage.local.set({
         [STORAGE_KEYS.PREFS]: {
@@ -231,6 +240,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           timeframe,
           pairMaxAge,
           quoteTokens,
+          layoutMode,
         },
       });
     } catch (error) {

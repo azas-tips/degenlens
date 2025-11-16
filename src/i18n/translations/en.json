@@ -330,7 +330,9 @@
   "analysisSection": {
     "title": "Analysis Settings",
     "selectModelAlert": "Please select an LLM model",
-    "systemReady": "System Ready"
+    "systemReady": "System Ready",
+    "layoutSingle": "Single Column",
+    "layoutSplit": "Split View"
   },
   "exclusion": {
     "title": "Excluded Tokens",

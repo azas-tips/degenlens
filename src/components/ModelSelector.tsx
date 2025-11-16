@@ -11,6 +11,7 @@ interface ModelSelectorProps {
   disabled?: boolean;
   onNavigateToSettings: () => void;
   maxPairs?: number;
+  layoutMode?: 'single-column' | 'two-column';
 }
 
 /**
@@ -52,6 +53,7 @@ export function ModelSelector({
   disabled,
   onNavigateToSettings,
   maxPairs,
+  layoutMode = 'single-column',
 }: ModelSelectorProps) {
   const { t } = useTranslation();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
@@ -397,7 +399,9 @@ export function ModelSelector({
         value={value}
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-mono text-base hover:border-purple-500/50 transition-all"
+        className={`w-full px-4 py-3 bg-cyber-darker border-2 border-purple-500/30 rounded-lg focus:border-neon-purple focus:shadow-neon-purple focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-mono hover:border-purple-500/50 transition-all ${
+          layoutMode === 'two-column' ? 'text-xs' : 'text-base'
+        }`}
         size={Math.min(filteredModels.length + 1, 6)}
       >
         <option value="">Select a model...</option>
@@ -441,6 +445,12 @@ export function ModelSelector({
       {/* Selected Model Info */}
       {selectedModel && (
         <div className="text-sm font-mono space-y-2 bg-cyber-darker/50 border border-purple-500/20 rounded-lg p-4">
+          {/* Selected Model Name */}
+          <div className="pb-2 border-b border-purple-500/20">
+            <div className="text-xs text-gray-400 mb-1">Selected Model:</div>
+            <div className="text-neon-cyan font-bold break-words">{selectedModel.name}</div>
+          </div>
+
           <div className="flex justify-between items-center">
             <span className="text-gray-400">{t('form.maxInputTokens')}:</span>
             <span className="text-neon-cyan font-bold">
