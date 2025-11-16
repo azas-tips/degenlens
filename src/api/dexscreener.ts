@@ -8,6 +8,7 @@ import { dexLimiter } from '@/background/utils/rate-limiter';
 import { retryWithBackoff } from '@/background/utils/retry-helper';
 import { STORAGE_KEYS } from '@/types/storage';
 import { getExcludedTokens } from '@/utils/exclusion';
+import { calculateRiskLevel } from '@/utils/risk-assessment';
 
 const DEX_API_BASE = 'https://api.dexscreener.com/latest/dex';
 
@@ -264,6 +265,28 @@ function filterPairsByQuoteToken(pairs: DexPair[], quoteTokens: string[]): DexPa
 }
 
 /**
+ * Filter out critical risk pairs (scam/honeypot confirmed)
+ * Prevents sending dangerous tokens to LLM for analysis
+ * @param pairs - Array of pairs to filter
+ * @returns Filtered array of pairs (riskScore < 100 only)
+ */
+function filterCriticalRiskPairs(pairs: DexPair[]): DexPair[] {
+  const filtered = pairs.filter(pair => {
+    const { score } = calculateRiskLevel(pair);
+    return score < 100; // Exclude riskScore=100 (confirmed scam/honeypot)
+  });
+
+  const removedCount = pairs.length - filtered.length;
+  if (removedCount > 0) {
+    console.log(
+      `[DEX API] Filtered out ${removedCount} critical risk pairs (scam/honeypot labels detected)`
+    );
+  }
+
+  return filtered;
+}
+
+/**
  * Fetch boosted tokens (tokens with active boosts)
  * These are typically trending/promoted tokens
  *
@@ -352,17 +375,20 @@ export async function fetchPairsByChain(
         // Filter by quote token (if specified)
         const quoteFiltered = filterPairsByQuoteToken(ageFiltered, quoteTokens);
 
+        // Filter out critical risk pairs (riskScore=100 = confirmed scam/honeypot)
+        const safeFiltered = filterCriticalRiskPairs(quoteFiltered);
+
         // Filter out excluded tokens (checks baseToken.address)
         const excludedTokens = await getExcludedTokens(apiChainId);
         const excludedAddresses = new Set(excludedTokens.map(t => t.tokenAddress.toLowerCase()));
 
-        const filtered = quoteFiltered.filter(
+        const filtered = safeFiltered.filter(
           pair => !excludedAddresses.has(pair.baseToken?.address?.toLowerCase() || '')
         );
 
         if (excludedAddresses.size > 0) {
           console.log(
-            `[DEX API] Filtered out ${sorted.length - filtered.length} pairs with excluded tokens for ${apiChainId}`
+            `[DEX API] Filtered out ${quoteFiltered.length - filtered.length} pairs with excluded tokens for ${apiChainId}`
           );
         }
 
@@ -449,17 +475,20 @@ export async function fetchPairsByChain(
     // Filter by quote token (if specified)
     const quoteFiltered = filterPairsByQuoteToken(ageFiltered, quoteTokens);
 
+    // Filter out critical risk pairs (riskScore=100 = confirmed scam/honeypot)
+    const safeFiltered = filterCriticalRiskPairs(quoteFiltered);
+
     // Filter out excluded tokens (checks baseToken.address)
     const excludedTokens = await getExcludedTokens(apiChainId);
     const excludedAddresses = new Set(excludedTokens.map(t => t.tokenAddress.toLowerCase()));
 
-    const filtered = quoteFiltered.filter(
+    const filtered = safeFiltered.filter(
       pair => !excludedAddresses.has(pair.baseToken?.address?.toLowerCase() || '')
     );
 
     if (excludedAddresses.size > 0) {
       console.log(
-        `[DEX API] Filtered out ${sorted.length - filtered.length} pairs with excluded tokens for ${apiChainId}`
+        `[DEX API] Filtered out ${quoteFiltered.length - filtered.length} pairs with excluded tokens for ${apiChainId}`
       );
     }
 

@@ -49,9 +49,16 @@ Analyze {pairsCount} tokens from {chain} showing significant market activity.
 - Evaluate tokens showing **active market participation**
 - **Pair Age Analysis**: Consider token maturity (newer = higher risk, older = more established)
 - **Labels Interpretation**: Pay attention to DEXscreener labels (e.g., "scam", "top", "v2", "v3")
-  - WARNING labels (scam, honeypot) = EXTREME risk, recommend avoiding
+  - **CRITICAL WARNING**: Tokens with scam, honeypot, rugpull, or exploit labels = NEVER select as Top Pick
+  - WARNING labels (frozen, blacklist, paused) = High risk, approach with extreme caution
   - POSITIVE labels (top, verified) = potentially more reliable
   - Version labels (v2, v3) = protocol version information
+- **Honeypot Detection**: Watch for these RED FLAGS indicating possible honeypot/scam:
+  - **No sell activity** (0 sells with many buys) = Cannot sell, likely honeypot
+  - **Extreme buy pressure** (>95% buys with 20+ transactions) = Pump scheme indicator
+  - **Suspicious volume/liquidity ratio** (Volume >> Liquidity) = Possible wash trading
+  - **Pump-and-dump pattern** (5m massive spike >100%, but 1h change <10%) = Dump incoming
+  - **No social presence** (New token with no website/socials) = Unverified/suspicious project
 - **Multi-Timeframe Trend Analysis**: Analyze Trend Strength, Momentum, Volatility, and Buy Pressure
   - **Trend Strength (0-100)**: Higher score = more consistent trend across all timeframes
     - 70+ = Strong trend (high confidence)
@@ -68,10 +75,12 @@ Analyze {pairsCount} tokens from {chain} showing significant market activity.
     - >60% = Bullish pressure (strong buying interest)
     - <40% = Bearish pressure (selling dominance)
     - 40-60% = Neutral (balanced market)
+    - **WARNING**: >95% buys or 0 sells = Possible honeypot
 - **Integrated Analysis**: Prioritize tokens with:
   - High Trend Strength + Accelerating Momentum + Bullish Buy Pressure = Strongest picks
   - Consistent trends across timeframes = more reliable signals
   - Strong buy pressure with volume acceleration = sustainable momentum
+  - **EXCLUDE from Top Pick**: Tokens with scam/honeypot labels, 0 sells, or pump-dump patterns
   - Avoid: Divergent trends + Extreme volatility spikes = pump/dump risk
 - Maintain objective, data-driven analysis
 
